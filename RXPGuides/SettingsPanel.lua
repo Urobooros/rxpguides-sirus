@@ -1070,7 +1070,8 @@ function addon.settings:CreateAceOptionsPanel()
                         end
                     },
                     groupMode = {
-                        name = fmt("%s %s", _G.ENABLE, _G.COMMUNITIES_SETTINGS_LABEL),
+                        name = fmt("%s %s", _G.ENABLE or "Включить",
+                                   _G.COMMUNITIES_SETTINGS_LABEL or "групповой режим"),
                         -- desc = "",
                         order = 2.7,
                         type = "toggle", -- type = "execute",

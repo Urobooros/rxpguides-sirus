@@ -1189,6 +1189,7 @@ function addon:InitializeSirusFoundation()
     addon.settings:InitializeSettings()
 
     if RXPSirusCompat then
+        RXPSirusCompat.foundationCompleted = true
         RXPSirusCompat.foundationReady = true
         RXPSirusCompat.stage = "foundation"
     end

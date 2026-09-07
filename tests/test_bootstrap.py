@@ -35,6 +35,7 @@ class BootstrapTests(unittest.TestCase):
         self.assertIs(self.lua.eval('RXPSirusCompat.coreDefinitionsReady'),False)
         self.assertIs(self.lua.eval('RXPSirusCompat.structureReady'),False)
         self.assertIs(self.lua.eval('RXPSirusCompat.foundationReady'),False)
+        self.assertIs(self.lua.eval('RXPSirusCompat.foundationCompleted'),False)
         self.assertIn('core disabled',self.lua.eval('messages[1]'))
 
     def test_toc_loads_only_owned_bootstrap(self):
@@ -106,6 +107,7 @@ class BootstrapTests(unittest.TestCase):
         settings=(ROOT/'RXPGuides/SettingsPanel.lua').read_text(encoding='utf-8')
         self.assertNotIn('AH\\Manifest.xml',includes)
         self.assertIn('POWER_TYPE_EXPERIENCE or "Опыт"',settings)
+        self.assertIn('_G.COMMUNITIES_SETTINGS_LABEL or "групповой режим"',settings)
 
     def test_leveling_routes_are_dormant_until_core_exists(self):
         lines=[line.strip() for line in (ROOT/'RXP Leveling/RXP Leveling.toc').read_text(encoding='utf-8').splitlines()
