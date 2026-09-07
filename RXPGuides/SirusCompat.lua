@@ -55,5 +55,13 @@ function RXPSirusCompat.RefreshCoreScaffold()
     return RXPSirusCompat.coreScaffoldReady
 end
 
+function RXPSirusCompat.RefreshCoreModules()
+    local aceAddon = LibStub and LibStub:GetLibrary("AceAddon-3.0", true)
+    local core = aceAddon and aceAddon:GetAddon(RXPSirusCompat.addonName, true)
+    RXPSirusCompat.themesReady = core ~= nil and type(core.themes) == "table" and
+        type(core.GetThemeOptions) == "function"
+    return RXPSirusCompat.themesReady
+end
+
 -- Compatibility functions will be added here only after their signatures are
 -- verified against the extracted Sirus sources and an in-game observation.

@@ -18,5 +18,6 @@ libs\AceLocale-3.0\AceLocale-3.0.xml
 
 locale\locales.xml
 Locale.lua
+Themes.lua
 
 SirusBootstrap.lua

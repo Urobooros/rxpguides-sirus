@@ -40,3 +40,7 @@ The live TOC now loads locale tables and `Locale.lua` after the confirmed Ace fo
 ## Checkpoint 2026-09-07: core scaffold confirmed
 
 Live Sirus test passed: `/rxpsirus status` reported `libraries ready; core scaffold ready; core disabled` with no reported Lua error. The locale tables and AceAddon core object are confirmed and approved for push.
+
+## Checkpoint 2026-09-07: theme module pending live verification
+
+`Themes.lua` is the next isolated module in the live TOC. It populates theme data and methods on the confirmed AceAddon object but does not start full core initialization. `/rxpsirus status` now reports `themes ready` only when the module completed. Local tests pass; not pushed. Next: `/reload`, then `/rxpsirus status`.
