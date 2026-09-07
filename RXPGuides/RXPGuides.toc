@@ -6,5 +6,13 @@
 ## SavedVariables: RXPData, RXPDB, RXPSettings, RXPString
 ## SavedVariablesPerCharacter: RXPCData, RXPCTrackingData, RXPCComms, RXPCSettings
 
+libs\compatibility.lua
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.lua
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\AceLocale-3.0\AceLocale-3.0.xml
+
 SirusCompat.lua
 SirusBootstrap.lua

@@ -28,12 +28,15 @@ class BootstrapTests(unittest.TestCase):
         self.lua.execute('eventFrame.handler(eventFrame,"ADDON_LOADED","RXPGuides"); SlashCmdList.RXPSIRUS("status")')
         self.assertIs(self.lua.eval('RXPSirusCompat.loaded'),True)
         self.assertIs(self.lua.eval('RXPSirusCompat.supportedClient'),True)
+        self.assertIs(self.lua.eval('RXPSirusCompat.librariesReady'),False)
         self.assertIn('core disabled',self.lua.eval('messages[1]'))
 
     def test_toc_loads_only_owned_bootstrap(self):
         lines=[line.strip() for line in (ROOT/'RXPGuides/RXPGuides.toc').read_text(encoding='utf-8').splitlines()
                if line.strip() and not line.startswith('##')]
-        self.assertEqual(lines,['SirusCompat.lua','SirusBootstrap.lua'])
+        self.assertEqual(lines[-2:],['SirusCompat.lua','SirusBootstrap.lua'])
+        self.assertIn('libs\\AceAddon-3.0\\AceAddon-3.0.xml',lines)
+        self.assertIn('libs\\AceLocale-3.0\\AceLocale-3.0.xml',lines)
 
     def test_leveling_routes_are_dormant_until_core_exists(self):
         lines=[line.strip() for line in (ROOT/'RXP Leveling/RXP Leveling.toc').read_text(encoding='utf-8').splitlines()

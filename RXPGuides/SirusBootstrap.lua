@@ -11,7 +11,9 @@ SlashCmdList.RXPSIRUS = function(command)
     command = string.lower((command or ""):match("^%s*(.-)%s*$"))
     if command == "status" or command == "" then
         local state = RXPSirusCompat.supportedClient and "client confirmed" or "unexpected client build"
-        message("bootstrap loaded; " .. state .. "; core disabled")
+        local libraries = RXPSirusCompat.librariesReady and "libraries ready" or
+            ("libraries missing: " .. table.concat(RXPSirusCompat.missingLibraries, ", "))
+        message("bootstrap loaded; " .. state .. "; " .. libraries .. "; core disabled")
     else
         message("command: /rxpsirus status")
     end

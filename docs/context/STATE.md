@@ -17,7 +17,9 @@
 
 Игровые папки `RXPGuides` и `RXP Leveling` теперь NTFS-ссылки на папки репозитория. Исходные игровые каталоги сохранены в `.local/game-original-direct`. Правки применяются к игре сразу, без deploy.
 
-Следующий конкретный шаг: подключить минимальные Ace-библиотеки, расширить `/rxpsirus status` проверкой LibStub/AceAddon/AceEvent/AceDB/AceLocale и повторить игровой тест.
+Минимальные Ace-библиотеки подключены локально: LibStub, CallbackHandler, AceEvent, AceDB, AceAddon и AceLocale. `/rxpsirus status` теперь проверяет их фактическую регистрацию. Изменение ещё не подтверждено в игре и не отправлено в GitHub.
+
+Следующий конкретный шаг: выполнить `/reload`, затем `/rxpsirus status`. Ожидается `libraries ready`; при ошибке сначала снять первую ошибку BugSack, не подключать следующие модули.
 
 Первый аудит выполнен: 4 корневых TOC; найдено 55 ссылок `C_Map`, 53 `C_QuestLog`, 6 `C_SuperTrack`, 38 `Settings`, 14 `BackdropTemplateMixin`, 3 `ScrollBox` и 3 `CreateFromMixins`. Это лексические количества, включая неисполняемые ветки; отчёт `.local/audit.json`.
 
