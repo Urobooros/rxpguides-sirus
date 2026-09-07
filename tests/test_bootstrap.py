@@ -108,6 +108,10 @@ class BootstrapTests(unittest.TestCase):
             self.assertNotIn('\n\t\tframe:SetFixedFrameStrata(true)',source)
             self.assertNotIn('\n\tbutton:SetFixedFrameStrata(true)',source)
 
+        guide_window=(ROOT/'RXPGuides/GuideWindow.lua').read_text(encoding='utf-8')
+        self.assertNotIn('s.Normal:SetTexture',guide_window)
+        self.assertIn('s:SetNormalTexture',guide_window)
+
     def test_structural_ui_skips_retail_auction_scrollbox(self):
         includes=(ROOT/'RXPGuides/UI/includes.xml').read_text(encoding='utf-8')
         settings=(ROOT/'RXPGuides/SettingsPanel.lua').read_text(encoding='utf-8')

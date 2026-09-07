@@ -1350,15 +1350,15 @@ function RXPFrame.UpdateScrollBar()
     local prefix = addon.GetTexture("Scrollbar/")
 
     local s = ScrollFrame.ScrollBar.ScrollDownButton
-    s.Normal:SetTexture(prefix .. "Down-Normal")
-    s.Highlight:SetTexture(prefix .. "Down-Highlight") -- ?
-    s.Pushed:SetTexture(prefix .. "Down-Pushed")
-    s.Disabled:SetTexture(prefix .. "Down-Disabled")
+    s:SetNormalTexture(prefix .. "Down-Normal")
+    s:SetHighlightTexture(prefix .. "Down-Highlight")
+    s:SetPushedTexture(prefix .. "Down-Pushed")
+    s:SetDisabledTexture(prefix .. "Down-Disabled")
     s = ScrollFrame.ScrollBar.ScrollUpButton
-    s.Normal:SetTexture(prefix .. "Up-Normal")
-    s.Highlight:SetTexture(prefix .. "Up-Highlight")
-    s.Pushed:SetTexture(prefix .. "Up-Pushed")
-    s.Disabled:SetTexture(prefix .. "Up-Disabled")
+    s:SetNormalTexture(prefix .. "Up-Normal")
+    s:SetHighlightTexture(prefix .. "Up-Highlight")
+    s:SetPushedTexture(prefix .. "Up-Pushed")
+    s:SetDisabledTexture(prefix .. "Up-Disabled")
     ScrollFrame.ScrollBar:SetThumbTexture(prefix .. "Knob")
 end
 
