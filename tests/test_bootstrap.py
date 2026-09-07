@@ -81,6 +81,16 @@ class BootstrapTests(unittest.TestCase):
     def test_legacy_gossip_namespace_exists(self):
         self.assertEqual(self.lua.eval('type(C_GossipInfo)'),'table')
 
+    def test_modern_fixed_frame_calls_are_optional(self):
+        paths=[
+            ROOT/'RXPGuides/libs/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua',
+            ROOT/'RXPGuides/libs/LibDBIcon-1.0/LibDBIcon-1.0.lua',
+        ]
+        for path in paths:
+            source=path.read_text(encoding='utf-8')
+            self.assertNotIn('\n\t\tframe:SetFixedFrameStrata(true)',source)
+            self.assertNotIn('\n\tbutton:SetFixedFrameStrata(true)',source)
+
     def test_leveling_routes_are_dormant_until_core_exists(self):
         lines=[line.strip() for line in (ROOT/'RXP Leveling/RXP Leveling.toc').read_text(encoding='utf-8').splitlines()
                if line.strip() and not line.startswith('##')]

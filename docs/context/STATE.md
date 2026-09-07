@@ -88,3 +88,7 @@ Live Sirus test passed after adding the legacy gossip namespace: `/rxpsirus stat
 ## Checkpoint 2026-09-07: settings libraries pending live verification
 
 The live TOC now loads AceConsole, AceConfig, AceDBOptions, LibDataBroker, and LibDBIcon. `SettingsPanel.lua` itself remains disabled. Library readiness validates a key method from each addition. Nine local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`; all existing status fields should remain ready.
+
+## Checkpoint 2026-09-07: fixed-frame compatibility pending live verification
+
+The first settings-library test failed because modern AceConfigDialog calls `SetFixedFrameStrata` and `SetFixedFrameLevel`, methods absent from 3.3.5 frames. Those optional calls are now guarded in both AceConfigDialog and LibDBIcon, which uses the same modern methods when other addons register minimap buttons. Ten local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`.
