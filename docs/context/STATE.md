@@ -104,3 +104,7 @@ Work switched to bulk porting. `tools/port_analysis.py` now compares RXP Lua ref
 ## Checkpoint 2026-09-08: Sirus-only cleanup and Details libraries confirmed
 
 Live test passed with no errors. BugSack remains usable and `/rxpsirus status` reports libraries, core scaffold, themes, communications, and core definitions ready while lifecycle remains disabled. The bulk cleanup and Sirus-compatible settings-library replacement are approved for push.
+
+## Checkpoint 2026-09-08: TBC and Survival routes restored
+
+Per owner decision, the original `Guides/tbc` and `Guides/SurvivalGuide` route sets plus `GuideList-tbc.xml` were restored without restoring the TBC client TOC or databases. Inspection of guide `#name` metadata shows TBC leveling routes reach level 70 and Survival routes reach level 60; neither is a complete 1-80 route. Chinese guide copies were not restored. Locale loading is now limited to the required enUS base and ruRU translation; other language files were removed. The analyzer classifies the 45 restored Lua files as `optional_routes`, not another supported client. Eleven tests pass. Locale pruning still needs one live `/reload` before push.

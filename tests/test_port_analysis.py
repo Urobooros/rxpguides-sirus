@@ -12,6 +12,8 @@ class PortAnalysisTests(unittest.TestCase):
         self.assertEqual(classify_path(ROOT/'RXPGuides/DB/wotlk/db.lua'),'wotlk')
         self.assertEqual(classify_path(ROOT/'RXPGuides/DB/mainline/db.lua'),'other_client')
         self.assertEqual(classify_path(ROOT/'RXPGuides/RXPGuides.lua'),'shared')
+        self.assertEqual(classify_path(ROOT/'RXPGuides/Guides/tbc/A-Human.lua'),'optional_routes')
+        self.assertEqual(classify_path(ROOT/'RXPGuides/Guides/SurvivalGuide/Custom.lua'),'optional_routes')
 
 
 if __name__=='__main__': unittest.main()

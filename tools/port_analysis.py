@@ -34,7 +34,11 @@ def snapshot_names() -> tuple[set[str], set[str]]:
 
 
 def classify_path(path: Path) -> str:
-    parts = {part.lower() for part in path.relative_to(ADDON).parts}
+    relative = path.relative_to(ADDON)
+    lowered = tuple(part.lower() for part in relative.parts)
+    if len(lowered) > 1 and lowered[0] == "guides" and lowered[1] in {"tbc", "survivalguide"}:
+        return "optional_routes"
+    parts = set(lowered)
     if parts & KEEP_DATA_PARTS:
         return "wotlk"
     if parts & CLIENT_ONLY_PARTS:
@@ -86,6 +90,7 @@ def main() -> None:
             "files_with_version_branches": len(branches),
             "other_client_files": len(expansion_paths["other_client"]),
             "wotlk_data_files": len(expansion_paths["wotlk"]),
+            "optional_route_files": files_by_scope["optional_routes"],
         },
         "api_references": refs,
         "version_branches": dict(branches),
