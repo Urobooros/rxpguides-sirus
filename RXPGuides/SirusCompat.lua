@@ -27,6 +27,13 @@ if not GetCurrentRegionName then
     end
 end
 
+-- Added after Wrath. This port targets the level-80 Sirus 3.3.5 client.
+if not GetMaxPlayerLevel then
+    function GetMaxPlayerLevel()
+        return 80
+    end
+end
+
 -- Sirus exposes the 3.3.5 addon-message API without the complete modern
 -- C_ChatInfo surface expected by current AceComm/ChatThrottleLib.
 if not RegisterAddonMessagePrefix then

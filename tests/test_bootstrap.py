@@ -78,6 +78,7 @@ class BootstrapTests(unittest.TestCase):
     def test_region_compatibility_for_ace_db(self):
         self.assertEqual(self.lua.eval('GetCurrentRegion()'),3)
         self.assertEqual(self.lua.eval('GetCurrentRegionName()'),'EU')
+        self.assertEqual(self.lua.eval('GetMaxPlayerLevel()'),80)
 
     def test_legacy_addon_message_compatibility(self):
         self.assertEqual(self.lua.eval('Ambiguate("Player-Realm", "none")'),'Player-Realm')
