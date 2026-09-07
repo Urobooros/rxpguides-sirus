@@ -28,3 +28,7 @@
 ## Checkpoint 2026-09-07: AceDB region fix pending live verification
 
 The first minimal-library live test failed in `AceDB-3.0` because Sirus does not provide `GetCurrentRegion`. `SirusCompat.lua` now loads before AceDB and supplies deterministic EU region functions used only for AceDB SavedVariables namespacing. Library status now checks required methods, preventing the earlier false `libraries ready` result. Local tests pass. The fix is present in the live game junction but has not been confirmed in game or pushed to GitHub. Next: `/reload`, then `/rxpsirus status`; capture the first Lua error if one appears.
+
+## Checkpoint 2026-09-07: minimal Ace foundation confirmed
+
+Live Sirus test passed after commit `110529a`: `/rxpsirus status` reported `bootstrap loaded; client confirmed; libraries ready; core disabled` with no reported Lua error. The minimal Ace foundation and the AceDB region compatibility fix are approved for push. Next porting step: load the smallest RXPGuides core slice, stopping at the first incompatible API or initialization error.
