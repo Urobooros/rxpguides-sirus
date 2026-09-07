@@ -1208,7 +1208,16 @@ function addon:InitializeSirusWindow()
     -- deliberately read-only for this compatibility checkpoint.
     addon.RXPFrame:SetScript("OnShow", nil)
     addon.RXPFrame:SetScript("OnHide", nil)
-    addon.RXPFrame:EnableMouse(false)
+
+    local function disableMouseTree(frame)
+        if frame.EnableMouse then frame:EnableMouse(false) end
+        if not frame.GetChildren then return end
+        local children = {frame:GetChildren()}
+        for _, child in ipairs(children) do
+            disableMouseTree(child)
+        end
+    end
+    disableMouseTree(addon.RXPFrame)
     addon.RXPFrame:SetScale(addon.settings.profile.windowScale or 1)
     addon.RXPFrame:Show()
 
