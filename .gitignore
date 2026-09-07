@@ -1,5 +1,7 @@
 .local/
 tools/.local/
+__pycache__/
+*.pyc
 .vscode/
 Reports/
 WTF/
