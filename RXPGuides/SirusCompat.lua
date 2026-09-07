@@ -25,6 +25,33 @@ if not GetCurrentRegionName then
     end
 end
 
+-- Sirus exposes the 3.3.5 addon-message API without the complete modern
+-- C_ChatInfo surface expected by current AceComm/ChatThrottleLib.
+if not RegisterAddonMessagePrefix then
+    function RegisterAddonMessagePrefix(prefix)
+        return type(prefix) == "string" and prefix ~= ""
+    end
+end
+
+C_ChatInfo = C_ChatInfo or {}
+if not C_ChatInfo.RegisterAddonMessagePrefix then
+    C_ChatInfo.RegisterAddonMessagePrefix = RegisterAddonMessagePrefix
+end
+if not C_ChatInfo.SendAddonMessage then
+    C_ChatInfo.SendAddonMessage = function(...)
+        return SendAddonMessage(...)
+    end
+end
+if not C_ChatInfo.SendAddonMessageLogged then
+    C_ChatInfo.SendAddonMessageLogged = C_ChatInfo.SendAddonMessage
+end
+
+if not Ambiguate then
+    function Ambiguate(name)
+        return name
+    end
+end
+
 local requiredLibraries = {
     { "AceAddon-3.0", "NewAddon" },
     { "AceEvent-3.0", "RegisterEvent" },

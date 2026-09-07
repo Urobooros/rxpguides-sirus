@@ -52,3 +52,7 @@ Live Sirus test passed: `/rxpsirus status` reported `themes ready; core disabled
 ## Checkpoint 2026-09-07: communications libraries pending live verification
 
 The live TOC now additionally loads AceGUI, AceComm with ChatThrottleLib, and AceSerializer. `Communications.lua` itself remains disabled. The general library readiness check includes key methods from all three libraries. Local tests pass; this slice is not confirmed in game or pushed. Next: `/reload`, then `/rxpsirus status`; all previous status fields should remain ready.
+
+## Checkpoint 2026-09-07: legacy addon-message API fix pending live verification
+
+The first communications-library live test produced three related errors: ChatThrottleLib tried to hook missing methods on Sirus's partial `C_ChatInfo`; AceComm could not find `RegisterAddonMessagePrefix`; and `Ambiguate` was absent. The compatibility layer now completes `C_ChatInfo` using the legacy 3.3.5 `SendAddonMessage`, supplies prefix registration semantics, and provides the identity behavior needed for old sender names. Six local tests pass. Next: clear old BugSack entries if needed, `/reload`, then `/rxpsirus status`; report only new errors from the latest session.
