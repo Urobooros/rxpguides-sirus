@@ -68,3 +68,7 @@ Live Sirus test passed after the legacy chat and optional BNet-hook fixes. `/rxp
 ## Checkpoint 2026-09-07: communications module pending live verification
 
 `Communications.lua` is now loaded after its confirmed libraries. Its `Setup` method is not called because the main core remains disabled, so it only constructs the AceAddon module and its functions. Status now reports `communications ready` when that module loaded completely. Seven local tests pass. Next: clear old errors, `/reload`, then `/rxpsirus status`.
+
+## Checkpoint 2026-09-07: communications module confirmed
+
+Live Sirus test passed: `/rxpsirus status` reported `communications ready; core disabled` with no new Lua error. `Communications.lua` loads and creates its AceAddon module, while `Setup` remains inactive. Approved for push. Next: prepare the dependency layer required before loading `RXPGuides.lua`.
