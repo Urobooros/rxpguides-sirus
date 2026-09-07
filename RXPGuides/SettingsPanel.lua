@@ -1621,7 +1621,8 @@ function addon.settings:CreateAceOptionsPanel()
                         end
                     },
                     dungeons = {
-                        name = _G.LFG_LIST_SELECT .. ' ' ..  _G.DUNGEONS,
+                        name = (_G.LFG_LIST_SELECT or "Выбрать") .. ' ' ..
+                            (_G.DUNGEONS or "подземелья"),
                         desc = function()
                             local out =
                                 L"Routes in quests for the selected dungeon\nGuides that support this feature:\n"
