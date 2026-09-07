@@ -1150,9 +1150,7 @@ function addon:CreateMetaDataTable(wipe)
 
 end
 
-function addon:OnInitialize()
-    if RXPSirusCompat and not RXPSirusCompat.coreEnabled then return end
-
+function addon:InitializeSirusFoundation()
     local importGuidesDefault = {
         profile = {guides = {}, reports = {splits = {}}}
     }
@@ -1189,6 +1187,22 @@ function addon:OnInitialize()
     addon.settings:InitializeDatabase()
     addon.CreateMetaDataTable()
     addon.settings:InitializeSettings()
+
+    if RXPSirusCompat then
+        RXPSirusCompat.foundationReady = true
+        RXPSirusCompat.stage = "foundation"
+    end
+end
+
+function addon:OnInitialize()
+    if RXPSirusCompat and not RXPSirusCompat.coreEnabled then
+        if RXPSirusCompat.foundationEnabled then
+            addon:InitializeSirusFoundation()
+        end
+        return
+    end
+
+    addon:InitializeSirusFoundation()
 
     RXPCData.completedWaypoints = RXPCData.completedWaypoints or {}
     addon.settings.profile.hardcore =

@@ -116,3 +116,7 @@ The canonical restored route sets remain separate and are not merged into a synt
 ## Checkpoint 2026-09-08: structural slice confirmed
 
 The structural UI/settings/WotLK database slice is confirmed in Sirus with no Lua errors. The Retail auction `ScrollBox` XML was removed from the load path, missing `POWER_TYPE_EXPERIENCE` now falls back to the Russian label `Опыт`, and the guide frame created at file scope stays hidden and non-interactive while the core lifecycle is disabled. The restored canonical TBC and Survival routes and the enUS/ruRU-only locale set were covered by this live test. Twelve local tests and the repository check pass. Next: enable the real AceAddon initialization in a controlled slice, create SavedVariables, and keep route activation disabled until settings and the base guide window initialize cleanly.
+
+## Checkpoint 2026-09-08: persistent foundation pending live verification
+
+AceAddon `OnInitialize` now runs an isolated Sirus foundation stage that creates `RXPDB`, `RXPSettings`, `RXPData`, `RXPCData`, guide metadata, settings options, migrations, colors, and slash commands. Full UI setup, routes, quest automation, map logic, communications setup, events, and `OnEnable` remain disabled. `/rxpsirus status` reports `foundation ready` only after this stage completes. The guide frame remains hidden and non-interactive. Twelve local tests and the repository check pass. Next: `/reload`, run `/rxpsirus status`, and report the first new-session Lua error or confirm `foundation ready; core disabled`.
