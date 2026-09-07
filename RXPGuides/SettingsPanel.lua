@@ -1730,7 +1730,7 @@ function addon.settings:CreateAceOptionsPanel()
                     }
                 }
             },
-            targeting = {
+            targeting = addon.targeting and {
                 type = "group",
                 name = _G.BINDING_HEADER_TARGETING,
                 order = 4,
@@ -2063,7 +2063,7 @@ function addon.settings:CreateAceOptionsPanel()
                         hidden = not unitscanEnabled
                     }
                 }
-            },
+            } or nil,
             levelTrackerFeatures = {
                 type = "group",
                 name = L("Leveling Tracker"),
