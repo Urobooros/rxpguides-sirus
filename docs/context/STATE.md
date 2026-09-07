@@ -120,3 +120,7 @@ The structural UI/settings/WotLK database slice is confirmed in Sirus with no Lu
 ## Checkpoint 2026-09-08: persistent foundation pending live verification
 
 AceAddon `OnInitialize` now runs an isolated Sirus foundation stage that creates `RXPDB`, `RXPSettings`, `RXPData`, `RXPCData`, guide metadata, settings options, migrations, colors, and slash commands. Full UI setup, routes, quest automation, map logic, communications setup, events, and `OnEnable` remain disabled. `/rxpsirus status` reports `foundation ready` only after this stage completes. The guide frame remains hidden and non-interactive. Twelve local tests and the repository check pass. Next: `/reload`, run `/rxpsirus status`, and report the first new-session Lua error or confirm `foundation ready; core disabled`.
+
+## Checkpoint 2026-09-08: persistent foundation confirmed
+
+Live Sirus test reports `foundation ready; core disabled` with no Lua errors. Missing modern labels now have Russian WotLK fallbacks, unloaded targeting settings are omitted until that module is ported, and `GetMaxPlayerLevel()` returns the verified WotLK cap of 80. SavedVariables, AceDB profiles, metadata, settings construction, migrations, colors, and slash-command registration are approved for push. Next: initialize and display only the base guide window while keeping routes, event handlers, map/navigation, automation, and interactive controls disabled.
