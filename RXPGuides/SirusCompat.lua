@@ -64,6 +64,11 @@ local requiredLibraries = {
     { "AceGUI-3.0", "Create" },
     { "AceComm-3.0", "RegisterComm" },
     { "AceSerializer-3.0", "Serialize" },
+    { "AceConsole-3.0", "RegisterChatCommand" },
+    { "AceConfig-3.0", "RegisterOptionsTable" },
+    { "AceDBOptions-3.0", "GetOptionsTable" },
+    { "LibDataBroker-1.1", "NewDataObject" },
+    { "LibDBIcon-1.0", "Register" },
 }
 
 function RXPSirusCompat.RefreshLibraries()

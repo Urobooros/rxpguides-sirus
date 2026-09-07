@@ -80,3 +80,11 @@ Live Sirus test passed: `/rxpsirus status` reported `communications ready; core 
 ## Checkpoint 2026-09-07: legacy gossip namespace fix pending live verification
 
 The first guarded-core test stopped at `RXPGuides.lua:596` because Sirus has legacy global gossip functions but no `C_GossipInfo` table. The compatibility layer now creates the namespace table, allowing the source's existing global-function fallbacks to work. Nine local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`.
+
+## Checkpoint 2026-09-07: guarded core definitions confirmed
+
+Live Sirus test passed after adding the legacy gossip namespace: `/rxpsirus status` reported `core definitions ready; core disabled` with no new Lua error. Top-level `RXPGuides.lua` definitions are confirmed while lifecycle handlers remain guarded. Approved for push. Next: prepare the libraries required by `SettingsPanel.lua` before loading settings or UI.
+
+## Checkpoint 2026-09-07: settings libraries pending live verification
+
+The live TOC now loads AceConsole, AceConfig, AceDBOptions, LibDataBroker, and LibDBIcon. `SettingsPanel.lua` itself remains disabled. Library readiness validates a key method from each addition. Nine local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`; all existing status fields should remain ready.
