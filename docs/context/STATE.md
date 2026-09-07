@@ -32,3 +32,7 @@ The first minimal-library live test failed in `AceDB-3.0` because Sirus does not
 ## Checkpoint 2026-09-07: minimal Ace foundation confirmed
 
 Live Sirus test passed after commit `110529a`: `/rxpsirus status` reported `bootstrap loaded; client confirmed; libraries ready; core disabled` with no reported Lua error. The minimal Ace foundation and the AceDB region compatibility fix are approved for push. Next porting step: load the smallest RXPGuides core slice, stopping at the first incompatible API or initialization error.
+
+## Checkpoint 2026-09-07: core scaffold pending live verification
+
+The live TOC now loads locale tables and `Locale.lua` after the confirmed Ace foundation. This creates the RXPGuides AceAddon object and its locale accessor without loading `RXPGuides.lua`, UI, databases, or routes. `/rxpsirus status` now reports whether this core scaffold exists. Local tests pass; the slice is not yet confirmed in game or pushed. Next: `/reload`, then `/rxpsirus status`; expected `core scaffold ready; core disabled`.

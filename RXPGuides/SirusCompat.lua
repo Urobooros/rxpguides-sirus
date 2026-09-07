@@ -47,5 +47,13 @@ end
 
 RXPSirusCompat.RefreshLibraries()
 
+function RXPSirusCompat.RefreshCoreScaffold()
+    local aceAddon = LibStub and LibStub:GetLibrary("AceAddon-3.0", true)
+    local core = aceAddon and aceAddon:GetAddon(RXPSirusCompat.addonName, true)
+    RXPSirusCompat.coreScaffoldReady = core ~= nil and core.locale ~= nil and
+        type(core.locale.Get) == "function"
+    return RXPSirusCompat.coreScaffoldReady
+end
+
 -- Compatibility functions will be added here only after their signatures are
 -- verified against the extracted Sirus sources and an in-game observation.

@@ -29,6 +29,7 @@ class BootstrapTests(unittest.TestCase):
         self.assertIs(self.lua.eval('RXPSirusCompat.loaded'),True)
         self.assertIs(self.lua.eval('RXPSirusCompat.supportedClient'),True)
         self.assertIs(self.lua.eval('RXPSirusCompat.librariesReady'),False)
+        self.assertIs(self.lua.eval('RXPSirusCompat.coreScaffoldReady'),False)
         self.assertIn('core disabled',self.lua.eval('messages[1]'))
 
     def test_toc_loads_only_owned_bootstrap(self):
@@ -38,6 +39,8 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(lines[-1],'SirusBootstrap.lua')
         self.assertIn('libs\\AceAddon-3.0\\AceAddon-3.0.xml',lines)
         self.assertIn('libs\\AceLocale-3.0\\AceLocale-3.0.xml',lines)
+        self.assertLess(lines.index('locale\\locales.xml'),lines.index('Locale.lua'))
+        self.assertLess(lines.index('Locale.lua'),lines.index('SirusBootstrap.lua'))
 
     def test_region_compatibility_for_ace_db(self):
         self.assertEqual(self.lua.eval('GetCurrentRegion()'),3)
