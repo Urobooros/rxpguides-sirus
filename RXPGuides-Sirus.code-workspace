@@ -1,8 +1,8 @@
 {
   "folders": [
     { "name": "RXPGuides-Sirus", "path": "." },
-    { "name": "RXPGuides — port source", "path": "RXPGuides" },
-    { "name": "RXP Leveling — routes", "path": "RXP Leveling" },
+    { "name": "LIVE — RXPGuides", "path": "D:/Games/World of Warcraft Sirus для тестов/Interface/AddOns/RXPGuides" },
+    { "name": "LIVE — RXP Leveling", "path": "D:/Games/World of Warcraft Sirus для тестов/Interface/AddOns/RXP Leveling" },
     { "name": "Sirus — test client", "path": "D:/Games/World of Warcraft Sirus для тестов" }
   ],
   "settings": {

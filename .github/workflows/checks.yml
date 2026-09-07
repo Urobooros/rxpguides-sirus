@@ -19,6 +19,8 @@ jobs:
           python-version: '3.12'
       - name: Check repository contents
         run: python tools/check_repository.py
+      - name: Install Lua 5.1 test runtime
+        run: python -m pip install --only-binary=:all: lupa==2.8
       - name: Check Python syntax
         run: python -m compileall -q tools tests
       - name: Run tests

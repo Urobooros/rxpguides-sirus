@@ -6,7 +6,7 @@
 
 Установленные нами `idTip` и `SirusAPIProbe` удалены из тестового клиента и перемещены в `D:\Poslevkusie\.local\removed-addons\20260907` для возможного восстановления.
 
-Текущая работа: этап 1 из `docs/PLAN.md`. Нужно закончить воспроизводимый аудит TOC/load graph и API, затем создать минимальный `RXPGuides_Sirus.toc`. Исходные папки RXP в игре пока не изменять.
+Текущая работа: этап 2. Рабочий `RXPGuides.toc` заменён минимальным Sirus TOC; исходный современный список сохранён как `RXPGuides_Retail.toc`. Созданы `SirusCompat.lua` и `SirusBootstrap.lua`. Маршруты `RXP Leveling` временно отключены в TOC до появления ядра; оригинальный список сохранён рядом.
 
 Найдено:
 
@@ -15,7 +15,9 @@
 - ядро интенсивно использует `C_QuestLog`, `C_Map`, `C_SuperTrack` и современные элементы UI;
 - RXPGuides лицензирован CC BY-NC-SA 4.0; у RXP Leveling отдельная лицензия не найдена.
 
-Следующий конкретный шаг: запустить `tools/audit.py`, изучить `.local/audit.json`, выбрать список файлов минимальной загрузки и начать слой совместимости.
+Игровые папки `RXPGuides` и `RXP Leveling` теперь NTFS-ссылки на папки репозитория. Исходные игровые каталоги сохранены в `.local/game-original-direct`. Правки применяются к игре сразу, без deploy.
+
+Следующий конкретный шаг: запустить игру с RXPGuides и BugGrabber/BugSack, выполнить `/rxpsirus status` и проверить отсутствие ошибок. Ожидаемый ответ: `bootstrap loaded; client confirmed; core disabled`.
 
 Первый аудит выполнен: 4 корневых TOC; найдено 55 ссылок `C_Map`, 53 `C_QuestLog`, 6 `C_SuperTrack`, 38 `Settings`, 14 `BackdropTemplateMixin`, 3 `ScrollBox` и 3 `CreateFromMixins`. Это лексические количества, включая неисполняемые ветки; отчёт `.local/audit.json`.
 
