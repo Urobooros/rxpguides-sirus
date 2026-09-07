@@ -1354,7 +1354,7 @@ function addon.settings:CreateAceOptionsPanel()
                 order = 3,
                 args = {
                     experienceHeader = {
-                        name = _G.POWER_TYPE_EXPERIENCE,
+                        name = _G.POWER_TYPE_EXPERIENCE or "Опыт",
                         type = "header",
                         width = "full",
                         order = 1.0
@@ -3744,7 +3744,7 @@ end
 
 local ITEM_RANGE = ITEM_LEVEL_RANGE_CURRENT:gsub("([%(%)])","%%%1")
 ITEM_RANGE = ITEM_RANGE:gsub("%%d","%(%%d+%)")
-local XPTEXT = strlower(POWER_TYPE_EXPERIENCE)
+local XPTEXT = strlower(POWER_TYPE_EXPERIENCE or "Опыт")
 
 addon.settings.heirloomSlots = {}
 local tooltipTimer = 0

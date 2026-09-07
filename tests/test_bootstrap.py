@@ -95,6 +95,12 @@ class BootstrapTests(unittest.TestCase):
             self.assertNotIn('\n\t\tframe:SetFixedFrameStrata(true)',source)
             self.assertNotIn('\n\tbutton:SetFixedFrameStrata(true)',source)
 
+    def test_structural_ui_skips_retail_auction_scrollbox(self):
+        includes=(ROOT/'RXPGuides/UI/includes.xml').read_text(encoding='utf-8')
+        settings=(ROOT/'RXPGuides/SettingsPanel.lua').read_text(encoding='utf-8')
+        self.assertNotIn('AH\\Manifest.xml',includes)
+        self.assertIn('POWER_TYPE_EXPERIENCE or "Опыт"',settings)
+
     def test_leveling_routes_are_dormant_until_core_exists(self):
         lines=[line.strip() for line in (ROOT/'RXP Leveling/RXP Leveling.toc').read_text(encoding='utf-8').splitlines()
                if line.strip() and not line.startswith('##')]
