@@ -111,6 +111,8 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn('_G.COMMUNITIES_SETTINGS_LABEL or "групповой режим"',settings)
         self.assertIn('_G.LFG_LIST_SELECT or "Выбрать"',settings)
         self.assertIn('targeting = addon.targeting and {',settings)
+        self.assertEqual(settings.count('_G.PREVIEW'),1)
+        self.assertIn('PREVIEW_LABEL =',settings)
 
     def test_leveling_routes_are_dormant_until_core_exists(self):
         lines=[line.strip() for line in (ROOT/'RXP Leveling/RXP Leveling.toc').read_text(encoding='utf-8').splitlines()

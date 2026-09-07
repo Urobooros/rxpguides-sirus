@@ -23,6 +23,8 @@ local GetAddOnInfo = C_AddOns and C_AddOns.GetAddOnInfo or _G.GetAddOnInfo
 local GetItemInfo = C_Item and C_Item.GetItemInfo or _G.GetItemInfo
 
 local fmt, tostr, next, GetTime = string.format, tostring, next, GetTime
+local PREVIEW_LABEL = _G.PREVIEW or "Предпросмотр"
+local QUEST_COMPLETE_FORMAT = _G.ERR_QUEST_COMPLETE_S or "%s: выполнено"
 
 local INV_HEIRLOOM = _G.Enum.ItemQuality.Heirloom
 -- local gameVersion = select(4, GetBuildInfo())
@@ -2937,8 +2939,8 @@ function addon.settings:CreateAceOptionsPanel()
                         order = 1.92
                     },
                     previewFramePositions = {
-                        name = fmt(L("%s Frame Positions"), _G.PREVIEW),
-                        desc = fmt(L("%s Frame Positions"), _G.PREVIEW),
+                        name = fmt(L("%s Frame Positions"), PREVIEW_LABEL),
+                        desc = fmt(L("%s Frame Positions"), PREVIEW_LABEL),
                         type = 'execute',
                         width = optionsWidth,
                         order = 1.93,
@@ -4249,7 +4251,7 @@ function addon.settings:EnableFramePreviews()
     local currentGuide = addon.currentGuide
 
     -- Prevent overwriting actual guide if activating multiple times
-    if currentGuide.name == fmt("%s Frame Positions", _G.PREVIEW) then
+    if currentGuide.name == fmt("%s Frame Positions", PREVIEW_LABEL) then
         return
     end
 
@@ -4273,16 +4275,17 @@ step
     +%s
     >>|cRXP_WARN_Skip this step to return%s|r
     ]],
-    fmt("%s Frame Positions", _G.PREVIEW),
+    fmt("%s Frame Positions", PREVIEW_LABEL),
     addon.player.name,
     GetRealZoneText(),
-    fmt(_G.ERR_QUEST_COMPLETE_S, _G.PREVIEW),
+    fmt(QUEST_COMPLETE_FORMAT, PREVIEW_LABEL),
     currentGuide.name == "" and '' or fmt(" to %s", nextLine or _G.MAINMENU)
     )
 
-    addon.RegisterGuide(_G.PREVIEW or L("Preview"), previewsGuideContent)
+    addon.RegisterGuide(PREVIEW_LABEL, previewsGuideContent)
 
-    local guideToLoad = addon.GetGuideTable(_G.PREVIEW, fmt("%s Frame Positions", _G.PREVIEW))
+    local guideToLoad = addon.GetGuideTable(PREVIEW_LABEL,
+        fmt("%s Frame Positions", PREVIEW_LABEL))
 
     guideToLoad.next = nextLine
 
