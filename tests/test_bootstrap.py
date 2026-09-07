@@ -73,6 +73,8 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn('if RXPSirusCompat and not RXPSirusCompat.coreEnabled then',source)
         self.assertIn('RXPSirusCompat.foundationEnabled',source)
         self.assertIn('addon:InitializeSirusWindow()',source)
+        self.assertIn('addon.minGuideVersion = addon.minGuideVersion or 0',source)
+        self.assertIn('addon.maxGuideVersion = addon.maxGuideVersion or 0',source)
 
         bootstrap=(ROOT/'RXPGuides/SirusBootstrap.lua').read_text(encoding='utf-8')
         self.assertIn('RXPFrame:Hide()',bootstrap)

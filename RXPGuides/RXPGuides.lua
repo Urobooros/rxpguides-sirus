@@ -1196,6 +1196,10 @@ function addon:InitializeSirusFoundation()
 end
 
 function addon:InitializeSirusWindow()
+    -- GuideLoader supplies these after it is ported. The visual-only stage
+    -- still needs numeric values for the footer.
+    addon.minGuideVersion = addon.minGuideVersion or 0
+    addon.maxGuideVersion = addon.maxGuideVersion or 0
     addon:ImportCustomThemes()
     addon:LoadActiveTheme()
     addon.SetupGuideWindow()
