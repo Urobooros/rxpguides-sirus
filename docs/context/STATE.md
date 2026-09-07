@@ -56,3 +56,7 @@ The live TOC now additionally loads AceGUI, AceComm with ChatThrottleLib, and Ac
 ## Checkpoint 2026-09-07: legacy addon-message API fix pending live verification
 
 The first communications-library live test produced three related errors: ChatThrottleLib tried to hook missing methods on Sirus's partial `C_ChatInfo`; AceComm could not find `RegisterAddonMessagePrefix`; and `Ambiguate` was absent. The compatibility layer now completes `C_ChatInfo` using the legacy 3.3.5 `SendAddonMessage`, supplies prefix registration semantics, and provides the identity behavior needed for old sender names. Six local tests pass. Next: clear old BugSack entries if needed, `/reload`, then `/rxpsirus status`; report only new errors from the latest session.
+
+## Checkpoint 2026-09-07: optional BNet hook fix pending live verification
+
+The second communications-library test reached ChatThrottleLib's optional `BNSendGameData` hook, which does not exist in Sirus 3.3.5. The bundled library now installs that hook only when the native BNet function exists; normal addon messages remain enabled. Seven local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`.

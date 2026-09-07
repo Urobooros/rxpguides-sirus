@@ -58,6 +58,10 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(self.lua.eval('type(C_ChatInfo.SendAddonMessage)'),'function')
         self.assertEqual(self.lua.eval('type(C_ChatInfo.SendAddonMessageLogged)'),'function')
 
+    def test_chat_throttle_skips_missing_bnet_api(self):
+        source=(ROOT/'RXPGuides/libs/AceComm-3.0/ChatThrottleLib.lua').read_text(encoding='utf-8')
+        self.assertIn('type(_G.BNSendGameData) == "function"',source)
+
     def test_leveling_routes_are_dormant_until_core_exists(self):
         lines=[line.strip() for line in (ROOT/'RXP Leveling/RXP Leveling.toc').read_text(encoding='utf-8').splitlines()
                if line.strip() and not line.startswith('##')]
