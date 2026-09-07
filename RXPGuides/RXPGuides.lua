@@ -1151,6 +1151,8 @@ function addon:CreateMetaDataTable(wipe)
 end
 
 function addon:OnInitialize()
+    if RXPSirusCompat and not RXPSirusCompat.coreEnabled then return end
+
     local importGuidesDefault = {
         profile = {guides = {}, reports = {splits = {}}}
     }
@@ -1243,6 +1245,8 @@ function addon:OnInitialize()
 end
 
 function addon:OnEnable()
+    if RXPSirusCompat and not RXPSirusCompat.coreEnabled then return end
+
     addon.ParseCompletedQuests()
     addon.LoadEmbeddedGuides()
     if addon.settings.profile.preLoadData then

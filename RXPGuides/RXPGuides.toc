@@ -23,5 +23,6 @@ locale\locales.xml
 Locale.lua
 Themes.lua
 Communications.lua
+RXPGuides.lua
 
 SirusBootstrap.lua

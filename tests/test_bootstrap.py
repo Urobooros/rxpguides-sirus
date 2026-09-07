@@ -32,6 +32,7 @@ class BootstrapTests(unittest.TestCase):
         self.assertIs(self.lua.eval('RXPSirusCompat.coreScaffoldReady'),False)
         self.assertIs(self.lua.eval('RXPSirusCompat.themesReady'),False)
         self.assertIs(self.lua.eval('RXPSirusCompat.communicationsReady'),False)
+        self.assertIs(self.lua.eval('RXPSirusCompat.coreDefinitionsReady'),False)
         self.assertIn('core disabled',self.lua.eval('messages[1]'))
 
     def test_toc_loads_only_owned_bootstrap(self):
@@ -50,6 +51,13 @@ class BootstrapTests(unittest.TestCase):
         self.assertLess(lines.index('Themes.lua'),lines.index('SirusBootstrap.lua'))
         self.assertLess(lines.index('Themes.lua'),lines.index('Communications.lua'))
         self.assertLess(lines.index('Communications.lua'),lines.index('SirusBootstrap.lua'))
+        self.assertLess(lines.index('Communications.lua'),lines.index('RXPGuides.lua'))
+        self.assertLess(lines.index('RXPGuides.lua'),lines.index('SirusBootstrap.lua'))
+
+    def test_full_core_lifecycle_is_guarded_during_staging(self):
+        source=(ROOT/'RXPGuides/RXPGuides.lua').read_text(encoding='utf-8')
+        guard='if RXPSirusCompat and not RXPSirusCompat.coreEnabled then return end'
+        self.assertEqual(source.count(guard),2)
 
     def test_region_compatibility_for_ace_db(self):
         self.assertEqual(self.lua.eval('GetCurrentRegion()'),3)

@@ -92,6 +92,8 @@ function RXPSirusCompat.RefreshCoreModules()
         type(core.GetThemeOptions) == "function"
     RXPSirusCompat.communicationsReady = core ~= nil and type(core.comms) == "table" and
         type(core.comms.Setup) == "function"
+    RXPSirusCompat.coreDefinitionsReady = core ~= nil and core.game == "WOTLK" and
+        type(core.RXPGuides) == "table" and type(core.OnInitialize) == "function"
     return RXPSirusCompat.themesReady and RXPSirusCompat.communicationsReady
 end
 

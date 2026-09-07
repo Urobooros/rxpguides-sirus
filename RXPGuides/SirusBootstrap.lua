@@ -20,8 +20,10 @@ SlashCmdList.RXPSIRUS = function(command)
         local modules = RXPSirusCompat.themesReady and "themes ready" or "themes missing"
         local communications = RXPSirusCompat.communicationsReady and "communications ready" or
             "communications missing"
+        local definitions = RXPSirusCompat.coreDefinitionsReady and "core definitions ready" or
+            "core definitions missing"
         message("bootstrap loaded; " .. state .. "; " .. libraries .. "; " .. core .. "; " .. modules ..
-            "; " .. communications .. "; core disabled")
+            "; " .. communications .. "; " .. definitions .. "; core disabled")
     else
         message("command: /rxpsirus status")
     end

@@ -72,3 +72,7 @@ Live Sirus test passed after the legacy chat and optional BNet-hook fixes. `/rxp
 ## Checkpoint 2026-09-07: communications module confirmed
 
 Live Sirus test passed: `/rxpsirus status` reported `communications ready; core disabled` with no new Lua error. `Communications.lua` loads and creates its AceAddon module, while `Setup` remains inactive. Approved for push. Next: prepare the dependency layer required before loading `RXPGuides.lua`.
+
+## Checkpoint 2026-09-07: RXPGuides core definitions pending live verification
+
+`RXPGuides.lua` is now in the live TOC. Its `OnInitialize` and `OnEnable` handlers return while the staged `coreEnabled` flag is false, so this test covers top-level core definitions without starting settings, UI, guide databases, routes, or events. Status checks that the addon identifies the 12340 client as WOTLK and exposes its core table. Eight local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`; expected `core definitions ready; core disabled`.
