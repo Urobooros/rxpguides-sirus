@@ -1,5 +1,12 @@
 local addonName = ...
 
+-- GuideWindow builds its frame while definitions are loaded. Keep that
+-- incomplete frame inaccessible until the core lifecycle is enabled.
+if RXPSirusCompat and not RXPSirusCompat.coreEnabled and RXPFrame then
+    RXPFrame:Hide()
+    RXPFrame:EnableMouse(false)
+end
+
 local function message(text)
     if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
         DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRXP Sirus:|r " .. text)

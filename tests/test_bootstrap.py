@@ -68,6 +68,10 @@ class BootstrapTests(unittest.TestCase):
         guard='if RXPSirusCompat and not RXPSirusCompat.coreEnabled then return end'
         self.assertEqual(source.count(guard),2)
 
+        bootstrap=(ROOT/'RXPGuides/SirusBootstrap.lua').read_text(encoding='utf-8')
+        self.assertIn('RXPFrame:Hide()',bootstrap)
+        self.assertIn('RXPFrame:EnableMouse(false)',bootstrap)
+
     def test_region_compatibility_for_ace_db(self):
         self.assertEqual(self.lua.eval('GetCurrentRegion()'),3)
         self.assertEqual(self.lua.eval('GetCurrentRegionName()'),'EU')
