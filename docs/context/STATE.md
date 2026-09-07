@@ -124,3 +124,7 @@ AceAddon `OnInitialize` now runs an isolated Sirus foundation stage that creates
 ## Checkpoint 2026-09-08: persistent foundation confirmed
 
 Live Sirus test reports `foundation ready; core disabled` with no Lua errors. Missing modern labels now have Russian WotLK fallbacks, unloaded targeting settings are omitted until that module is ported, and `GetMaxPlayerLevel()` returns the verified WotLK cap of 80. SavedVariables, AceDB profiles, metadata, settings construction, migrations, colors, and slash-command registration are approved for push. Next: initialize and display only the base guide window while keeping routes, event handlers, map/navigation, automation, and interactive controls disabled.
+
+## Checkpoint 2026-09-08: base window pending live verification
+
+The staged initializer now imports themes, selects the active theme, initializes the base guide window, and shows its visual shell. OnShow/OnHide behavior and mouse interaction remain disabled, so this test cannot start map logic, routes, automation, or unported modules. `/rxpsirus status` reports `window ready` only after the window initializer completes. Twelve local tests and the repository check pass. Next: `/reload`, verify the base window renders, run `/rxpsirus status`, and report the first new-session Lua error or confirm `window ready; core disabled`.

@@ -1195,10 +1195,31 @@ function addon:InitializeSirusFoundation()
     end
 end
 
+function addon:InitializeSirusWindow()
+    addon:ImportCustomThemes()
+    addon:LoadActiveTheme()
+    addon.SetupGuideWindow()
+
+    -- Event-driven behavior is enabled in later stages. The visual shell is
+    -- deliberately read-only for this compatibility checkpoint.
+    addon.RXPFrame:SetScript("OnShow", nil)
+    addon.RXPFrame:SetScript("OnHide", nil)
+    addon.RXPFrame:EnableMouse(false)
+    addon.RXPFrame:SetScale(addon.settings.profile.windowScale or 1)
+    addon.RXPFrame:Show()
+
+    RXPSirusCompat.windowCompleted = true
+    RXPSirusCompat.windowReady = true
+    RXPSirusCompat.stage = "window"
+end
+
 function addon:OnInitialize()
     if RXPSirusCompat and not RXPSirusCompat.coreEnabled then
         if RXPSirusCompat.foundationEnabled then
             addon:InitializeSirusFoundation()
+            if RXPSirusCompat.windowEnabled then
+                addon:InitializeSirusWindow()
+            end
         end
         return
     end

@@ -11,6 +11,8 @@ RXPSirusCompat.stage = "bootstrap"
 RXPSirusCompat.coreEnabled = false
 RXPSirusCompat.foundationEnabled = true
 RXPSirusCompat.foundationCompleted = false
+RXPSirusCompat.windowEnabled = true
+RXPSirusCompat.windowCompleted = false
 RXPSirusCompat.supportedClient = RXPSirusCompat.build == 30300 or RXPSirusCompat.build == 12340
 
 -- Added in later clients and used by the bundled AceDB to namespace profiles.
@@ -120,6 +122,8 @@ function RXPSirusCompat.RefreshCoreModules()
         core ~= nil and core.db ~= nil and type(core.settings) == "table" and
         core.settings.profile ~= nil and type(RXPData) == "table" and
         type(RXPCData) == "table"
+    RXPSirusCompat.windowReady = RXPSirusCompat.windowCompleted == true and
+        core ~= nil and core.RXPFrame ~= nil and core.activeTheme ~= nil
     return RXPSirusCompat.themesReady and RXPSirusCompat.communicationsReady
 end
 

@@ -36,6 +36,8 @@ class BootstrapTests(unittest.TestCase):
         self.assertIs(self.lua.eval('RXPSirusCompat.structureReady'),False)
         self.assertIs(self.lua.eval('RXPSirusCompat.foundationReady'),False)
         self.assertIs(self.lua.eval('RXPSirusCompat.foundationCompleted'),False)
+        self.assertIs(self.lua.eval('RXPSirusCompat.windowReady'),False)
+        self.assertIs(self.lua.eval('RXPSirusCompat.windowCompleted'),False)
         self.assertIn('core disabled',self.lua.eval('messages[1]'))
 
     def test_toc_loads_only_owned_bootstrap(self):
@@ -70,6 +72,7 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn('addon:InitializeSirusFoundation()',source)
         self.assertIn('if RXPSirusCompat and not RXPSirusCompat.coreEnabled then',source)
         self.assertIn('RXPSirusCompat.foundationEnabled',source)
+        self.assertIn('addon:InitializeSirusWindow()',source)
 
         bootstrap=(ROOT/'RXPGuides/SirusBootstrap.lua').read_text(encoding='utf-8')
         self.assertIn('RXPFrame:Hide()',bootstrap)
