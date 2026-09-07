@@ -108,3 +108,7 @@ Live test passed with no errors. BugSack remains usable and `/rxpsirus status` r
 ## Checkpoint 2026-09-08: TBC and Survival routes restored
 
 Per owner decision, the original `Guides/tbc` and `Guides/SurvivalGuide` route sets plus `GuideList-tbc.xml` were restored without restoring the TBC client TOC or databases. Inspection of guide `#name` metadata shows TBC leveling routes reach level 70 and Survival routes reach level 60; neither is a complete 1-80 route. Chinese guide copies were not restored. Locale loading is now limited to the required enUS base and ruRU translation; other language files were removed. The analyzer classifies the 45 restored Lua files as `optional_routes`, not another supported client. Eleven tests pass. Locale pruning still needs one live `/reload` before push.
+
+## Checkpoint 2026-09-08: structural UI/settings/WotLK DB slice pending live verification
+
+The canonical restored route sets remain separate and are not merged into a synthetic 1-80 route. The live TOC now loads UI manifests, GuideWindow, Help, SettingsPanel, and `DB/wotlk.xml` while the guarded Ace lifecycle remains disabled. Status reports `structure ready` only after the frame, settings module, help, WotLK map data, and quest conversion table all exist. Eleven local tests and repository checks pass. Next: clear old errors, `/reload`, then `/rxpsirus status`; inspect the first new error or expect `structure ready; core disabled`.

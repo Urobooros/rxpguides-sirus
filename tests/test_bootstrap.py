@@ -33,6 +33,7 @@ class BootstrapTests(unittest.TestCase):
         self.assertIs(self.lua.eval('RXPSirusCompat.themesReady'),False)
         self.assertIs(self.lua.eval('RXPSirusCompat.communicationsReady'),False)
         self.assertIs(self.lua.eval('RXPSirusCompat.coreDefinitionsReady'),False)
+        self.assertIs(self.lua.eval('RXPSirusCompat.structureReady'),False)
         self.assertIn('core disabled',self.lua.eval('messages[1]'))
 
     def test_toc_loads_only_owned_bootstrap(self):
@@ -58,6 +59,9 @@ class BootstrapTests(unittest.TestCase):
         self.assertLess(lines.index('Communications.lua'),lines.index('SirusBootstrap.lua'))
         self.assertLess(lines.index('Communications.lua'),lines.index('RXPGuides.lua'))
         self.assertLess(lines.index('RXPGuides.lua'),lines.index('SirusBootstrap.lua'))
+        self.assertLess(lines.index('UI\\includes.xml'),lines.index('locale\\locales.xml'))
+        self.assertLess(lines.index('RXPGuides.lua'),lines.index('GuideWindow.lua'))
+        self.assertLess(lines.index('SettingsPanel.lua'),lines.index('DB\\wotlk.xml'))
 
     def test_full_core_lifecycle_is_guarded_during_staging(self):
         source=(ROOT/'RXPGuides/RXPGuides.lua').read_text(encoding='utf-8')

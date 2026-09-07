@@ -103,6 +103,10 @@ function RXPSirusCompat.RefreshCoreModules()
         type(core.comms.Setup) == "function"
     RXPSirusCompat.coreDefinitionsReady = core ~= nil and core.game == "WOTLK" and
         type(core.RXPGuides) == "table" and type(core.OnInitialize) == "function"
+    RXPSirusCompat.structureReady = core ~= nil and type(core.ui) == "table" and
+        core.RXPFrame ~= nil and type(core.help) == "table" and
+        type(core.settings) == "table" and type(core.mapId) == "table" and
+        type(core.questConversion) == "table"
     return RXPSirusCompat.themesReady and RXPSirusCompat.communicationsReady
 end
 
