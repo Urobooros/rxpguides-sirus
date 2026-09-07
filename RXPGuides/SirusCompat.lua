@@ -30,6 +30,9 @@ local requiredLibraries = {
     { "AceEvent-3.0", "RegisterEvent" },
     { "AceDB-3.0", "New" },
     { "AceLocale-3.0", "GetLocale" },
+    { "AceGUI-3.0", "Create" },
+    { "AceComm-3.0", "RegisterComm" },
+    { "AceSerializer-3.0", "Serialize" },
 }
 
 function RXPSirusCompat.RefreshLibraries()

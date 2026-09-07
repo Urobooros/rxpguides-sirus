@@ -48,3 +48,7 @@ Live Sirus test passed: `/rxpsirus status` reported `libraries ready; core scaff
 ## Checkpoint 2026-09-07: theme module confirmed
 
 Live Sirus test passed: `/rxpsirus status` reported `themes ready; core disabled` with no reported Lua error. `Themes.lua` is approved for push. Next slice: load and verify only the Ace libraries required by `Communications.lua`, before loading the module itself.
+
+## Checkpoint 2026-09-07: communications libraries pending live verification
+
+The live TOC now additionally loads AceGUI, AceComm with ChatThrottleLib, and AceSerializer. `Communications.lua` itself remains disabled. The general library readiness check includes key methods from all three libraries. Local tests pass; this slice is not confirmed in game or pushed. Next: `/reload`, then `/rxpsirus status`; all previous status fields should remain ready.
