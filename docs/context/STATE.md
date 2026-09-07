@@ -76,3 +76,7 @@ Live Sirus test passed: `/rxpsirus status` reported `communications ready; core 
 ## Checkpoint 2026-09-07: RXPGuides core definitions pending live verification
 
 `RXPGuides.lua` is now in the live TOC. Its `OnInitialize` and `OnEnable` handlers return while the staged `coreEnabled` flag is false, so this test covers top-level core definitions without starting settings, UI, guide databases, routes, or events. Status checks that the addon identifies the 12340 client as WOTLK and exposes its core table. Eight local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`; expected `core definitions ready; core disabled`.
+
+## Checkpoint 2026-09-07: legacy gossip namespace fix pending live verification
+
+The first guarded-core test stopped at `RXPGuides.lua:596` because Sirus has legacy global gossip functions but no `C_GossipInfo` table. The compatibility layer now creates the namespace table, allowing the source's existing global-function fallbacks to work. Nine local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`.

@@ -52,6 +52,10 @@ if not Ambiguate then
     end
 end
 
+-- RXPGuides already falls back to the legacy global gossip functions, but it
+-- expects the modern namespace table itself to exist while selecting them.
+C_GossipInfo = C_GossipInfo or {}
+
 local requiredLibraries = {
     { "AceAddon-3.0", "NewAddon" },
     { "AceEvent-3.0", "RegisterEvent" },
