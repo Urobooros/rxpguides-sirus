@@ -44,3 +44,7 @@ Live Sirus test passed: `/rxpsirus status` reported `libraries ready; core scaff
 ## Checkpoint 2026-09-07: theme module pending live verification
 
 `Themes.lua` is the next isolated module in the live TOC. It populates theme data and methods on the confirmed AceAddon object but does not start full core initialization. `/rxpsirus status` now reports `themes ready` only when the module completed. Local tests pass; not pushed. Next: `/reload`, then `/rxpsirus status`.
+
+## Checkpoint 2026-09-07: theme module confirmed
+
+Live Sirus test passed: `/rxpsirus status` reported `themes ready; core disabled` with no reported Lua error. `Themes.lua` is approved for push. Next slice: load and verify only the Ace libraries required by `Communications.lua`, before loading the module itself.
