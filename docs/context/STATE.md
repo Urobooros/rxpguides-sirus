@@ -128,3 +128,7 @@ Live Sirus test reports `foundation ready; core disabled` with no Lua errors. Mi
 ## Checkpoint 2026-09-08: base window pending live verification
 
 The staged initializer now imports themes, selects the active theme, initializes the base guide window, and shows its visual shell. OnShow/OnHide behavior and mouse interaction remain disabled, so this test cannot start map logic, routes, automation, or unported modules. `/rxpsirus status` reports `window ready` only after the window initializer completes. Twelve local tests and the repository check pass. Next: `/reload`, verify the base window renders, run `/rxpsirus status`, and report the first new-session Lua error or confirm `window ready; core disabled`.
+
+## Checkpoint 2026-09-08: base window confirmed
+
+Live Sirus test reports `window ready; core disabled`. The themed base guide window renders correctly and repeated clicks on its parent and child controls produce no Lua errors because interaction remains disabled for this stage. Legacy scrollbar texture methods are used, and guide version counters safely default to zero until GuideLoader initializes them. Approved for push. Next: load GuideLoader and its parser dependencies, register guide data without activating routes or gameplay events, and verify guide metadata through status.
