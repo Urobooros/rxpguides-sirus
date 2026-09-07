@@ -1,0 +1,13 @@
+{
+  "folders": [
+    { "name": "RXPGuides-Sirus", "path": "." },
+    { "name": "RXPGuides — port source", "path": "RXPGuides" },
+    { "name": "RXP Leveling — routes", "path": "RXP Leveling" },
+    { "name": "Sirus — test client", "path": "D:/Games/World of Warcraft Sirus для тестов" }
+  ],
+  "settings": {
+    "files.encoding": "utf8",
+    "search.exclude": { "**/.git/**": true, "**/.local/**": true, "**/Data/**": true },
+    "files.watcherExclude": { "**/Data/**": true, "**/Cache/**": true, "**/WTF/**": true }
+  }
+}
