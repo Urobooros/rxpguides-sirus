@@ -22,5 +22,6 @@ libs\AceSerializer-3.0\AceSerializer-3.0.xml
 locale\locales.xml
 Locale.lua
 Themes.lua
+Communications.lua
 
 SirusBootstrap.lua

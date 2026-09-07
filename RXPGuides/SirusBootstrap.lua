@@ -18,8 +18,10 @@ SlashCmdList.RXPSIRUS = function(command)
             ("libraries missing: " .. table.concat(RXPSirusCompat.missingLibraries, ", "))
         local core = RXPSirusCompat.coreScaffoldReady and "core scaffold ready" or "core scaffold missing"
         local modules = RXPSirusCompat.themesReady and "themes ready" or "themes missing"
+        local communications = RXPSirusCompat.communicationsReady and "communications ready" or
+            "communications missing"
         message("bootstrap loaded; " .. state .. "; " .. libraries .. "; " .. core .. "; " .. modules ..
-            "; core disabled")
+            "; " .. communications .. "; core disabled")
     else
         message("command: /rxpsirus status")
     end

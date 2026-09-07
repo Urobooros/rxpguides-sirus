@@ -90,7 +90,9 @@ function RXPSirusCompat.RefreshCoreModules()
     local core = aceAddon and aceAddon:GetAddon(RXPSirusCompat.addonName, true)
     RXPSirusCompat.themesReady = core ~= nil and type(core.themes) == "table" and
         type(core.GetThemeOptions) == "function"
-    return RXPSirusCompat.themesReady
+    RXPSirusCompat.communicationsReady = core ~= nil and type(core.comms) == "table" and
+        type(core.comms.Setup) == "function"
+    return RXPSirusCompat.themesReady and RXPSirusCompat.communicationsReady
 end
 
 -- Compatibility functions will be added here only after their signatures are
