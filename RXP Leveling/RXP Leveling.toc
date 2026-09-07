@@ -1,0 +1,9 @@
+## Interface: 40402
+## Title: RXP Leveling
+## Notes: In-game quest stacking
+## Author: The Curator
+## Version: 1.0.0
+## Dependencies: RXPGuides
+Classic/Alliance-31-85.lua
+Classic/Horde-31-85.lua
+Classic/Cata Prep.lua
