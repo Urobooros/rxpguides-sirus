@@ -112,3 +112,7 @@ Per owner decision, the original `Guides/tbc` and `Guides/SurvivalGuide` route s
 ## Checkpoint 2026-09-08: structural UI/settings/WotLK DB slice pending live verification
 
 The canonical restored route sets remain separate and are not merged into a synthetic 1-80 route. The live TOC now loads UI manifests, GuideWindow, Help, SettingsPanel, and `DB/wotlk.xml` while the guarded Ace lifecycle remains disabled. Status reports `structure ready` only after the frame, settings module, help, WotLK map data, and quest conversion table all exist. Eleven local tests and repository checks pass. Next: clear old errors, `/reload`, then `/rxpsirus status`; inspect the first new error or expect `structure ready; core disabled`.
+
+## Checkpoint 2026-09-08: structural slice confirmed
+
+The structural UI/settings/WotLK database slice is confirmed in Sirus with no Lua errors. The Retail auction `ScrollBox` XML was removed from the load path, missing `POWER_TYPE_EXPERIENCE` now falls back to the Russian label `Опыт`, and the guide frame created at file scope stays hidden and non-interactive while the core lifecycle is disabled. The restored canonical TBC and Survival routes and the enUS/ruRU-only locale set were covered by this live test. Twelve local tests and the repository check pass. Next: enable the real AceAddon initialization in a controlled slice, create SavedVariables, and keep route activation disabled until settings and the base guide window initialize cleanly.
