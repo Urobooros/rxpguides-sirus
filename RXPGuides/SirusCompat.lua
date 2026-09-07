@@ -11,20 +11,41 @@ RXPSirusCompat.stage = "bootstrap"
 RXPSirusCompat.coreEnabled = false
 RXPSirusCompat.supportedClient = RXPSirusCompat.build == 30300 or RXPSirusCompat.build == 12340
 
-local requiredLibraries = {
-    "AceAddon-3.0",
-    "AceEvent-3.0",
-    "AceDB-3.0",
-    "AceLocale-3.0",
-}
-
-RXPSirusCompat.missingLibraries = {}
-for _, library in ipairs(requiredLibraries) do
-    if not LibStub or not LibStub:GetLibrary(library, true) then
-        table.insert(RXPSirusCompat.missingLibraries, library)
+-- Added in later clients and used by the bundled AceDB to namespace profiles.
+-- Sirus is an EU client; the value only affects the SavedVariables key.
+if not GetCurrentRegion then
+    function GetCurrentRegion()
+        return 3
     end
 end
-RXPSirusCompat.librariesReady = #RXPSirusCompat.missingLibraries == 0
+
+if not GetCurrentRegionName then
+    function GetCurrentRegionName()
+        return "EU"
+    end
+end
+
+local requiredLibraries = {
+    { "AceAddon-3.0", "NewAddon" },
+    { "AceEvent-3.0", "RegisterEvent" },
+    { "AceDB-3.0", "New" },
+    { "AceLocale-3.0", "GetLocale" },
+}
+
+function RXPSirusCompat.RefreshLibraries()
+    RXPSirusCompat.missingLibraries = {}
+    for _, requirement in ipairs(requiredLibraries) do
+        local name, method = requirement[1], requirement[2]
+        local library = LibStub and LibStub:GetLibrary(name, true)
+        if not library or type(library[method]) ~= "function" then
+            table.insert(RXPSirusCompat.missingLibraries, name)
+        end
+    end
+    RXPSirusCompat.librariesReady = #RXPSirusCompat.missingLibraries == 0
+    return RXPSirusCompat.librariesReady
+end
+
+RXPSirusCompat.RefreshLibraries()
 
 -- Compatibility functions will be added here only after their signatures are
 -- verified against the extracted Sirus sources and an in-game observation.

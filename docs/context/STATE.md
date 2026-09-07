@@ -24,3 +24,7 @@
 Первый аудит выполнен: 4 корневых TOC; найдено 55 ссылок `C_Map`, 53 `C_QuestLog`, 6 `C_SuperTrack`, 38 `Settings`, 14 `BackdropTemplateMixin`, 3 `ScrollBox` и 3 `CreateFromMixins`. Это лексические количества, включая неисполняемые ветки; отчёт `.local/audit.json`.
 
 Глубокий анализ по базе Sirus выполнен локально: RXPGuides — 1846 observed, 6032 review и 20 формальных missing-file; RXP Leveling — 96 review. Все 20 missing-file ложные для файловой системы: текущий анализатор не отделяет суффикс `[AllowLoadGameType ...]` от пути. `tools/audit.py` разбирает эти условия правильно. Отчёты: `.local/analyzer-rxpguides` и `.local/analyzer-leveling`.
+
+## Checkpoint 2026-09-07: AceDB region fix pending live verification
+
+The first minimal-library live test failed in `AceDB-3.0` because Sirus does not provide `GetCurrentRegion`. `SirusCompat.lua` now loads before AceDB and supplies deterministic EU region functions used only for AceDB SavedVariables namespacing. Library status now checks required methods, preventing the earlier false `libraries ready` result. Local tests pass. The fix is present in the live game junction but has not been confirmed in game or pushed to GitHub. Next: `/reload`, then `/rxpsirus status`; capture the first Lua error if one appears.

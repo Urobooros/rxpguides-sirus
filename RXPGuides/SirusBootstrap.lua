@@ -10,6 +10,7 @@ SLASH_RXPSIRUS1 = "/rxpsirus"
 SlashCmdList.RXPSIRUS = function(command)
     command = string.lower((command or ""):match("^%s*(.-)%s*$"))
     if command == "status" or command == "" then
+        RXPSirusCompat.RefreshLibraries()
         local state = RXPSirusCompat.supportedClient and "client confirmed" or "unexpected client build"
         local libraries = RXPSirusCompat.librariesReady and "libraries ready" or
             ("libraries missing: " .. table.concat(RXPSirusCompat.missingLibraries, ", "))

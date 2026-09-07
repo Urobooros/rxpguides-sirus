@@ -34,9 +34,14 @@ class BootstrapTests(unittest.TestCase):
     def test_toc_loads_only_owned_bootstrap(self):
         lines=[line.strip() for line in (ROOT/'RXPGuides/RXPGuides.toc').read_text(encoding='utf-8').splitlines()
                if line.strip() and not line.startswith('##')]
-        self.assertEqual(lines[-2:],['SirusCompat.lua','SirusBootstrap.lua'])
+        self.assertLess(lines.index('SirusCompat.lua'),lines.index('libs\\AceDB-3.0\\AceDB-3.0.lua'))
+        self.assertEqual(lines[-1],'SirusBootstrap.lua')
         self.assertIn('libs\\AceAddon-3.0\\AceAddon-3.0.xml',lines)
         self.assertIn('libs\\AceLocale-3.0\\AceLocale-3.0.xml',lines)
+
+    def test_region_compatibility_for_ace_db(self):
+        self.assertEqual(self.lua.eval('GetCurrentRegion()'),3)
+        self.assertEqual(self.lua.eval('GetCurrentRegionName()'),'EU')
 
     def test_leveling_routes_are_dormant_until_core_exists(self):
         lines=[line.strip() for line in (ROOT/'RXP Leveling/RXP Leveling.toc').read_text(encoding='utf-8').splitlines()
