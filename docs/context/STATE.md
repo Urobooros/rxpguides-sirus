@@ -60,3 +60,7 @@ The first communications-library live test produced three related errors: ChatTh
 ## Checkpoint 2026-09-07: optional BNet hook fix pending live verification
 
 The second communications-library test reached ChatThrottleLib's optional `BNSendGameData` hook, which does not exist in Sirus 3.3.5. The bundled library now installs that hook only when the native BNet function exists; normal addon messages remain enabled. Seven local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`.
+
+## Checkpoint 2026-09-07: communications libraries confirmed
+
+Live Sirus test passed after the legacy chat and optional BNet-hook fixes. `/rxpsirus status` kept all fields ready and no new Lua error was reported. AceGUI, AceComm, ChatThrottleLib, and AceSerializer are approved for push. Next slice: load `Communications.lua` without calling its `Setup` method.
