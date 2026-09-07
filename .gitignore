@@ -1,4 +1,5 @@
 .local/
+tools/.local/
 .vscode/
 Reports/
 WTF/
