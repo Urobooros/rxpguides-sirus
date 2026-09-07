@@ -92,3 +92,7 @@ The live TOC now loads AceConsole, AceConfig, AceDBOptions, LibDataBroker, and L
 ## Checkpoint 2026-09-07: fixed-frame compatibility pending live verification
 
 The first settings-library test failed because modern AceConfigDialog calls `SetFixedFrameStrata` and `SetFixedFrameLevel`, methods absent from 3.3.5 frames. Those optional calls are now guarded in both AceConfigDialog and LibDBIcon, which uses the same modern methods when other addons register minimap buttons. Ten local tests pass. Next: clear prior errors, `/reload`, then `/rxpsirus status`.
+
+## Checkpoint 2026-09-07: settings-library slice withdrawn
+
+Loading current AceConfig and LibDBIcon upgraded the shared libraries used by BugSack and broke its error-window/minimap workflow. The five settings libraries were removed from the live TOC and from readiness checks; their compatibility edits remain dormant for later work. After the next `/reload`, BugSack should use its own bundled versions again. Future captured errors can also be read from `WTF/Account/GLOBALDAMER/SavedVariables/!BugGrabber.lua` after they are saved.
