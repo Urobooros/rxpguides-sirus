@@ -36,3 +36,7 @@ Live Sirus test passed after commit `110529a`: `/rxpsirus status` reported `boot
 ## Checkpoint 2026-09-07: core scaffold pending live verification
 
 The live TOC now loads locale tables and `Locale.lua` after the confirmed Ace foundation. This creates the RXPGuides AceAddon object and its locale accessor without loading `RXPGuides.lua`, UI, databases, or routes. `/rxpsirus status` now reports whether this core scaffold exists. Local tests pass; the slice is not yet confirmed in game or pushed. Next: `/reload`, then `/rxpsirus status`; expected `core scaffold ready; core disabled`.
+
+## Checkpoint 2026-09-07: core scaffold confirmed
+
+Live Sirus test passed: `/rxpsirus status` reported `libraries ready; core scaffold ready; core disabled` with no reported Lua error. The locale tables and AceAddon core object are confirmed and approved for push.
