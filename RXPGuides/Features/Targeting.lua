@@ -13,9 +13,9 @@ local wipe = wipe
 local GetRealZoneText = GetRealZoneText
 local sirusNameplates = addon.sirusBackend and addon.sirusBackend.nameplates
 local hasNativeNameplates = sirusNameplates and sirusNameplates.native
-local GetNamePlates = hasNativeNameplates and function()
-    return sirusNameplates:GetAll()
-end or C_NamePlate.GetNamePlates
+local GetNamePlates = function()
+    return hasNativeNameplates and sirusNameplates:GetAll() or nil
+end
 
 local HBD = LibStub("HereBeDragons-2.0")
 
@@ -76,6 +76,8 @@ local unitscanList = {}
 -- for the lifetime of the step, even before a nameplate/target token has supplied
 -- a real portrait. Generated targets and rares still remain proximity-driven.
 local currentStepTargets = {}
+local markerRetryCount = {}
+local MAX_MARKER_RETRIES = 10
 
 local function HasVisibleCurrentStepTarget()
     local profile = addon.settings and addon.settings.profile
@@ -101,41 +103,33 @@ local function SetPlaceholder(texture, path)
     texture:SetTexCoord(0, 1, 0, 1)
 end
 
-local LEGACY_NAMEPLATE_OVERLAY = "Interface\\TargetingFrame\\UI-TargetingFrame-Flash"
+local NAMEPLATE_OVERLAY = "Interface\\TargetingFrame\\UI-TargetingFrame-Flash"
 local RAID_TARGET_TEXTURE = "Interface\\TargetingFrame\\UI-RaidTargetingIcons"
 -- Nameplate skins can assign hostile health bars very high frame levels while
 -- leaving friendly plates near the raw frame's level. Keep RXP's own local
 -- marker above either case without modifying any stock/nameplate-addon region.
-local LEGACY_MARKER_FRAME_LEVEL = 1000
-local LEGACY_FALLBACK_UNITS = {"target", "mouseover"}
-local legacyScanner = {
-    knownPlates = {},
+local MARKER_FRAME_LEVEL = 1000
+local FALLBACK_UNITS = {"target", "mouseover"}
+local targetObservation = {
     wantedByName = {},
-    visibleCounts = {},
-    lastChildren = -1,
-    nextFullDiscovery = 0,
-    -- Child-count changes trigger discovery immediately. Retain the one-second
-    -- fallback for legacy clients that finish constructing a plate later.
-    discoveryInterval = 1,
-    grace = 0.75,
     wantedDirty = true,
     frameDirty = false,
     alerted = {}
 }
-local legacyOwnedMarkers = {}
+local ownedRaidMarkers = {}
 
-local function ClearLegacyOwnedMarker(unit)
+local function ClearOwnedRaidMarker(unit)
     if addon.gameVersion ~= 30300 or InCombatLockdown() or
         type(UnitGUID) ~= "function" then return end
     local guid = UnitGUID(unit)
-    local markerId = guid and legacyOwnedMarkers[guid]
+    local markerId = guid and ownedRaidMarkers[guid]
     if not markerId then return end
 
     -- Clear only the exact marker RXP previously placed on this GUID. If the
     -- player/group changed it in the meantime, discard ownership without
     -- touching their marker.
     if GetRaidTargetIndex(unit) == markerId then SetRaidTarget(unit, 0) end
-    legacyOwnedMarkers[guid] = nil
+    ownedRaidMarkers[guid] = nil
 end
 
 local function SetRaidIconTexture(texture, markerId)
@@ -147,7 +141,7 @@ local function SetRaidIconTexture(texture, markerId)
                         row / 4, (row + 1) / 4)
 end
 
-local function LegacyMarkerEnabled(kind)
+local function MarkerEnabled(kind)
     if kind == "friendly" then
         return addon.settings.profile.enableTargetMarking
     elseif kind == "mob" then
@@ -156,15 +150,15 @@ local function LegacyMarkerEnabled(kind)
     return addon.settings.profile.enableEnemyMarking
 end
 
-function addon.targeting:RebuildLegacyWanted()
+function addon.targeting:RebuildWantedTargets()
     if addon.gameVersion ~= 30300 then return end
 
-    wipe(legacyScanner.wantedByName)
+    wipe(targetObservation.wantedByName)
     local function AddList(list, kind, enabled)
         if not enabled then return end
         for index, name in ipairs(list) do
-            if name and name ~= "" and not legacyScanner.wantedByName[name] then
-                legacyScanner.wantedByName[name] = {kind = kind, index = index}
+            if name and name ~= "" and not targetObservation.wantedByName[name] then
+                targetObservation.wantedByName[name] = {kind = kind, index = index}
             end
         end
     end
@@ -177,130 +171,16 @@ function addon.targeting:RebuildLegacyWanted()
             addon.settings.profile.enableTips and
             addon.settings.profile.enableEnemyTargeting and
                 addon.settings.profile.showDangerousUnitscan)
-    for name in pairs(legacyScanner.alerted) do
-        if not legacyScanner.wantedByName[name] then
-            legacyScanner.alerted[name] = nil
+    for name in pairs(targetObservation.alerted) do
+        if not targetObservation.wantedByName[name] then
+            targetObservation.alerted[name] = nil
         end
     end
-    legacyScanner.wantedDirty = false
-end
-
-local legacyRangeState = {captured = false, original = {}, supported = {}}
-
-local function ReadLegacyCVar(name)
-    if type(GetCVar) ~= "function" then return end
-    local ok, value = pcall(GetCVar, name)
-    if ok and value ~= nil and value ~= "" then return tostring(value) end
-end
-
-local function WriteLegacyCVar(name, value)
-    if value == nil or type(SetCVar) ~= "function" then return false end
-    return pcall(SetCVar, name, tostring(value))
-end
-
-local function CaptureLegacyTargetRange()
-    if legacyRangeState.captured then return end
-    legacyRangeState.captured = true
-    for _, name in ipairs({
-        "targetNearestDistance", "targetNearestDistanceRadius",
-        "nameplateMaxDistance"
-    }) do
-        local value = ReadLegacyCVar(name)
-        legacyRangeState.original[name] = value
-        legacyRangeState.supported[name] = value ~= nil
-    end
-end
-
-function addon.targeting:ApplyLegacyTargetRange()
-    if addon.gameVersion ~= 30300 then return end
-    CaptureLegacyTargetRange()
-    local enabled = addon.settings.profile.enableTargetAutomation and
-                        addon.settings.profile.enableMaxNameplateDistance
-    local desired = {
-        targetNearestDistance = "50",
-        targetNearestDistanceRadius = "50",
-        nameplateMaxDistance = "41"
-    }
-    for name, value in pairs(desired) do
-        if legacyRangeState.supported[name] then
-            WriteLegacyCVar(name, enabled and value or
-                legacyRangeState.original[name])
-        end
-    end
-end
-
-local function GetLegacyPlateName(frame)
-    local nameText = frame.rxpNameText
-    local name = nameText and nameText.GetText and nameText:GetText()
-    if name and name ~= "" then return name end
-end
-
-local function RegisterLegacyNameplate(frame, nameText)
-    if not frame then return end
-    if legacyScanner.knownPlates[frame] then
-        if nameText then frame.rxpNameText = nameText end
-        return
-    end
-
-    frame.rxpNameText = nameText
-    frame.rxpTargetOverlay = CreateFrame("Frame", nil, frame)
-    frame.rxpTargetOverlay:SetSize(18, 18)
-    frame.rxpTargetOverlay:SetPoint("BOTTOM", frame, "TOP", 0, 2)
-    frame.rxpTargetOverlay:SetFrameLevel(mmax(frame:GetFrameLevel() + 20,
-                                               LEGACY_MARKER_FRAME_LEVEL))
-    frame.rxpTargetOverlay.icon =
-        frame.rxpTargetOverlay:CreateTexture(nil, "OVERLAY")
-    frame.rxpTargetOverlay.icon:SetAllPoints(true)
-    frame.rxpTargetOverlay:Hide()
-    frame:HookScript("OnShow", function()
-        legacyScanner.frameDirty = true
-    end)
-    frame:HookScript("OnHide", function(plate)
-        if plate.rxpTargetOverlay then plate.rxpTargetOverlay:Hide() end
-        legacyScanner.frameDirty = true
-    end)
-    legacyScanner.knownPlates[frame] = true
-end
-
-function addon.targeting:DiscoverLegacyNameplates()
-    local count = WorldFrame:GetNumChildren()
-    local now = GetTime()
-    if count == legacyScanner.lastChildren and now < legacyScanner.nextFullDiscovery then return end
-    legacyScanner.nextFullDiscovery = now + legacyScanner.discoveryInterval
-
-    local children = {WorldFrame:GetChildren()}
-    for index = 1, #children do
-        local frame = children[index]
-        if frame and not legacyScanner.knownPlates[frame] and frame.GetRegions then
-            -- Avoid allocating a temporary region table during every fallback
-            -- discovery pass. Stock nameplates expose the identifying regions
-            -- in fixed positions on 3.3.5.
-            local firstRegion, _, _, _, _, _, nameText = frame:GetRegions()
-            local firstTexture = firstRegion and firstRegion.GetObjectType and
-                                     firstRegion:GetObjectType() == "Texture" and
-                                     firstRegion:GetTexture()
-            local healthBar, castBar = frame:GetChildren()
-            local hasStockStructure = nameText and nameText.GetObjectType and
-                                          nameText:GetObjectType() == "FontString" and
-                                          healthBar and healthBar.GetObjectType and
-                                          healthBar:GetObjectType() == "StatusBar" and
-                                          castBar and castBar.GetObjectType and
-                                          castBar:GetObjectType() == "StatusBar"
-            -- Stock 3.3.5 nameplates are raw WorldFrame children whose first
-            -- region is UI-TargetingFrame-Flash and whose seventh region is the
-            -- name FontString. A skin may clear the flash texture, but the two
-            -- stock StatusBar children and original name region remain. Both
-            -- signatures are base-client structures; no skin API is consulted.
-            if firstTexture == LEGACY_NAMEPLATE_OVERLAY or hasStockStructure then
-                RegisterLegacyNameplate(frame, nameText)
-            end
-        end
-    end
-    legacyScanner.lastChildren = count
+    targetObservation.wantedDirty = false
 end
 
 function addon.targeting:RecordSeenTarget(name, wanted, now, source)
-    wanted = wanted or legacyScanner.wantedByName[name]
+    wanted = wanted or targetObservation.wantedByName[name]
     if not (name and wanted) then return false end
     now = now or GetTime()
 
@@ -331,10 +211,10 @@ function addon.targeting:RecordSeenTarget(name, wanted, now, source)
         end)
     end
 
-    if changed and not legacyScanner.alerted[name] and
+    if changed and not targetObservation.alerted[name] and
         (wanted.kind == "rare" or wanted.kind == "unitscan" or
             wanted.kind == "dangerous") then
-        legacyScanner.alerted[name] = true
+        targetObservation.alerted[name] = true
         if addon.settings.profile.flashOnFind and FlashClientIcon then
             FlashClientIcon()
         end
@@ -360,153 +240,6 @@ function addon.targeting:RecordSeenTarget(name, wanted, now, source)
         end
     end
     return changed
-end
-
-function addon.targeting:LegacyScanTick()
-    if addon.gameVersion ~= 30300 or
-        not addon.settings.profile.enableTargetAutomation then return end
-    if legacyScanner.wantedDirty then self:RebuildLegacyWanted() end
-
-    self:DiscoverLegacyNameplates()
-    wipe(legacyScanner.visibleCounts)
-    local now = GetTime()
-    local membershipChanged = false
-
-    for frame in pairs(legacyScanner.knownPlates) do
-        local overlay = frame.rxpTargetOverlay
-        local name = frame:IsShown() and GetLegacyPlateName(frame)
-        local wanted = name and legacyScanner.wantedByName[name]
-        if wanted then
-            legacyScanner.visibleCounts[name] =
-                (legacyScanner.visibleCounts[name] or 0) + 1
-            if self:RecordSeenTarget(name, wanted, now) then
-                membershipChanged = true
-            end
-            if overlay and LegacyMarkerEnabled(wanted.kind) then
-                -- Hostile threat/target updates can raise their health-bar frame
-                -- repeatedly. Reassert ours every scan so the client-local raid
-                -- icon stays visible just as it does on friendly targets.
-                local desiredLevel = mmax(frame:GetFrameLevel() + 20,
-                                          LEGACY_MARKER_FRAME_LEVEL)
-                if overlay:GetFrameLevel() ~= desiredLevel then
-                    overlay:SetFrameLevel(desiredLevel)
-                end
-                local markerIndex = self:GetMarkerIndex(wanted.kind,
-                                                        wanted.index)
-                if overlay.rxpMarkerIndex ~= markerIndex then
-                    SetRaidIconTexture(overlay.icon, markerIndex)
-                    overlay.rxpMarkerIndex = markerIndex
-                end
-                if not overlay:IsShown() then overlay:Show() end
-            elseif overlay then
-                if overlay:IsShown() then overlay:Hide() end
-            end
-        elseif overlay then
-            if overlay:IsShown() then overlay:Hide() end
-        end
-    end
-
-    -- Target and mouseover remain useful when nameplates are disabled and also
-    -- provide real unit tokens for portraits/server markers.
-    for _, unit in ipairs(LEGACY_FALLBACK_UNITS) do
-        local name = UnitName(unit)
-        local wanted = name and legacyScanner.wantedByName[name]
-        if wanted then
-            legacyScanner.visibleCounts[name] =
-                (legacyScanner.visibleCounts[name] or 0) + 1
-            if self:RecordSeenTarget(name, wanted, now) then
-                membershipChanged = true
-            end
-            if LegacyMarkerEnabled(wanted.kind) then
-                self:UpdateMarker(wanted.kind, unit, wanted.index)
-            else
-                ClearLegacyOwnedMarker(unit)
-            end
-        else
-            ClearLegacyOwnedMarker(unit)
-        end
-    end
-
-    for name, data in pairs(proxmityPolling.scannedTargets) do
-        if not legacyScanner.wantedByName[name] or
-            (not legacyScanner.visibleCounts[name] and
-                now - (data.lastMatch or 0) > legacyScanner.grace) then
-            proxmityPolling.scannedTargets[name] = nil
-            -- Keep the alert latch while this name remains part of the current
-            -- guide target set. Pooled nameplates can disappear for a moment and
-            -- reappear; clearing it here retriggered sounds/flashes every cycle.
-            if not legacyScanner.wantedByName[name] then
-                legacyScanner.alerted[name] = nil
-            end
-            membershipChanged = true
-        end
-    end
-
-    proxmityPolling.match = next(proxmityPolling.scannedTargets) ~= nil
-    if membershipChanged or legacyScanner.frameDirty then
-        if membershipChanged and addon.scheduler then
-            addon.scheduler:After(self, "nearby-target-macro", 0.05,
-                                  function() self:UpdateMacro() end)
-        end
-        legacyScanner.frameDirty = false
-        if InCombatLockdown() then
-            legacyScanner.frameDirty = true
-        else
-            self:UpdateTargetFrame()
-        end
-    end
-end
-
-function addon.targeting:StopLegacyScanner(clearTargets)
-    if self.legacyTicker then
-        self.legacyTicker:Cancel()
-        self.legacyTicker = nil
-    end
-    for frame in pairs(legacyScanner.knownPlates) do
-        if frame.rxpTargetOverlay then frame.rxpTargetOverlay:Hide() end
-    end
-    if clearTargets then
-        wipe(proxmityPolling.scannedTargets)
-        wipe(legacyScanner.alerted)
-        proxmityPolling.match = false
-        if InCombatLockdown() then
-            self.clearOwnedMarkersPending = true
-        else
-            ClearLegacyOwnedMarker("target")
-            ClearLegacyOwnedMarker("mouseover")
-            wipe(legacyOwnedMarkers)
-            self.clearOwnedMarkersPending = nil
-        end
-        if self.activeTargetFrame and not InCombatLockdown() then
-            self.activeTargetFrame:Hide()
-        end
-    end
-end
-
-function addon.targeting:RefreshScanTicker()
-    if addon.gameVersion ~= 30300 then return end
-    self:StopLegacyScanner(false)
-    if not addon.settings.profile.enableTargetAutomation then
-        self:StopLegacyScanner(true)
-        return
-    end
-
-    legacyScanner.wantedDirty = true
-    self:LegacyScanTick()
-    local milliseconds = addon.settings.profile.updateFrequency or 75
-    if addon.GetEffectiveUpdateFrequency then
-        milliseconds = addon.GetEffectiveUpdateFrequency(milliseconds)
-    end
-    local frequency = mmax(milliseconds / 1000, 0.10)
-    self.legacyTicker = C_Timer.NewTicker(frequency, function()
-        self:LegacyScanTick()
-    end)
-end
-
-function addon.targeting:RefreshLegacyTargets()
-    if addon.gameVersion ~= 30300 then return end
-    legacyScanner.wantedDirty = true
-    self:LegacyScanTick()
 end
 
 function addon.targeting:ClearTargetButtons()
@@ -575,10 +308,6 @@ function addon.targeting:Setup()
         self.ticker:Cancel()
         self.ticker = nil
     end
-    if addon.gameVersion == 30300 and not hasNativeNameplates then
-        self:StopLegacyScanner(false)
-    end
-    self:ApplyLegacyTargetRange()
 
     -- Setup is called for live option changes as well as login. Remove events
     -- whose applicability depends on those options before rebuilding the set;
@@ -631,9 +360,6 @@ function addon.targeting:Setup()
     self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 
     if not addon.settings.profile.enableTargetAutomation then
-        if addon.gameVersion == 30300 and not hasNativeNameplates then
-            self:StopLegacyScanner(true)
-        end
         self:ClearTargetButtons()
         return
     end
@@ -646,9 +372,6 @@ function addon.targeting:Setup()
             self:RegisterEvent("NAME_PLATE_OWNER_CHANGED")
             self:CheckNameplates()
         end
-    else
-        self:UnregisterEvent("NAME_PLATE_UNIT_ADDED")
-        self:UnregisterEvent("ADDON_ACTION_FORBIDDEN")
     end
 
     -- Increase nameplate scanning distance to max allowed.
@@ -663,9 +386,8 @@ function addon.targeting:Setup()
         end
     end
 
-    if addon.gameVersion == 30300 and not hasNativeNameplates then
-        self:RefreshScanTicker()
-    elseif addon.settings.profile.showTargetingOnProximity then
+    if addon.gameVersion ~= 30300 and
+        addon.settings.profile.showTargetingOnProximity then
         if addon.settings.profile and addon.settings.profile.updateFrequency then
             proxmityPolling.frequency = addon.settings.profile.updateFrequency / 1000
         end
@@ -912,14 +634,12 @@ function addon.targeting:PLAYER_REGEN_ENABLED()
 
     if self.clearTargetButtonsPending then self:ClearTargetButtons() end
     if self.clearOwnedMarkersPending then
-        ClearLegacyOwnedMarker("target")
-        ClearLegacyOwnedMarker("mouseover")
-        wipe(legacyOwnedMarkers)
+        ClearOwnedRaidMarker("target")
+        ClearOwnedRaidMarker("mouseover")
+        wipe(ownedRaidMarkers)
         self.clearOwnedMarkersPending = nil
     end
 
-    legacyScanner.frameDirty = false
-    if addon.gameVersion == 30300 then self:LegacyScanTick() end
     self:UpdateTargetFrame()
 end
 
@@ -987,7 +707,7 @@ function addon.targeting:CheckNameplates()
 
     if not nameplatesArray then return end
 
-    for _, nameplate in ipairs(nameplatesArray) do
+    for _, nameplate in pairs(nameplatesArray) do
         local unit = hasNativeNameplates and sirusNameplates:GetUnitToken(nameplate) or
             nameplate.namePlateUnitToken
         if unit then self:CheckNameplate(unit) end
@@ -1144,11 +864,6 @@ function addon.targeting:GOSSIP_SHOW()
 
             tremove(targetList, i)
 
-            if addon.gameVersion == 30300 then
-                legacyScanner.wantedDirty = true
-                self:LegacyScanTick()
-            end
-
             self:UpdateTargetFrame("target")
             self:UpdateMacro()
 
@@ -1158,7 +873,7 @@ function addon.targeting:GOSSIP_SHOW()
                 GetRaidTargetIndex("target") ~= nil then
                 SetRaidTarget("target", 0)
             elseif addon.gameVersion == 30300 then
-                ClearLegacyOwnedMarker("target")
+                ClearOwnedRaidMarker("target")
             end
             return
         end
@@ -1394,11 +1109,7 @@ function addon.targeting:UpdateUnitList()
 
     -- Don't process new targets if targeting disabled
     if addon.settings.profile.enableTargetAutomation then
-        if addon.gameVersion == 30300 and not hasNativeNameplates then
-            addon.targeting:LegacyScanTick()
-        else
-            addon.targeting:CheckNameplates()
-        end
+        addon.targeting:CheckNameplates()
     end
 end
 
@@ -1458,13 +1169,6 @@ function addon.targeting:UpdateTargetList(targets, addEntries)
     self:UpdateMacro()
 
     if not addon.settings.profile.enableTargetAutomation then return end
-
-    if addon.gameVersion == 30300 then
-        legacyScanner.wantedDirty = true
-        self:LegacyScanTick()
-        if not InCombatLockdown() then self:UpdateTargetFrame() end
-        return
-    end
 
     proxmityPolling.match = false
     proxmityPolling.lastMatch = 0
@@ -1528,13 +1232,6 @@ function addon.targeting:UpdateEnemyList(unitscan, mobs, addEntries)
     self:UpdateMacro()
 
     if not addon.settings.profile.enableTargetAutomation then return end
-
-    if addon.gameVersion == 30300 then
-        legacyScanner.wantedDirty = true
-        self:LegacyScanTick()
-        if not InCombatLockdown() then self:UpdateTargetFrame() end
-        return
-    end
 
     proxmityPolling.match = false
     proxmityPolling.lastMatch = 0
@@ -1652,14 +1349,14 @@ function addon.targeting:CreateTargetFrame()
         _G.WorldMapFrame.HookScript then
         _G.WorldMapFrame:HookScript("OnShow", function()
             if InCombatLockdown() then
-                legacyScanner.frameDirty = true
+                targetObservation.frameDirty = true
             else
                 f:Hide()
             end
         end)
         _G.WorldMapFrame:HookScript("OnHide", function()
             if InCombatLockdown() then
-                legacyScanner.frameDirty = true
+                targetObservation.frameDirty = true
             else
                 addon.targeting:UpdateTargetFrame()
             end
@@ -1676,7 +1373,7 @@ end
 function addon.targeting:EnsureTargetFrame()
     if self.activeTargetFrame then return self.activeTargetFrame end
     if InCombatLockdown() then
-        legacyScanner.frameDirty = true
+        targetObservation.frameDirty = true
         return
     end
     return self:CreateTargetFrame()
@@ -1761,10 +1458,33 @@ function addon.targeting:UpdateMarker(kind, unitId, index)
     -- Preserve any existing marker rather than overwriting another player's mark.
     local existingMarker = GetRaidTargetIndex(unitId)
     if markerId and (existingMarker == nil or existingMarker == 0) then
+        if hasNativeNameplates and
+            not sirusNameplates:CanDispatchRaidTargetUpdate() then
+            local guid = type(UnitGUID) == "function" and UnitGUID(unitId)
+            if not guid or not addon.scheduler then return end
+            local retryKey = "raid-marker-" .. guid
+            local retries = (markerRetryCount[guid] or 0) + 1
+            markerRetryCount[guid] = retries
+            if retries <= MAX_MARKER_RETRIES then
+                addon.scheduler:After(self, retryKey, 0.10, function()
+                    if UnitGUID(unitId) == guid then
+                        self:UpdateMarker(kind, unitId, index)
+                    else
+                        markerRetryCount[guid] = nil
+                    end
+                end)
+            else
+                markerRetryCount[guid] = nil
+            end
+            return
+        end
         SetRaidTarget(unitId, markerId)
         if addon.gameVersion == 30300 and type(UnitGUID) == "function" then
             local guid = UnitGUID(unitId)
-            if guid then legacyOwnedMarkers[guid] = markerId end
+            if guid then
+                ownedRaidMarkers[guid] = markerId
+                markerRetryCount[guid] = nil
+            end
         end
     end
 end
@@ -1914,7 +1634,7 @@ function addon.targeting:UpdateTargetFrame(selector)
 
     local selectorName = selector and UnitName(selector)
     if addon.gameVersion == 30300 and selectorName then
-        if legacyScanner.wantedDirty then self:RebuildLegacyWanted() end
+        if targetObservation.wantedDirty then self:RebuildWantedTargets() end
         self:RecordSeenTarget(selectorName, nil, GetTime(), selector)
     end
 
@@ -1923,7 +1643,7 @@ function addon.targeting:UpdateTargetFrame(selector)
     if selectorName then CacheUnitPortrait(selectorName, selector) end
 
     if InCombatLockdown() then
-        legacyScanner.frameDirty = true
+        targetObservation.frameDirty = true
         return
     end
 
@@ -2226,7 +1946,7 @@ function addon.targeting:UpdateTargetFrame(selector)
 end
 
 function addon.targeting:ZONE_CHANGED_NEW_AREA()
-    wipe(legacyOwnedMarkers)
+    wipe(ownedRaidMarkers)
     self:LoadRares()
 end
 
@@ -2255,10 +1975,6 @@ function addon.targeting:LoadRares()
     if not zoneID then return end
     rareTargets = addon.rares[subzone] or addon.rares[zone] or addon.rares[zoneID] or addon.rares[zoneName] or {}
 
-    if addon.gameVersion == 30300 then
-        legacyScanner.wantedDirty = true
-        self:LegacyScanTick()
-    end
     self:UpdateTargetFrame()
 end
 
@@ -2275,10 +1991,6 @@ function addon.targeting:RefreshRareScanning()
         if data.kind == "rare" then
             proxmityPolling.scannedTargets[name] = nil
         end
-    end
-    if addon.gameVersion == 30300 then
-        legacyScanner.wantedDirty = true
-        self:LegacyScanTick()
     end
     self:UpdateTargetFrame()
 end

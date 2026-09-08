@@ -1,4 +1,4 @@
-﻿local addonName, addon = ...
+local addonName, addon = ...
 
 local _G = _G
 local UnitInRaid = UnitInRaid
@@ -371,14 +371,6 @@ end
 
 function addon.NormalizeQuestAcceptedId(arg1, arg2)
     if arg2 then return arg2 end
-    local quirks = addon.compatibilityPacks and
-                       addon.compatibilityPacks:GetEventQuirks() or nil
-    -- Most 3.3.5 cores emit QUEST_ACCEPTED(logIndex). A verified data pack may
-    -- explicitly report a direct quest-ID first argument instead.
-    if addon.gameVersion == 30300 and quirks and
-        quirks.questAcceptedLogIndex == false then
-        return tonumber(arg1)
-    end
     if addon.gameVersion == 30300 and arg1 and C_QuestLog and
         C_QuestLog.GetQuestIDForLogIndex then
         return C_QuestLog.GetQuestIDForLogIndex(arg1)
@@ -1194,8 +1186,7 @@ local questAcceptState = addon.questAcceptState
 local QUEST_AUTOMATION_OWNER = "quest-engine"
 
 local function QuestEventQuirks()
-    return addon.compatibilityPacks and
-               addon.compatibilityPacks:GetEventQuirks() or {}
+    return {}
 end
 
 local function CompleteConfirmedQuestElement(element, event, questId)
@@ -1692,7 +1683,7 @@ function addon:QuestAutomation(event, arg1, arg2, arg3)
             end
             if _G.QuestDetailAcceptButton_OnClick then
                 -- 3.3.5a: a real Accept-button click accepts the quest AND lets the
-                -- quest frame close itself (which ZygorGuidesViewerRM relies on).
+                -- quest frame close itself (required by legacy quest-frame consumers).
                 -- Plain AcceptQuest() + HideUIPanel() left the frame open here.
                 _G.QuestDetailAcceptButton_OnClick()
             else
@@ -1934,38 +1925,10 @@ local function RegisterRuntimeSubsystems()
                                     "itemUpgrades")
             addon.itemUpgrades:Setup()
         end)
-    if addon.xpAssistant and addon.xpAssistant.Setup then
-        addon.runtime:Register({
-            id = "xp-assistant",
-            label = "xp assistant",
-            depends = {"settings", "guide-ui"},
-            optional = true,
-            initialize = function()
-                addon.services:Register("xp-assistant", addon.xpAssistant,
-                                        "xpAssistant")
-                addon.xpAssistant:Setup()
-            end,
-            disable = function() addon.xpAssistant:Shutdown() end
-        })
-    end
-
-    if addon.roadmap and addon.roadmap.Setup then
-        addon.runtime:Register({
-            id = "roadmap-features",
-            phase = "post-guides",
-            depends = {"settings", "guide-engine"},
-            initialize = function() addon.roadmap:Setup() end
-        })
-    end
 end
 
 function addon:OnInitialize()
-    -- Locale payloads are optional load-on-demand companion addons. Load the
-    -- matching client pack before settings and guide UI begin rendering; a
-    -- missing or disabled companion safely leaves the English presentation.
-    if addon.guideLocalization and addon.guideLocalization.LoadCompanion then
-        addon.guideLocalization:LoadCompanion()
-    end
+    -- The embedded locale pack has already been loaded from the main manifest.
 
     local importGuidesDefault = {
         profile = {guides = {}, reports = {splits = {}}}
@@ -1994,10 +1957,6 @@ function addon:OnInitialize()
     end
     if characterIdentity then RXPCData.characterIdentity = characterIdentity end
     if characterGUID then RXPCData.characterGUID = characterGUID end
-
-    if addon.roadmap and addon.roadmap.InitializeSavedData then
-        addon.roadmap:InitializeSavedData()
-    end
 
     local realm = _G.GetRealmName()
     RXPData.realmData = RXPData.realmData or {}
@@ -2028,6 +1987,12 @@ function addon:OnInitialize()
         RXPData.gameVersion = gameVersion
     end
     addon.settings:InitializeDatabase()
+    -- Full preloading expands every guide source into tens of thousands of Lua
+    -- tables. On the 32-bit Sirus client this costs far more memory than the
+    -- lazy guide cache and provides no progression benefit.
+    if gameVersion == 30300 then
+        addon.settings.profile.preLoadData = false
+    end
     addon.storage:Bind(RXPData, RXPCData, addon.settings.profile)
     local storageReady, storageError = addon.storage:Migrate()
     if not storageReady then error(storageError, 2) end
@@ -2124,14 +2089,6 @@ function addon:OnEnable()
         addon.LoadAllGuides()
     end
     addon.addonLoaded = true
-    if addon.guideHub and addon.guideHub.setup and
-        addon.guideHub.OnGuidesReady then
-        addon.guideHub:OnGuidesReady()
-    end
-    if addon.activityPlanner and addon.activityPlanner.setup and
-        addon.activityPlanner.OnGuidesReady then
-        addon.activityPlanner:OnGuidesReady()
-    end
     ProcessSpells()
     addon.GetProfessionLevel()
     addon:RestoreCharacterGuideProgress()
@@ -2622,7 +2579,13 @@ function addon.LegacyUpdateLoop()
             skip = 1
 
             return 'bottomFrame'
-        elseif skip % 2 == 1 and next(addon.guideCache) then
+        -- Retail gradually expands the complete guide cache in the background.
+        -- That defeats lazy loading on the 32-bit Sirus client: all 360 routes
+        -- eventually become parsed step tables even with preLoadData disabled.
+        -- Sirus resolves a guide through FetchGuide when it is selected, so
+        -- leave every inactive route compact.
+        elseif addon.gameVersion ~= 30300 and skip % 2 == 1 and
+            next(addon.guideCache) then
             event = event .. "/cache"
             local length = 0
             local loadGuide = true

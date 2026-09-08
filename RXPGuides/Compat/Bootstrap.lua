@@ -1373,10 +1373,6 @@ do
     -- lookup is always restricted to the player's faction and refuses every
     -- ambiguous full, base, or partial name.
     addon.ResolveLegacyFlightPath = function(name, nodeType)
-        if addon.compatibilityPacks and
-            addon.compatibilityPacks.ResolveFlightAlias then
-            name = addon.compatibilityPacks:ResolveFlightAlias(name)
-        end
         local exact, short, records, faction = buildTaxiLookup()
         return resolveTaxiID(name, nodeType, exact, short, records, faction)
     end
@@ -1600,7 +1596,11 @@ do
         onQuest[questID] = nil
 
         if _G.GetQuestLogIndexByID then
-            index = tonumber(_G.GetQuestLogIndexByID(questID))
+            -- Sirus returns no values when the quest is absent, rather than a
+            -- single nil/zero result. Passing that call directly to tonumber
+            -- therefore invokes tonumber() with zero arguments on Lua 5.1.
+            local rawIndex = _G.GetQuestLogIndexByID(questID)
+            index = tonumber(rawIndex)
             if index and index > 0 and questIDFromIndex(index) == questID then
                 logIndexByQuestID[questID] = index
                 onQuest[questID] = true

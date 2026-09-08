@@ -1,12 +1,11 @@
 ## Interface: 30300
 ## Title: RestedXP Guides
-## Notes: In-game leveling guides (3.3.5a backport)
-## Author: RestedXP
+## Notes: RestedXP Guides adapted for Sirus 3.3.5a (unofficial modification)
+## Author: RestedXP; Sirus adaptation contributors
 ## Version: v6.7.1-sirus.0
 ## SavedVariables: RXPData, RXPDB, RXPSettings, RXP335
 ## SavedVariablesPerCharacter: RXPCData, RXPCTrackingData, RXPCComms, RXPCSettings
-## X-Curse-Project-ID: 486246
-## X-Wago-ID: ZKbebq61
+## X-Original-Source: https://github.com/RestedXP/RXPGuides
 
 # --- Compatibility prelude: MUST load before libraries and runtime files. ---
 Compat\Bootstrap.lua
@@ -22,6 +21,7 @@ locale\locales.xml
 Core\Locale.lua
 Core\XP.lua
 Guide\Localization.lua
+locale\GuidePack.ruRU.lua
 locale\GuideCatalogs.lua
 Core\Services.lua
 Core\Scheduler.lua
@@ -32,7 +32,6 @@ Guide\QuestAcceptState.lua
 UI\Themes.lua
 Features\Communications.lua
 Core\Addon.lua
-UI\ToolWindow.lua
 UI\GuideWindow.lua
 UI\Help.lua
 UI\Settings.lua
@@ -52,7 +51,6 @@ DB\wotlk\db.lua
 Compat\LocationLocales335.lua
 DB\wotlk\dungeonData_335.lua
 DB\wotlk\questPrerequisites_335.lua
-DB\wotlk\compatibilityPacks_335.lua
 DB\wotlk\guideEnglishNames_335.lua
 DB\questDB.lua
 # Prefer the existing level-bracketed speedrun weights, then fill missing Wrath
@@ -97,34 +95,7 @@ Guide\Parser.lua
 Guide\Conditions.lua
 Guide\State.lua
 
-# Staged 3.3.5 feature-roadmap foundation and stock legacy interfaces.
-Features\Roadmap.lua
-UI\GuideHub.lua
-Features\GoldAssistant.lua
-Features\Diagnostics.lua
-Core\Recovery.lua
-Features\CompatibilityPacks.lua
-Features\PartySync.lua
-Features\Supplies.lua
-Features\GearAdvisor.lua
-Features\ActivityPlanner.lua
-Features\Accessibility.lua
-Features\GuideRecorder.lua
-Features\PerformanceInspector.lua
-Features\GuideAnalysis.lua
-Features\RunArchive.lua
-Features\PetAssistant.lua
-Features\XPAssistant.lua
-Features\SpeedrunCore.lua
-Features\SpeedrunAdvisors.lua
-Features\SpeedrunPractice.lua
-
-# Root-level copies of the guide/talent loaders so their "Guides/..." <Script>
-# paths resolve from the addon root on 3.3.5a (see DB note above).
-GuideList_335.xml
-
 Features\Talents.lua
-Talents_wotlk_335.xml
 
 # 3.3.5a backport cosmetics sub-panel (Interface -> AddOns -> RestedXP Guides -> 3.3.5a)
 Compat\Options.lua

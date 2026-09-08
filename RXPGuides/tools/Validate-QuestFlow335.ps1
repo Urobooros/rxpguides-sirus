@@ -1,5 +1,5 @@
 param(
-    [string]$ManifestPath = (Join-Path $PSScriptRoot '..\GuideList_335.xml'),
+    [string]$ManifestPath = (Join-Path $PSScriptRoot '..\..\RXP Leveling\GuideList_335.xml'),
     [string]$QuestTemplatePath = '',
     [int]$MaxErrors = 200,
     [switch]$FailOnEntryWarnings,
@@ -11,7 +11,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$ManifestPath = [IO.Path]::GetFullPath($ManifestPath)
+$root = Split-Path -Parent $ManifestPath
+$coreRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $errors = New-Object 'Collections.Generic.List[string]'
 $entryWarnings = @{}
 $lifecycleWarnings = @{}
@@ -266,7 +268,7 @@ function Get-MissingPrerequisites($Specification, $TurnedIn, $Completed, $Accept
     return @($bestMissing)
 }
 
-$prerequisiteText = [IO.File]::ReadAllText((Join-Path $root 'DB\wotlk\questPrerequisites_335.lua'))
+$prerequisiteText = [IO.File]::ReadAllText((Join-Path $coreRoot 'DB\wotlk\questPrerequisites_335.lua'))
 $encodedMatch = [regex]::Match($prerequisiteText, '(?s)local encoded\s*=\s*\[\[(.*?)\]\]')
 $prerequisites = @{}
 foreach ($match in [regex]::Matches($encodedMatch.Groups[1].Value, '(\d+)=([^;]+)')) {

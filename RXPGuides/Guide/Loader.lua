@@ -357,10 +357,6 @@ function addon.RegisterGuide(groupOrContent, text, defaultFor)
     if not groupOrContent then
         return error('Guide has no contents')
     end
-    if addon.guideLocalization and
-       addon.guideLocalization.IndexEnglishGuideSource then
-        addon.guideLocalization:IndexEnglishGuideSource(text or groupOrContent)
-    end
     if addon.addonLoaded then
         local importedGuide, errorMsg = addon.ParseGuide(groupOrContent, text,
                                                         defaultFor)

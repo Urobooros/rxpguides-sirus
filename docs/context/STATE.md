@@ -138,3 +138,35 @@ Live Sirus test reports `window ready; core disabled`. The themed base guide win
 The prior staged port was replaced at commit `fc7561d` with the complete GPL-3.0 3.3.5a backport from PottedSalame release `v6.7.1`. This supersedes earlier STATE entries that describe a deliberately disabled partial core; Git and the current TOC are authoritative. The downloaded repository remains only under ignored `.local` storage and is not a runtime dependency. The redundant separate `RXP Leveling` addon was removed because the standalone build includes canonical Classic, TBC and WotLK guide groups. The separate ruRU guide pack is retained and linked into the test client.
 
 Sirus-specific integration now starts at `Compat/Sirus/Backend.lua`. Its first adapter detects the documented native `C_NamePlate` surface and selects event-driven nameplate tracking; generic 3.3.5 clients retain the legacy `WorldFrame` polling fallback. Runtime locales are limited to enUS and ruRU. Lua 5.1 tests, repository checks, runtime validation, and guide validation pass (709 guides / 48,694 steps); quest-ID validation was skipped because the optional Zygor database is absent. Next: launch or reload the Sirus client, enable both RXPGuides addons, and report the first current-session error or confirm the guide selector/window works.
+
+## Checkpoint 2026-09-08: Sirus API contract audit pending live verification
+
+The extracted snapshot is now a mandatory pre-change source rather than an occasional lookup. `tools/sirus_api_audit.py` builds `docs/SIRUS_API_AUDIT.md` plus ignored detailed JSON; manually confirmed behavioral differences are recorded in `docs/SIRUS_API_CONTRACTS.md`. Current inventory: 481 source-confirmed references, 102 compatibility-provided APIs, 9 native-only names, and 118 references requiring manual classification. Confirmed fixes cover Sirus zero-return `GetQuestLogIndexByID`, colon-style `C_Timer`, WotLK scrollbar texture methods, and early LevelingTracker report identity. The timer adapter activates independently of nameplate capability timing, accepts both Sirus colon calls and standard dot calls, and removes expired timers after iteration for Lua 5.1 safety. It passes a simulated mixed-call contract test. Next: clear BugSack and `/reload`; verify that both the C_TimerAugment error and `invalid key to next` are absent before committing runtime/UI changes.
+## 2026-09-08: native nameplates, guide package split, and UI input
+
+- Sirus nameplate support now uses the contract implemented by the extracted
+  client FrameXML: `C_NamePlate.GetNamePlates`, `GetNamePlateForUnit`,
+  `namePlateUnitToken`, and `NAME_PLATE_UNIT_ADDED/REMOVED`. Optional GUID
+  helpers no longer gate the native backend, and native operation no longer
+  starts the WorldFrame polling scanner.
+- `RXP Leveling` is again a separate data addon with a hard dependency on
+  `RXPGuides`. It owns guide, Survival/Hardcore, and WotLK talent manifests.
+- Guide-list selection now commits on a matching mouse-up for the same pooled
+  row, preventing a rebuild under the cursor from selecting a different step.
+- Translation quality remains available through metadata/tooltips; `[EN]` and
+  `[MT]` are no longer appended to visible guide or arrow text. Client-local
+  quest objectives and entity names remain preferred over authored English.
+- Lua 5.1 syntax, runtime validation, guide validation (50 files, 709 guides,
+  48,694 steps), and talent validation (11 files, 38 plans) pass. Live client
+  verification is still required before commit or push.
+
+## Checkpoint 2026-09-09: official WotLK routes and runtime cleanup
+
+- The main addon and route package are separate again: `RXPGuides` contains the engine and embedded ruRU localization; `RXP Leveling` owns route and talent manifests.
+- The active Alliance/Horde 70-80 routes now come from the purchased package through `tools/import_official_routes.py`. The generated files are standalone and have no runtime dependency on the source folder. Obsolete converted WotLK routes, their archive copies, and their converter were removed.
+- The active route surface is 41 files, 368 guides, and 28,504 steps. TBC-to-Northrend handoffs and route fixtures use the purchased package's real group/name keys.
+- Sirus nameplates use only the native `C_NamePlate` event path. WorldFrame child scanning, its ticker, and legacy target-distance CVar mutation were removed.
+- The separate locale addon was removed. Its locale-gated ruRU pack is loaded by the main addon manifest.
+- Twenty experimental feature modules and their settings pages, slash commands, menus, messages, and tool-window manager were removed from the load path and source tree.
+- The public engine license now matches upstream CC BY-NC-SA 4.0. Purchased route content remains separately attributed and private; bundled library notices remain intact.
+- Local runtime, route, localization, and talent validation pass. Live `/reload` validation and a fresh in-client CPU/memory measurement remain required.

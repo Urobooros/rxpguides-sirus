@@ -594,8 +594,8 @@ addon.guideLocalization:RegisterTranslationPack("zhCN", {
 local machineOutput, machineMetadata =
     addon.guideLocalization:Render(machineSource)
 check(machineMetadata.machine and machineOutput:find("%%d") and
-          machineOutput:find("[MT]", 1, true),
-      "machine guide text lost its format token or status badge")
+          not machineOutput:find("[MT]", 1, true),
+      "machine guide text lost its format token or retained an inline badge")
 local semanticOutput, semanticMetadata =
     addon.guideLocalization:Render("Accept Quest Name")
 check(semanticOutput == "接受 Quest Name" and semanticMetadata.reviewed,

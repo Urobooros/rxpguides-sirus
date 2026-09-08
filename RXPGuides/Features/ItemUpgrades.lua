@@ -12,7 +12,11 @@ local fmt, tinsert, ipairs, pairs, next, type, wipe, tonumber, strlower, smatch 
 local GetItemInfo = C_Item and C_Item.GetItemInfo or _G.GetItemInfo
 local GetItemInfoInstant = C_Item and C_Item.GetItemInfoInstant or _G.GetItemInfoInstant
 local NativeIsEquippedItem = C_Item and C_Item.IsEquippedItem or _G.IsEquippedItem
-local NativeIsUsableItem = C_Item and C_Item.IsUsableItem or _G.IsUsableItem
+-- The extracted Sirus contract confirms the legacy global. The backported
+-- C_Item variant has no verified item-link signature, so prefer the native
+-- 3.3.5 API for profession, level, class, and proficiency requirements.
+local NativeIsUsableItem = _G.IsUsableItem or
+                               C_Item and C_Item.IsUsableItem
 local GetItemStats = C_Item and C_Item.GetItemStats or _G.GetItemStats
 local UnitLevel = _G.UnitLevel
 local GetInventoryItemLink = _G.GetInventoryItemLink
@@ -2324,6 +2328,15 @@ function addon.itemUpgrades:GetItemData(itemLink, tooltip, clientUsable)
     -- false negatives from private cores which omit a passive weapon
     -- proficiency from IsSpellKnown/GetSkillLineInfo.
     local currentlyEquipped = IsEquippedItem(itemLink)
+    local nativeUsable
+    if not currentlyEquipped and addon.gameVersion == 30300 and
+        type(NativeIsUsableItem) == "function" then
+        local ok, usable = pcall(NativeIsUsableItem, itemLink)
+        if ok and (usable == true or usable == 1 or usable == false or
+            usable == 0) then
+            nativeUsable = usable == true or usable == 1
+        end
+    end
     local clientSaysUsable = clientUsable == true or clientUsable == 1 or
                                  currentlyEquipped
     if session.itemCache[itemLink] then
@@ -2366,6 +2379,25 @@ function addon.itemUpgrades:GetItemData(itemLink, tooltip, clientUsable)
         itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then return end
 
     local itemData
+
+    -- Sirus' native usability result includes requirements which are absent
+    -- from GetItemInfo/GetItemStats, including profession gates on trinkets
+    -- such as Philosopher's Stone. Never offer an item the current character
+    -- cannot actually equip. Equipped items remain authoritative above.
+    if nativeUsable == false then
+        itemData = {
+            unusable = true,
+            requirementRestricted = true,
+            itemLink = itemLink,
+            itemSubTypeID = itemSubTypeID,
+            itemEquipLoc = itemEquipLoc,
+            sellPrice = sellPrice,
+            itemMinLevel = itemMinLevel,
+            setID = setID
+        }
+        session.itemCache[itemLink] = itemData
+        return itemData
+    end
 
     local classUsability = IsUsableForClass(itemSubTypeID, itemEquipLoc,
                                              itemLink, clientUsable)

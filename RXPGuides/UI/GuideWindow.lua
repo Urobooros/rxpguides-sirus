@@ -126,9 +126,6 @@ function addon.RenderFrame(themeUpdate,isLoading)
             frame:UpdateVisuals(true)
         end
     end
-    if addon.toolWindows and addon.toolWindows.RefreshVisuals then
-        addon.toolWindows:RefreshVisuals()
-    end
     if not themeUpdate then
         RXPFrame.GenerateMenuTable()
     end
@@ -576,21 +573,14 @@ RXPFrame.activeSteps = activeSteps
 
 -- Keep step progress visually readable on every guide without requiring guide
 -- authors to add presentation directives.  The full guide list can infer
--- completed sequential steps from currentStep, while sticky steps remain blue
--- until their own objectives are finished.
+-- completed sequential steps from currentStep without replacing the selected
+-- theme's row backgrounds.
 local stepVisuals = {
-    current = {
-        background = {0.38, 0.29, 0.02, 0.95},
-        text = {1.00, 0.91, 0.30},
-    },
+    current = {},
     completed = {
-        background = {0.03, 0.27, 0.10, 0.90},
-        text = {0.58, 1.00, 0.66},
+        text = {0.62, 0.62, 0.62},
     },
-    sticky = {
-        background = {0.03, 0.19, 0.34, 0.92},
-        text = {0.55, 0.84, 1.00},
-    },
+    sticky = {},
     skipped = {
         text = {0.68, 0.68, 0.68},
     },
@@ -659,12 +649,12 @@ local function ApplyElementVisualState(elementFrame, element, step)
             local visuals = addon.accessibility and
                                 addon.accessibility:GetStepVisuals() or
                                 stepVisuals
-            color = visuals.current.text
+            color = visuals.current.text or color
         elseif GetStepVisualState(step) == "sticky" then
             local visuals = addon.accessibility and
                                 addon.accessibility:GetStepVisuals() or
                                 stepVisuals
-            color = visuals.sticky.text
+            color = visuals.sticky.text or color
         end
     end
     elementFrame.text:SetTextColor(unpack(color))
@@ -1082,24 +1072,11 @@ function addon.SetStep(n, n2, loopback)
                         return
                     end
                     local element = self.element or self:GetParent().element
-                    if element and (element.tooltip or
-                       element.guideTranslationFallback or
-                       element.guideTranslationMachine) then
+                    if element and element.tooltip then
                         _G.GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -10)
                         _G.GameTooltip:ClearLines()
                         if element.tooltip then
                             _G.GameTooltip:AddLine(element.tooltip, 1, 1, 1)
-                        end
-                        if element.guideTranslationFallback and
-                           addon.guideLocalization then
-                            _G.GameTooltip:AddLine(
-                                addon.guideLocalization:GetFallbackExplanation(),
-                                0.65, 0.65, 0.65, true)
-                        elseif element.guideTranslationMachine and
-                               addon.guideLocalization then
-                            _G.GameTooltip:AddLine(
-                                addon.guideLocalization:GetMachineExplanation(),
-                                0.45, 0.65, 1, true)
                         end
                         _G.GameTooltip:Show()
                     end
@@ -1110,9 +1087,7 @@ function addon.SetStep(n, n2, loopback)
                         return
                     end
                     local element = self.element or self:GetParent().element
-                    if element and (element.tooltip or
-                       element.guideTranslationFallback or
-                       element.guideTranslationMachine) then
+                    if element and element.tooltip then
                         _G.GameTooltip:Hide()
                     end
                 end
@@ -1531,7 +1506,7 @@ Footer:SetHeight(20)
 Footer.text = GuideName:CreateFontString(nil, "OVERLAY")
 -- GuideName.text:SetFontObject(GameFontNormalSmall)
 Footer.text:ClearAllPoints()
-Footer.text:SetPoint("LEFT", Footer, addon.gameVersion == 30300 and 113 or 92, 1)
+Footer.text:SetPoint("LEFT", Footer, 40, 1)
 Footer.text:SetPoint("RIGHT", Footer, -16, 1)
 Footer.text:SetJustifyH("LEFT")
 Footer.text:SetJustifyV("MIDDLE")
@@ -1583,6 +1558,7 @@ Footer.browse = CreateFrame("Button", nil, Footer,
 Footer.browse:SetFrameLevel(Footer:GetFrameLevel() + 1)
 Footer.browse:SetSize(66, 18)
 Footer.browse:SetPoint("LEFT", Footer.cog, "RIGHT", 1, 0)
+if addon.gameVersion == 30300 then Footer.browse:Hide() end
 
 function addon.UpdateBrowseModeButton()
     local button = Footer.browse
@@ -1638,7 +1614,7 @@ Footer.preflight:SetFrameLevel(Footer:GetFrameLevel() + 1)
 Footer.preflight:SetSize(25, 18)
 Footer.preflight:SetPoint("LEFT", Footer.browse, "RIGHT", 1, 0)
 Footer.preflight:SetText("?")
-if addon.gameVersion ~= 30300 then Footer.preflight:Hide() end
+Footer.preflight:Hide()
 Footer.preflight:SetScript("OnClick", function()
     if addon.routePreflight then addon.routePreflight:Toggle() end
 end)
@@ -1690,6 +1666,12 @@ addon.UpdatePreflightBadge()
 -- anchors prevents independently loaded optional tools from overlapping one
 -- another or the XP status hit region.
 function addon.UpdateFooterStatusAnchor()
+    if addon.gameVersion == 30300 then
+        Footer.text:ClearAllPoints()
+        Footer.text:SetPoint("LEFT", Footer, 40, 1)
+        Footer.text:SetPoint("RIGHT", Footer, -16, 1)
+        return
+    end
     local anchor = Footer.preflight
     for _, button in ipairs({Footer.speedrun, Footer.speedrunAdvisors}) do
         if button then
@@ -1737,29 +1719,6 @@ Footer:SetScript("OnMouseDown", GuideName.OnMouseDown)
 
 GuideName:SetScript("OnMouseUp", GuideName.OnMouseUp)
 Footer:SetScript("OnMouseUp", GuideName.OnMouseUp)
-GuideName:SetScript("OnEnter", function(self)
-    if addon.currentGuide and
-       (addon.currentGuide.guideTitleFallback or
-        addon.currentGuide.guideTitleMachine) and
-       addon.guideLocalization then
-        _G.GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        _G.GameTooltip:ClearLines()
-        local machine = addon.currentGuide.guideTitleMachine
-        _G.GameTooltip:AddLine(machine and
-            addon.guideLocalization:GetMachineExplanation() or
-            addon.guideLocalization:GetFallbackExplanation(),
-            machine and 0.45 or 0.65, machine and 0.65 or 0.65,
-            machine and 1 or 0.65, true)
-        _G.GameTooltip:Show()
-    end
-end)
-GuideName:SetScript("OnLeave", function()
-    if addon.currentGuide and
-       (addon.currentGuide.guideTitleFallback or
-        addon.currentGuide.guideTitleMachine) then
-        _G.GameTooltip:Hide()
-    end
-end)
 
 --[[GuideName:SetScript("OnEnter", function() Footer.cog:Show() end)
 GuideName:SetScript("OnLeave", function()
@@ -1774,15 +1733,15 @@ function RXPFrame.UpdateScrollBar()
     local prefix = addon.GetTexture("Scrollbar/")
 
     local s = ScrollFrame.ScrollBar.ScrollDownButton
-    s.Normal:SetTexture(prefix .. "Down-Normal")
-    s.Highlight:SetTexture(prefix .. "Down-Highlight") -- ?
-    s.Pushed:SetTexture(prefix .. "Down-Pushed")
-    s.Disabled:SetTexture(prefix .. "Down-Disabled")
+    s:SetNormalTexture(prefix .. "Down-Normal")
+    s:SetHighlightTexture(prefix .. "Down-Highlight")
+    s:SetPushedTexture(prefix .. "Down-Pushed")
+    s:SetDisabledTexture(prefix .. "Down-Disabled")
     s = ScrollFrame.ScrollBar.ScrollUpButton
-    s.Normal:SetTexture(prefix .. "Up-Normal")
-    s.Highlight:SetTexture(prefix .. "Up-Highlight")
-    s.Pushed:SetTexture(prefix .. "Up-Pushed")
-    s.Disabled:SetTexture(prefix .. "Up-Disabled")
+    s:SetNormalTexture(prefix .. "Up-Normal")
+    s:SetHighlightTexture(prefix .. "Up-Highlight")
+    s:SetPushedTexture(prefix .. "Up-Pushed")
+    s:SetDisabledTexture(prefix .. "Up-Disabled")
     ScrollFrame.ScrollBar:SetThumbTexture(prefix .. "Knob")
 end
 
@@ -2425,9 +2384,6 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
 
     addon.currentGuide = addon.ProcessGuideTable(guide)
     guide = addon.currentGuide
-    if addon.compatibilityPacks and addon.compatibilityPacks.ApplyGuide then
-        addon.compatibilityPacks:ApplyGuide(guide)
-    end
 
     local disabledQuests = {}
     if guide.disabledQuests then
@@ -2596,36 +2552,23 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
 
         frame:SetScript("OnEnter", function(self)
             self.currentAlpha = self:GetAlpha()
-            if IsFrameShown(frame,self.step) then
+            if IsFrameShown(self, self.step) then
                 self:SetAlpha(1)
                 self:SetBackdropColor(unpack(addon.colors.bottomFrameHighlight))
-            end
-            if (self.guideTranslationFallback or
-                self.guideTranslationMachine) and addon.guideLocalization then
-                _G.GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                _G.GameTooltip:ClearLines()
-                local machine = self.guideTranslationMachine
-                _G.GameTooltip:AddLine(machine and
-                    addon.guideLocalization:GetMachineExplanation() or
-                    addon.guideLocalization:GetFallbackExplanation(),
-                    machine and 0.45 or 0.65, machine and 0.65 or 0.65,
-                    machine and 1 or 0.65, true)
-                _G.GameTooltip:Show()
             end
         end)
         frame:SetScript("OnLeave", function(self)
             self:SetBackdropColor(unpack(self.stepVisualBackground or
                                              addon.colors.bottomFrameBG))
             self:SetAlpha(self.currentAlpha)
-            if self.guideTranslationFallback or self.guideTranslationMachine then
-                _G.GameTooltip:Hide()
-            end
         end)
         frame.timer = 0
         frame.index = n
         frame.guide = guide
         frame:SetScript("OnMouseDown", function(self, button)
-            if not IsFrameShown(frame, self.step) then return end
+            if not IsFrameShown(self, self.step) then return end
+            self.pressedStep = self.step
+            self.pressedButton = button
             if button == "RightButton" then
                 self.timer = 0
                 local n = self.step.index
@@ -2638,10 +2581,16 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
                 else
                     LibDD:EasyMenu(bottomMenu, MenuFrame, "cursor", 0, 0, "MENU");
                 end
-            elseif button == "LeftButton" and self.step and addon.GoToStep then
-                -- Left-click a step to jump straight to it (right-click still opens
-                -- the menu with "Go to step", browse toggle, etc.).
-                addon.GoToStep(self.step.index)
+            end
+        end)
+        frame:SetScript("OnMouseUp", function(self, button)
+            local pressedStep = self.pressedStep
+            local pressedButton = self.pressedButton
+            self.pressedStep, self.pressedButton = nil, nil
+            if button == "LeftButton" and pressedButton == button and
+               pressedStep and pressedStep == self.step and
+               IsFrameShown(self, pressedStep) and addon.GoToStep then
+                addon.GoToStep(pressedStep.index)
             end
         end)
 
@@ -2987,7 +2936,7 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
 
     if guide then
         ScrollChild:SetHeight(ScrollChild.f1:GetHeight() -
-                                  BottomFrame.hiddenFrames * 4)
+                                  (tonumber(BottomFrame.hiddenFrames) or 0) * 4)
     end
 
     local w = RXPFrame:GetWidth() - 35
@@ -3524,127 +3473,6 @@ function RXPFrame:GenerateMenuTable(menu)
                      {text = text, notCheckable = 1, func = addon.GAToggle})
     end
 
-    -- Keep the recently-added analysis tools available from both consumers
-    -- of this menu: the guide-window cog and the minimap button.  XP shortfall
-    -- and item reservations are parts of Route Preflight, while the watchdog
-    -- is deliberately a separate manual action.
-    local speedrunTools = {
-        {text = L("Live Speedrun Coach"), notCheckable = 1,
-         disabled = not addon.speedrunCoach or addon.settings.profile.enableSpeedrunCoach ~= true,
-         func = function() if addon.speedrunCoach then addon.speedrunCoach:Toggle() end end},
-        {text = L("Dynamic Grind Optimizer"), notCheckable = 1,
-         disabled = not addon.speedrunGrind or addon.settings.profile.enableSpeedrunGrind ~= true,
-         func = function() if addon.speedrunGrind then addon.speedrunGrind:Toggle() end end},
-        {text = L("Pit Stop Planner"), notCheckable = 1,
-         disabled = not addon.speedrunPitStop or addon.settings.profile.enableSpeedrunPitStop ~= true,
-         func = function() if addon.speedrunPitStop then addon.speedrunPitStop:Toggle() end end},
-        {text = L("Adaptive Route Strategist"), notCheckable = 1,
-         disabled = not addon.speedrunRoute or addon.settings.profile.enableSpeedrunRoute ~= true,
-         func = function() if addon.speedrunRoute then addon.speedrunRoute:Toggle() end end},
-        {text = L("Deathwarp Decision Assistant"), notCheckable = 1,
-         disabled = not addon.speedrunDeathwarp or addon.settings.profile.enableSpeedrunDeathwarp ~= true,
-         func = function() if addon.speedrunDeathwarp then addon.speedrunDeathwarp:Toggle() end end},
-        {text = L("Segment Practice Lab"), notCheckable = 1,
-         disabled = not addon.speedrunPractice or addon.settings.profile.enableSpeedrunPractice ~= true,
-         func = function() if addon.speedrunPractice then addon.speedrunPractice:Toggle() end end},
-        {text = L("Speedrun Audio Director"), notCheckable = 1,
-         disabled = not addon.speedrunAudio or addon.settings.profile.enableSpeedrunAudio ~= true,
-         func = function() if addon.speedrunAudio then addon.speedrunAudio:Toggle() end end},
-        {text = L("Run Ruleset and Integrity"), notCheckable = 1,
-         disabled = not addon.speedrunRules or addon.settings.profile.enableSpeedrunRules ~= true,
-         func = function() if addon.speedrunRules then addon.speedrunRules:Toggle() end end},
-    }
-
-    local featureTools = {
-        {
-            text = L("Speedrunning Suite"), notCheckable = 1, hasArrow = true,
-            disabled = addon.settings.profile.enableSpeedrunSuite == false,
-            menuList = speedrunTools,
-        },
-        {
-            text = L("XP & Yellow-Mob Estimator"),
-            notCheckable = 1,
-            disabled = not addon.xpAssistant or
-                           addon.settings.profile.enableMobXPEstimator == false,
-            func = function()
-                if addon.xpAssistant then addon.xpAssistant:Toggle() end
-            end
-        },
-        {
-            text = L("Route Preflight, XP & Reservations"),
-            notCheckable = 1,
-            disabled = not addon.routePreflight,
-            func = function()
-                if addon.routePreflight then addon.routePreflight:Toggle() end
-            end
-        },
-        {
-            text = L("Toggle Current-Step Watchdog"),
-            notCheckable = 1,
-            disabled = not addon.routePreflight or not addon.currentGuide or
-                           addon.currentGuide.empty,
-            func = function()
-                if addon.routePreflight then
-                    addon.routePreflight:ToggleWatch()
-                end
-            end
-        },
-        {
-            text = L("Personal-Best Archives"),
-            notCheckable = 1,
-            disabled = not addon.runArchive,
-            func = function()
-                if addon.runArchive then addon.runArchive:Toggle() end
-            end
-        },
-        {
-            text = L("Hunter Pet Assistant"),
-            notCheckable = 1,
-            disabled = not addon.petAssistant or
-                           select(2, UnitClass("player")) ~= "HUNTER",
-            func = function()
-                if addon.petAssistant then addon.petAssistant:Toggle() end
-            end
-        },
-        {
-            text = L("Performance Inspector"),
-            notCheckable = 1,
-            disabled = not addon.performanceInspector,
-            func = function()
-                if addon.performanceInspector then
-                    addon.performanceInspector:Toggle()
-                end
-            end
-        },
-        {
-            text = L("Feature Tool Settings..."),
-            notCheckable = 1,
-            disabled = not addon.settings or
-                           not addon.settings.OpenFeatureToolSettings,
-            func = function()
-                if addon.settings and addon.settings.OpenFeatureToolSettings then
-                    addon.settings.OpenFeatureToolSettings()
-                end
-            end
-        },
-        {
-            text = L("Reset Tool Window Positions"),
-            notCheckable = 1,
-            disabled = not addon.toolWindows,
-            func = function()
-                if addon.toolWindows then
-                    addon.toolWindows:ResetPlacements()
-                end
-            end
-        }
-    }
-    tinsert(menuList, {
-        text = L("Feature Tools"),
-        notCheckable = 1,
-        hasArrow = true,
-        menuList = featureTools
-    })
-
     tinsert(menuList, {
         text = _G.GAMEOPTIONS_MENU .. "...",
         notCheckable = 1,
@@ -3724,8 +3552,5 @@ function addon.UpdateGuideFontSize()
         CurrentStepFrame.UpdateText()
         BottomFrame.UpdateFrame()
         RXPFrame.SetStepFrameAnchor()
-    end
-    if addon.toolWindows and addon.toolWindows.RefreshVisuals then
-        addon.toolWindows:RefreshVisuals()
     end
 end

@@ -152,8 +152,7 @@ $orderedPaths = @(
     'Guide\ElementState.lua', 'Guide\AutomationOrder.lua',
     'Guide\Directives\Handlers.lua',
     'Guide\Directives\Registry.lua', 'Guide\Loader.lua',
-    'Guide\Registry.lua', 'GuideList_335.xml',
-    'Features\Talents.lua', 'Talents_wotlk_335.xml', 'Compat\Options.lua'
+    'Guide\Registry.lua', 'Features\Talents.lua', 'Compat\Options.lua'
 )
 $lastIndex = -1
 foreach ($path in $orderedPaths) {
@@ -164,6 +163,22 @@ foreach ($path in $orderedPaths) {
         Add-ValidationError "Load-order entry is out of order: $path"
     }
     $lastIndex = [Math]::Max($lastIndex, $index)
+}
+
+$levelingTocPath = [IO.Path]::GetFullPath((Join-Path $root '..\RXP Leveling\RXP Leveling.toc'))
+if (-not [IO.File]::Exists($levelingTocPath)) {
+    Add-ValidationError 'RXP Leveling addon manifest is missing.'
+} else {
+    $levelingToc = [IO.File]::ReadAllText($levelingTocPath)
+    if ($levelingToc -notmatch '(?m)^## Dependencies: RXPGuides\s*$') {
+        Add-ValidationError 'RXP Leveling must declare RXPGuides as a dependency.'
+    }
+    foreach ($resource in @('GuideList_335.xml', 'SurvivalGuideList_335.xml',
+                             'Talents_wotlk_335.xml')) {
+        if ($levelingToc.IndexOf($resource, [StringComparison]::Ordinal) -lt 0) {
+            Add-ValidationError "RXP Leveling load-order entry is missing: $resource"
+        }
+    }
 }
 
 # The 3.3.5 map APIs expose localized display names. Navigation must bind map
@@ -246,11 +261,14 @@ $legacyAreaNames = @([regex]::Matches(
     $legacyAreaBlock.Groups['body'].Value,
     '\[\d+\]\s*=\s*"(?<name>(?:\\.|[^"])*)"') |
         ForEach-Object { $_.Groups['name'].Value } | Sort-Object -Unique)
-foreach ($clientLocale in @('deDE', 'esES', 'frFR', 'koKR', 'ruRU', 'zhCN', 'zhTW')) {
+# This distribution targets the Russian Sirus client. Keeping the validator
+# aligned with that runtime surface prevents removed locale packs from becoming
+# accidental dependencies again.
+foreach ($clientLocale in @('ruRU')) {
     $localeBlock = [regex]::Match(
         $locationLocaleText,
         '(?s)\["' + [regex]::Escape($clientLocale) +
-            '"\]\s*=\s*\{(?<body>.*?)\n\s*\},')
+            '"\]\s*=\s*\{(?<body>.*?)\n\s*\},?')
     if (-not $localeBlock.Success) {
         Add-ValidationError "Legacy location translations are missing: $clientLocale"
         continue

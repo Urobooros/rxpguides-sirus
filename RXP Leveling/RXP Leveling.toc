@@ -1,0 +1,10 @@
+## Interface: 30300
+## Title: RXP Leveling
+## Notes: Purchased leveling routes adapted for private use on Sirus 3.3.5a
+## Author: The Curator
+## Version: v6.7.1-sirus.0
+## Dependencies: RXPGuides
+
+GuideList_335.xml
+SurvivalGuideList_335.xml
+Talents_wotlk_335.xml

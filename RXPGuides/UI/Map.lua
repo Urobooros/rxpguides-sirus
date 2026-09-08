@@ -14,9 +14,25 @@ local worldMapFramePool, miniMapFramePool, lineMapFramePool
 addon.arrowFrame = CreateFrame("Frame", "RXPG_ARROW", UIParent)
 local af = addon.arrowFrame
 
+local function SetArrowTexture(texture)
+    -- The original DXT5 BLP has opaque pixels in its outer compression blocks.
+    -- Sirus' rotated sampler exposes those blocks as lines outside the arrow.
+    -- The Sirus texture is uncompressed BGRA with a four-pixel transparent
+    -- border, so rotation never samples coloured edge data.
+    local path
+    if addon.gameVersion == 30300 then
+        -- This compatibility asset is shared by every visual theme.
+        path = "Interface\\AddOns\\" .. addonName ..
+                   "\\Textures\\rxp_navigation_arrow-sirus.tga"
+    else
+        path = addon.GetTexture("rxp_navigation_arrow-1")
+    end
+    texture:SetTexture(path)
+    texture:SetTexCoord(0, 1, 0, 1)
+end
+
 function addon.arrowFrame:UpdateVisuals()
-    self.texture:SetTexture(addon.GetTexture(
-        "rxp_navigation_arrow-1"))
+    SetArrowTexture(self.texture)
 end
 
 local function IsInInstance()
@@ -62,7 +78,7 @@ end)
 
 function addon.SetupArrow()
     af.text:SetFont(addon.font, 9,"OUTLINE")
-    af.texture:SetTexture(addon.GetTexture("rxp_navigation_arrow-1"))
+    SetArrowTexture(af.texture)
     af.text:SetTextColor(unpack(addon.activeTheme.textColor))
 
     addon.arrowFrame:SetScript("OnUpdate", addon.DrawArrow)
@@ -1890,10 +1906,6 @@ function addon.GetMapId(zone)
 end
 
 function addon.GetMapInfo(zone,x,y)
-    if addon.compatibilityPacks and
-        addon.compatibilityPacks.ResolveMapAlias then
-        zone = addon.compatibilityPacks:ResolveMapAlias(zone)
-    end
     x = tonumber(x)
     y = tonumber(y)
     if not (x and y and zone) then

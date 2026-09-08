@@ -1,11 +1,12 @@
 param(
-    [string]$ManifestPath = (Join-Path $PSScriptRoot '..\Talents_wotlk_335.xml'),
+    [string]$ManifestPath = (Join-Path $PSScriptRoot '..\..\RXP Leveling\Talents_wotlk_335.xml'),
     [string]$TalentDataPath,
     [int]$MaxErrors = 100
 )
 
 $ErrorActionPreference = 'Stop'
-$root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$ManifestPath = [IO.Path]::GetFullPath($ManifestPath)
+$root = Split-Path -Parent $ManifestPath
 $errors = New-Object 'Collections.Generic.List[string]'
 $plans = New-Object 'Collections.Generic.List[object]'
 $knownHeaders = @{
@@ -105,8 +106,8 @@ foreach ($match in [regex]::Matches($manifest, '<Script\s+file="([^"]+)"\s*/>'))
 
 if ($files.Count -eq 0) { Add-ValidationError 'Talent manifest contains no Script entries.' }
 
-$guidePattern = [regex]'(?ms)addon\.talents\.RegisterGuide\s*\(\[\[(.*?)\]\]\)'
-$buildPattern = [regex]'(?ms)addon\.talents\.RegisterBuild\s*\(\s*"([^"]+)"\s*,\s*\[\[(.*?)\]\]\s*\)'
+$guidePattern = [regex]'(?ms)(?:addon\.)?talents\.RegisterGuide\s*\(\[\[(.*?)\]\]\)'
+$buildPattern = [regex]'(?ms)(?:addon\.)?talents\.RegisterBuild\s*\(\s*"([^"]+)"\s*,\s*\[\[(.*?)\]\]\s*\)'
 $guideKeys = @{}
 $stepCount = 0
 
@@ -114,7 +115,7 @@ foreach ($path in $files) {
     $relative = $path.Substring($root.Length).TrimStart([IO.Path]::DirectorySeparatorChar,
                                                         [IO.Path]::AltDirectorySeparatorChar)
     $content = [IO.File]::ReadAllText($path)
-    $classMatch = [regex]::Match($content, 'addon\.player\.class\s*~=\s*"([A-Z]+)"')
+    $classMatch = [regex]::Match($content, '(?:addon\.player\.class|playerClass)\s*~=\s*"([A-Z]+)"')
     if (-not $classMatch.Success) {
         Add-ValidationError "$relative has no class load guard."
         continue

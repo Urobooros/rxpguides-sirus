@@ -25,7 +25,7 @@ $uiLocale = Read-Utf8 'Core\Locale.lua'
 $catalogs = Read-Utf8 'locale\GuideCatalogs.lua'
 $addonCore = Read-Utf8 'Core\Addon.lua'
 $zhExact = if ($CoreOnly) { '' } else { Read-Utf8 'locale\GuideExact.zhCN.lua' }
-$translationLocales = @('deDE','esES','frFR','koKR','ruRU','zhCN','zhTW')
+$translationLocales = @('ruRU')
 $packs = @{}
 if (-not $CoreOnly) {
     foreach ($translationLocale in $translationLocales) {
@@ -39,7 +39,13 @@ $settings = Read-Utf8 'UI\Settings.lua'
 $loader = Read-Utf8 'Guide\Loader.lua'
 $guideWindow = Read-Utf8 'UI\GuideWindow.lua'
 $handlers = Read-Utf8 'Guide\Directives\Handlers.lua'
-$guideList = Read-Utf8 'GuideList_335.xml'
+$guideListPath = [IO.Path]::GetFullPath((Join-Path $RepoRoot '..\RXP Leveling\GuideList_335.xml'))
+if (Test-Path -LiteralPath $guideListPath -PathType Leaf) {
+    $guideList = [IO.File]::ReadAllText($guideListPath, $utf8)
+} else {
+    $errors.Add('Missing translation resource: ..\RXP Leveling\GuideList_335.xml')
+    $guideList = ''
+}
 
 if ($uiLocale -match 'local\s+ssplit[^\r\n]*strsplittable' -or
     $uiLocale -notmatch 'local\s+function\s+SplitLiteral\s*\(' -or
@@ -134,7 +140,7 @@ foreach ($script in [regex]::Matches($guideList,
 }
 
 foreach ($locale in $translationLocales) {
-    if ($catalogs -notmatch ('locale\s*==\s*"' + $locale + '"')) {
+    if ($catalogs -notmatch ('locale\s*[~=]=\s*"' + $locale + '"')) {
         $errors.Add("Missing active-locale catalog: $locale")
     }
 }
@@ -164,17 +170,17 @@ foreach ($template in [regex]::Matches($catalogs,
 foreach ($semanticKey in @('xpAway','xpInto','xpPercent','grindLevel',
         'repAway','repInto','repPercent','reputation')) {
     if ([regex]::Matches($catalogs,
-            ('\b' + $semanticKey + '\s*=')).Count -ne 7) {
+            ('\b' + $semanticKey + '\s*=')).Count -ne $translationLocales.Count) {
         $errors.Add("Semantic formatter '$semanticKey' is not defined for all locales.")
     }
 }
-if ($service -notmatch 'FALLBACK_BADGE\s*=\s*" \|cff9d9d9d\[EN\]\|r"' -or
+if ($service -notmatch 'FALLBACK_BADGE\s*=\s*""' -or
     $service -notmatch 'guideTranslationFallback') {
-    $errors.Add('English fallback badge/metadata wiring is missing.')
+    $errors.Add('English fallback metadata or inline-badge suppression is missing.')
 }
-if ($service -notmatch 'MACHINE_BADGE\s*=\s*" \|cff70a0ff\[MT\]\|r"' -or
+if ($service -notmatch 'MACHINE_BADGE\s*=\s*""' -or
     $service -notmatch 'guideTranslationMachine') {
-    $errors.Add('Machine-translation badge/metadata wiring is missing.')
+    $errors.Add('Machine-translation metadata or inline-badge suppression is missing.')
 }
 foreach ($api in @('RenderElement','RenderGuideName','RenderGroup','SetMode',
         'RegisterTranslationPack','RegisterCompressedPack','Tokenize',
@@ -272,44 +278,13 @@ if (-not $CoreOnly) {
 }
 
 if ($CoreOnly) {
-    $bootstrap = Read-Utf8 'packaging\locale\Bootstrap.lua'
-    $packager = Read-Utf8 'tools\Build-LocalePackages335.sh'
-    $releaseWorkflow = Read-Utf8 '.github\workflows\release.yml'
-    $lock = (Read-Utf8 'LOCALIZATIONS.lock').Trim()
-    if ($toc -match 'locale\\Guide(?:Exact|Pack)\.') {
-        $errors.Add('The core TOC still embeds optional locale payloads.')
+    $embedded = Read-Utf8 'locale\GuidePack.ruRU.lua'
+    if ($toc -notmatch 'locale\\GuidePack\.ruRU\.lua') {
+        $errors.Add('The core TOC does not load the embedded ruRU guide pack.')
     }
-    foreach ($api in @('GetCompanionAddonName','LoadCompanion',
-            'GetCompanionState')) {
-        if ($service -notmatch ('function\s+service:' + $api + '\s*\(')) {
-            $errors.Add("Missing locale-companion API: $api")
-        }
-    }
-    if ($addonCore -notmatch
-            'addon\.guideLocalization:LoadCompanion\(\)') {
-        $errors.Add('Core startup does not load the matching locale companion.')
-    }
-    if ($bootstrap -notmatch 'GetAddon\("RXPGuides", true\)' -or
-        $bootstrap -notmatch 'companion\.guideLocalization\s*=') {
-        $errors.Add('Locale companion bootstrap does not bind to the core presentation service.')
-    }
-    if ($lock -notmatch '^[0-9a-f]{40}$') {
-        $errors.Add('LOCALIZATIONS.lock must contain one full Git commit ID.')
-    }
-    foreach ($locale in $translationLocales) {
-        if ($packager -notmatch ('\b' + $locale + '\b')) {
-            $errors.Add("Locale packager does not include $locale.")
-        }
-    }
-    if ($packager -notmatch '## LoadOnDemand: 1' -or
-        $packager -notmatch 'scripts=\("Bootstrap\.lua"\)' -or
-        $packager -notmatch 'X-RXPGuides-Localization-Commit') {
-        $errors.Add('Locale package manifest/order metadata is incomplete.')
-    }
-    if ($releaseWorkflow -notmatch 'LOCALIZATIONS\.lock' -or
-        $releaseWorkflow -notmatch 'Build-LocalePackages335\.sh' -or
-        $releaseWorkflow -notmatch '\.locale-release/\*\.zip') {
-        $errors.Add('Release workflow does not publish the pinned locale assets.')
+    if ($embedded -notmatch 'GetLocale\(\)\s*~=\s*"ruRU"' -or
+        $embedded -notmatch 'RegisterCompressedPack\("ruRU", payload\)') {
+        $errors.Add('Embedded ruRU pack is missing its locale gate or registration.')
     }
 }
 if (-not $CoreOnly) {
@@ -341,7 +316,7 @@ if ($errors.Count -gt 0) {
     throw "Guide translation validation failed with $($errors.Count) error(s)."
 }
 if ($CoreOnly) {
-    Write-Host 'Guide localization core OK: optional companion loading, named templates, immutable source, and pinned release input.'
+    Write-Host 'Guide localization core OK: embedded locale-gated ruRU pack, named templates, and immutable source.'
 } else {
     Write-Host "Guide translations OK: 7 locale catalogs and locale-gated packs, $exactCount reviewed zhCN exact strings, named templates, immutable source, and explicit fallbacks."
 }

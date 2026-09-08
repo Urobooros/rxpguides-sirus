@@ -26,33 +26,7 @@ H["What are command the line options?"] = [[
 |cff909090/rxp split|r - Recover a missed automatic level split from /played
 |cff909090/rxp show||hide||toggle|r - Toggle all enabled frames on or off
 |cff909090/rxp bug||feedback|r - Open Feedback Form
-|cff909090/rxp guides|r - Open the searchable Guide Hub
-|cff909090/rxp backup|r - Export, merge, replace, or undo a settings/progress backup
-|cff909090/rxp diagnose|r - Explain the current step and its blockers
-|cff909090/rxp preflight|r - Inspect upcoming route, XP, and reserved-item risks
-|cff909090/rxp watch|r - Arm or stop the manual watchdog for the current step
-|cff909090/rxp archives|r - Open anonymous account-wide personal-best archives
-|cff909090/rxp pet|r - Open the Hunter Pet Assistant
-|cff909090/rxp perf|r - Open the Performance Inspector
-|cff909090/rxp coach|r - Open the Live Speedrun Coach
-|cff909090/rxp grind|r - Open the Dynamic Grind Optimizer
-|cff909090/rxp pitstop|r - Open the Pit Stop Planner
-|cff909090/rxp route|r - Open the Adaptive Route Strategist when enabled
-|cff909090/rxp deathwarp|r - Open the Deathwarp Decision Assistant
-|cff909090/rxp practice|r - Open the Segment Practice Lab
-|cff909090/rxp audio|r - Open the Speedrun Audio Director
-|cff909090/rxp rules|r - Open run rules and integrity details
-|cff909090/rxp catchup|r - Preview a safe starting step
-|cff909090/rxp recover|r - Plan a conservative return route
-|cff909090/rxp supplies|r - Open the class supplies checklist
-|cff909090/rxp gear|r - Open the Gear Advisor
-|cff909090/rxp gold|r - Open the current Gold Assistant farming report
 |cff909090/rxp browse|r - Freeze or resume automatic guide progression
-|cff909090/rxp dailies|r - Open the WotLK activity planner
-|cff909090/rxp record|r - Open the opt-in Guide Author Recorder
-|cff909090/rxp party on||off||wait||suggest|r - Control opt-in party guide sync
-|cff909090/rxp lore off||first||always|r - Control quest-text automation pauses
-|cff909090/rxp colorblind MODE|r - Apply an accessible color/symbol preset
 |cff909090/rxp help|r - This output
 ]]
 

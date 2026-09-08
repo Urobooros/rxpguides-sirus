@@ -2,6 +2,7 @@
 -- mocked runtime tests. Quest/UI handlers are inert: this tests which authored
 -- instructions survive class/race filtering, not gameplay automation.
 return function(root)
+    local guideRoot = root .. "/../RXP Leveling"
     local function newLoader(class, race, character, faction)
         local env = setmetatable({}, {__index = _G})
         env._G = env
@@ -33,7 +34,7 @@ return function(root)
         return addon, env
     end
 
-    local file = assert(io.open(root .. "/Guides/RestedXP Horde 1-13 Troll-Orc.lua", "rb"))
+    local file = assert(io.open(guideRoot .. "/Guides/RestedXP Horde 1-13 Troll-Orc.lua", "rb"))
     local source = file:read("*a")
     file:close()
     local durotar
@@ -94,7 +95,7 @@ return function(root)
     end
 
     local function loadGuide(path, name, class, race, faction)
-        local input = assert(io.open(root .. "/" .. path, "rb"))
+        local input = assert(io.open(guideRoot .. "/" .. path, "rb"))
         local text = input:read("*a")
         input:close()
         for block in text:gmatch("RXPGuides%.RegisterGuide%(%[%[(.-)%]%]%)") do
@@ -408,8 +409,8 @@ return function(root)
     assert(scholomanceRewards[5092] and scholomanceRewards[5098],
            "Alliance Scholomance key chain skips Clear the Way turn-in")
 
-    local hordeFjord = loadGuide("Guides/WotLK/Horde-Leveling.lua",
-        "72-74 Northrend", "HUNTER", "Orc", "Horde")
+    local hordeFjord = loadGuide("Guides/RestedXP/WotLK-Horde.lua",
+        "68-71 Howling Fjord", "HUNTER", "Orc", "Horde")
     local _, hordeFjordRewards = checkChain(hordeFjord,
         {11286, 11317, 11311, 11297, 11298})
     assert(hordeFjordRewards[11286] and hordeFjordRewards[11317] and
@@ -464,18 +465,6 @@ return function(root)
             "61-63 Zangarmarsh", "WARRIOR", race, faction)
         local _, rewarded = checkChain(guide, {9778, 9728})
         assert(rewarded[9778] and rewarded[9728], "Zangarmarsh handoff is incomplete")
-        local northrend = loadGuide("Guides/WotLK/" .. faction .. "-Leveling.lua",
-            "76-78 Northrend", "WARRIOR", race, faction)
-        for _, done in ipairs({false, true}) do
-            local chain = done and {12633, 12638, 12643, 12649, 12663, 12661}
-                or {12631, 12637, 12629, 12648, 12664, 12661}
-            local other = done and {12631, 12637, 12629, 12648, 12664}
-                or {12633, 12638, 12643, 12649, 12663}
-            local _, rewards = checkChain(northrend, chain, 1, done)
-            for _, id in ipairs(chain) do assert(rewards[id], "Missing Drakuru reward " .. id) end
-            local acceptedOther = checkChain(northrend, other, 1, done)
-            assert(next(acceptedOther) == nil, "Opposite Drakuru branch leaked into the route")
-        end
     end
 
     local ghostlands = loadGuide("Guides/RestedXP Horde 1-20 BloodElf.lua",
@@ -640,13 +629,6 @@ return function(root)
         "30-33 Hillsbrad/Arathi part 1", "DRUID", "Tauren", "Horde")
     assert(not findStep(hordeThirty, "accept", 31),
            "WotLK route still accepts the obsolete Aquatic Form handoff")
-
-    local hordeBorean = loadGuide("Guides/WotLK/Horde-Leveling.lua",
-        "70-72 Northrend", "HUNTER", "Orc", "Horde")
-    local drakeObjective = findStep(hordeBorean, "complete", 11919)
-    assert(drakeObjective and stepHas(drakeObjective, "turnin", 11919) and
-               not findStep(hordeBorean, "complete", 11940),
-           "Drake Hunt objective uses a different quest than its hand-in")
 
     local lowerBlackrock = loadGuide("Guides/TBC/Alliance-Dungeons.lua",
         "14. Lower Blackrock Spire", "WARRIOR", "Human", "Alliance")

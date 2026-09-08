@@ -1,10 +1,12 @@
 param(
-    [string]$ManifestPath = (Join-Path $PSScriptRoot '..\GuideList_335.xml'),
-    [string]$QuestDbPath = (Join-Path $PSScriptRoot '..\..\ZygorGuidesViewerRM\ZygorQuestDB.lua'),
+    [string]$ManifestPath = (Join-Path $PSScriptRoot '..\..\RXP Leveling\GuideList_335.xml'),
+    [string]$QuestDbPath = 'D:\Loading\quest_template\quest_template.csv',
     [int]$MaxErrors = 200
 )
 
 $ErrorActionPreference = 'Stop'
+$ManifestPath = [IO.Path]::GetFullPath($ManifestPath)
+$guideRoot = Split-Path -Parent $ManifestPath
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $errors = New-Object 'Collections.Generic.List[string]'
 $warnings = New-Object 'Collections.Generic.List[string]'
@@ -168,38 +170,9 @@ $manifest = [IO.File]::ReadAllText([IO.Path]::GetFullPath($ManifestPath))
 $files = New-Object 'Collections.Generic.List[string]'
 foreach ($match in [regex]::Matches($manifest, '<Script\s+file="([^"]+)"\s*/>')) {
     $relative = $match.Groups[1].Value -replace '\\', [IO.Path]::DirectorySeparatorChar
-    $path = [IO.Path]::GetFullPath((Join-Path $root $relative))
+    $path = [IO.Path]::GetFullPath((Join-Path $guideRoot $relative))
     if (-not [IO.File]::Exists($path)) { Add-Error "Manifest file is missing: $relative"; continue }
     $files.Add($path)
-}
-
-# Compatibility packs are resolver-time data, but they can still make an
-# otherwise valid guide unusable. Validate the bundled data-only baseline next
-# to the guide manifest so CI cannot ship an executable or malformed pack.
-$packPath = Join-Path $root 'DB\wotlk\compatibilityPacks_335.lua'
-if (-not [IO.File]::Exists($packPath)) {
-    Add-Error 'Bundled compatibility-pack baseline is missing.'
-} else {
-    $packInfo = Get-Item -LiteralPath $packPath
-    $packText = [IO.File]::ReadAllText($packPath)
-    if ($packInfo.Length -gt 262144) { Add-Error 'Bundled compatibility pack exceeds 256 KB.' }
-    if ($packText -match '(?m)\b(?:load|string\.dump|loadstring|dofile|require|setfenv|getfenv)\s*\(') {
-        Add-Error 'Compatibility packs must be data-only and cannot execute or load Lua.'
-    }
-    if ($packText -notmatch '(?m)^\s*schema\s*=\s*1\s*,?\s*$') { Add-Error 'Compatibility pack schema must be 1.' }
-    if ($packText -notmatch '(?m)^\s*id\s*=\s*"[a-z0-9][a-z0-9._-]{0,79}"\s*,?\s*$') { Add-Error 'Compatibility pack ID is missing or malformed.' }
-    if ($packText -notmatch '(?m)^\s*version\s*=\s*[1-9]\d*\s*,?\s*$') { Add-Error 'Compatibility pack version is missing or malformed.' }
-    $allowedPackFields = @{
-        schema=$true; id=$true; name=$true; version=$true; core=$true; minAddon=$true
-        questPrerequisites=$true; questAvailability=$true; targetAliases=$true; flightAliases=$true
-        mapAliases=$true; guideOverrides=$true; eventQuirks=$true; resetPolicy=$true
-    }
-    foreach ($match in [regex]::Matches($packText, '(?m)^\s{4}([A-Za-z][A-Za-z0-9]*)\s*=')) {
-        $field = $match.Groups[1].Value
-        if (-not $allowedPackFields.ContainsKey($field)) {
-            Add-Error "Unknown compatibility-pack root field: $field"
-        }
-    }
 }
 
 $mapNames = @{}
@@ -210,6 +183,9 @@ foreach ($line in [IO.File]::ReadLines((Join-Path $root 'DB\wotlk\db.lua'))) {
         $mapIds[[int]$Matches[2]] = $true
     }
 }
+# The 3.3.5 WorldMap API exposes the Dalaran Underbelly as area 126 even
+# though the guide map-name table only needs the parent Dalaran entry (125).
+$mapIds[126] = $true
 
 # 3.3.5a has no C_Map.GetAreaInfo API. The compatibility bridge therefore
 # ships the AreaTable names used by loaded guides; fail validation when new
@@ -246,8 +222,11 @@ foreach ($name in @(
 $questIds = @{}
 $questNames = @{}
 if ([IO.File]::Exists($QuestDbPath)) {
+    $questExtension = [IO.Path]::GetExtension($QuestDbPath).ToLowerInvariant()
     foreach ($line in [IO.File]::ReadLines([IO.Path]::GetFullPath($QuestDbPath))) {
-        if ($line -match '^\s*\[(\d+)\]\s*=') {
+        if ($questExtension -eq '.csv' -and $line -match '^\s*(\d+)\s*$') {
+            $questIds[[int]$Matches[1]] = $true
+        } elseif ($line -match '^\s*\[(\d+)\]\s*=') {
             $questId = [int]$Matches[1]
             $questIds[$questId] = $true
             if ($line -match '^\s*\[\d+\]\s*=\s*"(.*)",\s*$') {
@@ -271,7 +250,7 @@ $objectiveContext = @{}
 $objectiveReferences = @{}
 
 foreach ($file in $files) {
-    $relative = $file.Substring($root.Length).TrimStart([char[]]@('\', '/'))
+    $relative = $file.Substring($guideRoot.Length).TrimStart([char[]]@('\', '/'))
     $text = [IO.File]::ReadAllText($file)
     $fileTextCache[$file] = $text
     if ($text -match '(?m)^\s*print\s*\(') { Add-Error "$relative contains a debug print" }
@@ -839,21 +818,27 @@ foreach ($faction in @('A', 'H')) {
             Name = '69-70 Shadowmoon Valley (' + $alignment + ')'
             Exact = $true
             Expected = @(
-                'RestedXP WotLK Guide (' + $faction + ')\70-72 Northrend')
+                $(if ($faction -eq 'A') { 'Alliance 70-80\68-71 Howling Fjord' } else { 'Horde 70-80\68-71 Howling Fjord' }))
         }
     }
 
-    $wotlkRanges = @('70-72', '72-74', '74-76', '76-78', '78-80')
-    for ($rangeIndex = 0; $rangeIndex -lt $wotlkRanges.Count; $rangeIndex++) {
-        $expectedNext = if ($rangeIndex -lt ($wotlkRanges.Count - 1)) {
-            @($wotlkRanges[$rangeIndex + 1] + ' Northrend')
-        } else {
-            @()
-        }
+    $wotlkGroup = if ($faction -eq 'A') { 'Alliance 70-80' } else { 'Horde 70-80' }
+    $wotlkNames = @('68-71 Howling Fjord', '70.5-71.5 Borean Tundra Prequest Start',
+        '71-73 Borean Tundra', '72-74 Dragonblight', '73-75 Grizzly Hills',
+        "75-77 Zul'Drak", '77-78 Sholazar Basin', '78-79 The Storm Peaks',
+        '79-80 Icecrown')
+    $wotlkNext = @('71-73 Borean Tundra', '72-74 Dragonblight',
+        '72-74 Dragonblight; 73-75 Grizzly Hills', '73-75 Grizzly Hills',
+        "75-77 Zul'Drak", '77-78 Sholazar Basin', '78-79 The Storm Peaks',
+        '79-80 Icecrown', $null)
+    for ($rangeIndex = 0; $rangeIndex -lt $wotlkNames.Count; $rangeIndex++) {
+        $expectedNext = if ($null -ne $wotlkNext[$rangeIndex]) {
+            @($wotlkNext[$rangeIndex])
+        } else { @() }
         $routeFixtures += [pscustomobject]@{
-            Label = $faction + ' WotLK ' + $wotlkRanges[$rangeIndex] + ' handoff'
-            Group = 'RestedXP WotLK Guide (' + $faction + ')'
-            Name = $wotlkRanges[$rangeIndex] + ' Northrend'
+            Label = $faction + ' WotLK ' + $wotlkNames[$rangeIndex] + ' handoff'
+            Group = $wotlkGroup
+            Name = $wotlkNames[$rangeIndex]
             Exact = $true
             Expected = $expectedNext
         }
@@ -954,7 +939,7 @@ foreach ($fixture in $routeFixtures) {
 # The playable Horde level-30 route contains recurring collection objectives.
 # Each occurrence needs explicit target metadata; otherwise the objective can
 # progress while Active Targets remains empty until a later duplicate step.
-$hordeLevelingPath = Join-Path $root 'Guides\TBC\Horde-Leveling.lua'
+$hordeLevelingPath = Join-Path $guideRoot 'Guides\TBC\Horde-Leveling.lua'
 if ([IO.File]::Exists($hordeLevelingPath)) {
     $hordeLevelingText = "`n" + $(if ($fileTextCache.ContainsKey($hordeLevelingPath)) {
         $fileTextCache[$hordeLevelingPath]

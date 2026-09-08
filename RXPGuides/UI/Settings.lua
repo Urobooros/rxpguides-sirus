@@ -218,17 +218,6 @@ local function NormalizeLegacyAceConfigOptions(option)
     end
 end
 
-function addon.settings.OpenFeatureToolSettings(toolPage)
-    addon.settings.OpenSettings()
-    RunOnNextFrame(function()
-        if not (AceConfigDialog and AceConfigDialog.SelectGroup) then return end
-        local selected = type(toolPage) == "string" and toolPage ~= "" and
-                             toolPage or "routePreflight"
-        pcall(AceConfigDialog.SelectGroup, AceConfigDialog, addon.title,
-              "featureToolsSettings", selected)
-    end)
-end
-
 if not addon.settings.gui then
     addon.settings.gui = {
         selectedDeleteGuide = "",
@@ -307,83 +296,12 @@ function addon.settings.ChatCommand(input)
         addon.settings.ToggleActive()
     elseif input == "bug" or input == "feedback" then
         addon.comms.OpenBugReport()
-    elseif input == "guides" or input == "hub" then
-        if addon.guideHub then addon.guideHub:Toggle() end
-    elseif input == "backup" then
-        if addon.roadmap then addon.roadmap:OpenBackupWindow() end
-    elseif input == "diagnose" or input == "doctor" then
-        if addon.diagnostics then addon.diagnostics:Open() end
-    elseif input == "preflight" or input == "reservations" then
-        if addon.routePreflight then addon.routePreflight:Toggle() end
-    elseif input == "watch" then
-        if addon.routePreflight then addon.routePreflight:ToggleWatch() end
-    elseif input == "archives" or input == "best" or input == "pb" then
-        if addon.runArchive then addon.runArchive:Toggle() end
-    elseif input == "pet" then
-        if addon.petAssistant then addon.petAssistant:Toggle() end
-    elseif input == "perf" or input == "performance" then
-        if addon.performanceInspector then addon.performanceInspector:Toggle() end
-    elseif input == "coach" then
-        if addon.speedrunCoach then addon.speedrunCoach:Toggle() end
-    elseif input == "grind" then
-        if addon.speedrunGrind then addon.speedrunGrind:Toggle() end
-    elseif input == "pitstop" or input == "pit" then
-        if addon.speedrunPitStop then addon.speedrunPitStop:Toggle() end
-    elseif input == "deathwarp" then
-        if addon.speedrunDeathwarp then addon.speedrunDeathwarp:Toggle() end
-    elseif input == "practice" then
-        if addon.speedrunPractice then addon.speedrunPractice:Toggle() end
-    elseif input == "audio" then
-        if addon.speedrunAudio then addon.speedrunAudio:Toggle() end
-    elseif input == "rules" then
-        if addon.speedrunRules then addon.speedrunRules:Toggle() end
-    elseif input == "catchup" then
-        if addon.catchUp then addon.catchUp:Preview() end
-    elseif input == "route" then
-        if addon.speedrunRoute and self.profile.enableSpeedrunSuite ~= false and
-            self.profile.enableSpeedrunRoute then
-            addon.speedrunRoute:Toggle()
-        elseif addon.travel then
-            addon.travel:OpenCurrentRoute()
-        end
-    elseif input == "recover" then
-        if addon.travel then addon.travel:OpenCurrentRoute() end
-    elseif input:match("^lore%s") then
-        local mode = input:match("^lore%s+(%S+)")
-        if addon.lore and addon.lore:SetMode(mode) then
-            addon.comms.PrettyPrint("Lore mode: %s", mode)
-        else
-            addon.comms.PrettyPrint("Use /rxp lore off, /rxp lore first, or /rxp lore always")
-        end
-    elseif input == "pack" or input:match("^pack%s") then
-        if addon.compatibilityPacks then
-            addon.compatibilityPacks:HandleCommand(input)
-        end
-    elseif input == "party" or input:match("^party%s") then
-        if addon.partySync then addon.partySync:HandleCommand(input) end
-    elseif input == "supplies" then
-        if addon.supplies then addon.supplies:Toggle() end
-    elseif input == "gear" then
-        if addon.gearAdvisor then addon.gearAdvisor:Toggle() end
-    elseif input == "gold" or input == "farming" then
-        if addon.goldAssistant then addon.goldAssistant:ToggleReport() end
-    elseif input == "dailies" or input == "daily" then
-        if addon.activityPlanner then addon.activityPlanner:Toggle() end
-    elseif input == "colorblind" or input:match("^colorblind%s") then
-        local mode = input:match("^colorblind%s+(%S+)") or "off"
-        if not addon.accessibility or not addon.accessibility:SetMode(mode) then
-            addon.comms.PrettyPrint(
-                "Use /rxp colorblind off|deuteranopia|protanopia|tritanopia|contrast")
-        end
-    elseif input == "record" or input:match("^record%s") then
-        if addon.guideRecorder then addon.guideRecorder:HandleCommand(input) end
     elseif input == "preview" then
         addon.settings:EnableFramePreviews()
     elseif input == "next" then
         -- Manual step navigation (handy on 3.3.5a where right-click "Go to step"
         -- may be flaky): /rxp next | /rxp prev | /rxp step <n>. GoToStep clears the
         -- target's completion so going back lands on it instead of bouncing forward.
-        if addon.partySync then addon.partySync:OverrideWaitOnce() end
         if addon.GoToStep then addon.GoToStep((RXPCData.currentStep or 1) + 1) end
     elseif input == "prev" or input == "previous" or input == "back" then
         if addon.GoToStep then addon.GoToStep((RXPCData.currentStep or 1) - 1) end
@@ -453,10 +371,6 @@ local settingsDBDefaults = {
         guideLanguage = "localized",
         activeItemsScale = 1,
         maxSoulShards = 100,
-        preflightLookahead = 20,
-        reservationLookahead = 20,
-        stuckWatchdogTimeout = 120,
-        adaptivePerformanceFPSThreshold = 25,
 
         showEnabled = true,
 
@@ -533,53 +447,6 @@ local settingsDBDefaults = {
         -- Grouping
         shareQuests = false,
 
-        loreMode = "off",
-        partyGuideSync = false,
-        partyGuideWait = false,
-        colorBlindMode = "off",
-        enableRoutePreflight = true,
-        enableXPShortfallPredictor = true,
-        enableItemReservations = true,
-        enablePetAssistant = true,
-        enableAdaptivePerformance = false,
-        showXPRemaining = true,
-        enableMobXPEstimator = true,
-        adaptiveMobXP = true,
-        xpEstimatorShowStockXP = true,
-        xpEstimatorShowKills = true,
-        xpEstimatorShowAdaptive = true,
-        xpEstimatorShowAdaptiveKills = true,
-        xpEstimatorShowRested = true,
-
-        -- Speedrunning Suite. The coach records lightweight step splits by
-        -- default, while every advisor and active cue remains opt-in.
-        enableSpeedrunSuite = true,
-        enableSpeedrunCoach = true,
-        enableSpeedrunGrind = false,
-        enableSpeedrunPitStop = false,
-        enableSpeedrunRoute = false,
-        enableSpeedrunDeathwarp = false,
-        enableSpeedrunPractice = false,
-        enableSpeedrunAudio = false,
-        enableSpeedrunRules = false,
-        speedrunDisplayClock = "active",
-        speedrunComparison = "pb",
-        speedrunPaceThreshold = 15,
-        speedrunGrindLookahead = 20,
-        speedrunPitStopLookahead = 20,
-        speedrunRuleset = "solo-any",
-        speedrunCustomRules = {
-            allowDeaths = false,
-            allowGrouping = false,
-            allowRestedXP = false,
-            allowHeirlooms = false,
-            allowXPRateChanges = false,
-            allowGuideChanges = false,
-            allowManualSkips = false,
-        },
-        speedrunAudioMuteCombat = true,
-        speedrunAudioLeadSteps = 1,
-        speedrunAudioCategories = {},
     }
 }
 
@@ -600,18 +467,6 @@ function addon.settings:InitializeDatabase()
                                    self.profile.soundOnFind)
     self.profile.guideScrollSteps = math.max(1, math.min(10,
         math.floor(tonumber(self.profile.guideScrollSteps) or 1)))
-    self.profile.preflightLookahead = math.max(1, math.min(100,
-        math.floor(tonumber(self.profile.preflightLookahead) or 20)))
-    self.profile.reservationLookahead = math.max(1, math.min(100,
-        math.floor(tonumber(self.profile.reservationLookahead) or 20)))
-    self.profile.stuckWatchdogTimeout = math.max(30, math.min(600,
-        math.floor(tonumber(self.profile.stuckWatchdogTimeout) or 120)))
-    self.profile.adaptivePerformanceFPSThreshold = math.max(15, math.min(60,
-        math.floor(tonumber(self.profile.adaptivePerformanceFPSThreshold) or 25)))
-    self.profile.speedrunGrindLookahead = math.max(1, math.min(100,
-        math.floor(tonumber(self.profile.speedrunGrindLookahead) or 20)))
-    self.profile.speedrunPitStopLookahead = math.max(1, math.min(100,
-        math.floor(tonumber(self.profile.speedrunPitStopLookahead) or 20)))
     NormalizeCustomThemeTooltip(self.profile)
     loadedProfileKey = settingsDB.keys.profile
 end
@@ -811,39 +666,6 @@ end
 
 local function GetProfileOption(info) return addon.settings.profile[info[#info]] end
 
-local SPEEDRUN_SETTINGS_OWNER = "settings-speedrun"
-
-function addon.settings:ApplySpeedrunSettings()
-    local function ApplyNow()
-        if not (addon.speedrun and addon.speedrun.ApplySuiteSettings) then
-            return
-        end
-        local ok, errorText = pcall(addon.speedrun.ApplySuiteSettings,
-                                    addon.speedrun)
-        if not ok and _G.geterrorhandler then
-            _G.geterrorhandler()(errorText)
-        end
-    end
-
-    -- Apply once immediately for responsive toggles, then reconcile after
-    -- AceConfig has completed its OnValueChanged refresh. Some legacy/private-
-    -- server AceGUI revisions rebuild the option tree inside that callback and
-    -- otherwise leave feature lifecycle changes deferred until the next login.
-    ApplyNow()
-    local function DeferredApply()
-        ApplyNow()
-        if AceConfigRegistry and AceConfigRegistry.NotifyChange then
-            pcall(AceConfigRegistry.NotifyChange, AceConfigRegistry, addon.title)
-        end
-    end
-    if addon.scheduler and addon.scheduler.After then
-        addon.scheduler:After(SPEEDRUN_SETTINGS_OWNER, "apply", 0.05,
-                              DeferredApply)
-    else
-        RunOnNextFrame(DeferredApply)
-    end
-end
-
 local targetingRefreshOptions = {
     enableFriendlyTargeting = true,
     enableTargetMarking = true,
@@ -857,11 +679,8 @@ local function SetProfileOption(info, value)
     local key = info[#info]
     addon.settings.profile[key] = value
     if addon.gameVersion == 30300 and targetingRefreshOptions[key] and
-        addon.targeting and addon.targeting.RefreshLegacyTargets then
-        addon.targeting:RefreshLegacyTargets()
-    end
-    if type(key) == "string" and key:match("^enableSpeedrun") then
-        addon.settings:ApplySpeedrunSettings()
+        addon.targeting and addon.targeting.CheckNameplates then
+        addon.targeting:CheckNameplates()
     end
 end
 
@@ -1323,459 +1142,6 @@ function addon.settings:CreateAceOptionsPanel()
 
     local optionsWidth = 1.08
     local settingsCache = {invertedOrphans = {}}
-
-    local function ToolAppearancePage(label, frameName, openFunction,
-                                      unavailable, description, instructions)
-        local function GetAppearance(key)
-            if addon.toolWindows and addon.toolWindows.GetAppearanceValue then
-                return addon.toolWindows:GetAppearanceValue(frameName, key)
-            end
-            if key == "fontSize" then
-                return math.max(10, tonumber(self.profile.guideFontSize) or 9)
-            end
-            return 1
-        end
-        local function SetAppearance(key, value)
-            if addon.toolWindows and addon.toolWindows.SetAppearanceValue then
-                addon.toolWindows:SetAppearanceValue(frameName, key, value)
-            end
-        end
-        return {
-            type = "group",
-            name = label,
-            args = {
-                descriptionHeader = {
-                    name = L("What it does"),
-                    type = "header",
-                    width = "full",
-                    order = 0.01,
-                },
-                description = {
-                    name = L(description or
-                        "This optional tool provides additional guidance without changing your saved guide progress."),
-                    type = "description",
-                    width = "full",
-                    order = 0.02,
-                },
-                instructionsHeader = {
-                    name = L("How to use it"),
-                    type = "header",
-                    width = "full",
-                    order = 0.03,
-                },
-                instructions = {
-                    name = L(instructions or
-                        "Enable the feature when required, then use Open Tool to show or hide its window."),
-                    type = "description",
-                    width = "full",
-                    order = 0.04,
-                },
-                open = {
-                    name = L("Open Tool"),
-                    desc = fmt(L("Open the %s window."), label),
-                    type = "execute",
-                    width = optionsWidth,
-                    order = 1,
-                    disabled = unavailable,
-                    func = openFunction,
-                },
-                appearanceHeader = {
-                    name = L("Window Appearance"),
-                    type = "header",
-                    width = "full",
-                    order = 10,
-                },
-                fontSize = {
-                    name = L("Window Font Size"),
-                    desc = L("Changes the text size for this tool without changing the main guide window."),
-                    type = "range",
-                    width = optionsWidth,
-                    order = 11,
-                    min = 6,
-                    max = 22,
-                    step = 1,
-                    get = function() return GetAppearance("fontSize") end,
-                    set = function(_, value)
-                        SetAppearance("fontSize", math.floor(value + 0.5))
-                    end,
-                },
-                opacity = {
-                    name = L("Window Opacity"),
-                    desc = L("Changes the opacity of this tool window and its contents."),
-                    type = "range",
-                    width = optionsWidth,
-                    order = 12,
-                    min = 0.05,
-                    max = 1,
-                    step = 0.05,
-                    isPercent = true,
-                    get = function() return GetAppearance("opacity") end,
-                    set = function(_, value) SetAppearance("opacity", value) end,
-                },
-                backgroundOpacity = {
-                    name = L("Window Background Opacity"),
-                    desc = L("Changes only the background transparency while keeping text and controls fully visible."),
-                    type = "range",
-                    width = optionsWidth,
-                    order = 13,
-                    min = 0,
-                    max = 1,
-                    step = 0.05,
-                    isPercent = true,
-                    get = function()
-                        return GetAppearance("backgroundOpacity")
-                    end,
-                    set = function(_, value)
-                        SetAppearance("backgroundOpacity", value)
-                    end,
-                },
-                scale = {
-                    name = L("Window Scale"),
-                    desc = L("Scales this tool independently from the main guide window."),
-                    type = "range",
-                    width = optionsWidth,
-                    order = 14,
-                    min = 0.50,
-                    max = 2,
-                    step = 0.05,
-                    isPercent = true,
-                    get = function() return GetAppearance("scale") end,
-                    set = function(_, value) SetAppearance("scale", value) end,
-                },
-                reset = {
-                    name = L("Reset This Tool Window"),
-                    desc = L("Restores this tool's default font, opacity, scale, size, and position."),
-                    type = "execute",
-                    width = optionsWidth,
-                    order = 20,
-                    func = function()
-                        if addon.toolWindows and addon.toolWindows.ResetWindow then
-                            addon.toolWindows:ResetWindow(frameName)
-                        end
-                        if AceConfigRegistry and AceConfigRegistry.NotifyChange then
-                            AceConfigRegistry:NotifyChange(addon.title)
-                        end
-                    end,
-                },
-            },
-        }
-    end
-
-    local preflightToolPage = ToolAppearancePage(
-        L("Route Preflight"), "RXPRoutePreflightWindow", function()
-            if addon.routePreflight then addon.routePreflight:Toggle() end
-        end, function() return not addon.routePreflight end,
-        "Scans upcoming guide steps for known quest prerequisites, quest-log limits, missing items, travel or flight problems, XP shortfalls, and other route risks. It also manages item reservations and the manually armed stuck-step watchdog.",
-        "Choose how many steps to inspect in Guide Routing, then click Open Tool to review the results. Rescan after changing routes or inventory. Arm the watchdog only when you want a warning for the current step; it never skips or completes a step automatically.")
-    preflightToolPage.order = 1
-    local archiveToolPage = ToolAppearancePage(
-        L("Personal-Best Archives"), "RXPLevelingArchives", function()
-            if addon.runArchive then addon.runArchive:Toggle() end
-        end, function() return not addon.runArchive end,
-        "Stores anonymous account-wide leveling splits and completed-run summaries so you can compare current pace with earlier attempts.",
-        "Open the archive to inspect runs and choose a comparison reference. Splits are recorded from normal guide and level progress; no player name, realm, GUID, chat, guild, or account identifier is stored.")
-    archiveToolPage.order = 2
-    local petToolPage = ToolAppearancePage(
-        L("Hunter Pet Assistant"), "RXPHunterPetAssistant", function()
-            if addon.petAssistant then addon.petAssistant:Toggle() end
-        end, function()
-            return not addon.petAssistant or not addon.player or
-                       addon.player.class ~= "HUNTER"
-        end,
-        "Shows Hunter pet status and recommendations for happiness, compatible food, talents, known skills, supplies, and guide-linked taming or stable preparation.",
-        "Summon your pet and open the tool to review its current needs. Refresh it after changing pets, families, food, or learned skills. Recommendations are advisory; feeding, taming, training, and spending talent points still require your input.")
-    petToolPage.order = 3
-    local performanceToolPage = ToolAppearancePage(
-        L("Performance Inspector"), "RXPPerformanceInspector", function()
-            if addon.performanceInspector then
-                addon.performanceInspector:Toggle()
-            end
-        end, function() return not addon.performanceInspector end,
-        "Measures RXPGuides event, timer, scan, and refresh costs to help identify stuttering or unusually expensive subsystems. Optional adaptation can reduce nonessential work when the client is under load.",
-        "Open the inspector, reproduce the slowdown, and review the busiest entries and recent samples. Reset samples before a clean comparison. Performance adaptation is optional and does not disable guide progression or protected safety checks.")
-    performanceToolPage.order = 4
-    local xpToolPage = ToolAppearancePage(
-        L("XP & Yellow-Mob Estimator"), "RXPXPProgressWindow", function()
-            if addon.xpAssistant then addon.xpAssistant:Toggle() end
-        end, function()
-            return not addon.xpAssistant or
-                       self.profile.enableMobXPEstimator == false
-        end,
-        "Shows exact XP remaining and estimates XP and kills needed for ordinary solo yellow mobs. Stock WotLK values remain visible beside adaptive estimates learned from verified kills on the current server.",
-        "Enable the Yellow-Mob Estimator, then click Open Tool or the XP value in the guide footer. Select only the columns you need below. For adaptive estimates, kill ordinary solo yellow mobs; grouped, elite, rare, uncertain, or special-instance kills are ignored.")
-    xpToolPage.order = 5
-    xpToolPage.args.displayHeader = {
-        name = L("Displayed Information"), type = "header", width = "full",
-        order = 2,
-    }
-    local xpDisplaySettings = {
-        {"xpEstimatorShowStockXP", "Show Stock XP",
-         "Shows the canonical WotLK XP awarded by each mob level."},
-        {"xpEstimatorShowKills", "Show Stock Kills",
-         "Shows how many kills remain at the current XP progress."},
-        {"xpEstimatorShowAdaptive", "Show Adaptive XP",
-         "Shows estimates learned from verified kills on this server."},
-        {"xpEstimatorShowAdaptiveKills", "Show Adaptive Kills",
-         "Shows kill counts calculated from the adaptive XP learned on this server."},
-        {"xpEstimatorShowRested", "Show Rested Projections",
-         "Shows normal / rested values using the finite rested-XP pool."},
-    }
-    local function AddXPDisplaySetting(definition, index)
-        local key, name, description = definition[1], definition[2], definition[3]
-        xpToolPage.args[key] = {
-            name = L(name),
-            desc = L(description),
-            type = "toggle",
-            width = optionsWidth,
-            order = 2 + index / 10,
-            get = function() return self.profile[key] ~= false end,
-            set = function(_, value)
-                if addon.xpAssistant and addon.xpAssistant.SetDisplayOption then
-                    addon.xpAssistant:SetDisplayOption(key, value)
-                else
-                    self.profile[key] = value == true
-                end
-            end,
-        }
-    end
-    for index, definition in ipairs(xpDisplaySettings) do
-        -- Give each Lua 5.1 closure its own key.  Capturing the loop local
-        -- directly is implementation-sensitive on older embedded runtimes.
-        AddXPDisplaySetting(definition, index)
-    end
-
-    local function ApplySpeedrunSettings()
-        addon.settings:ApplySpeedrunSettings()
-    end
-
-    local function SpeedrunToolPage(label, frameName, setting, service, order,
-                                    description, instructions)
-        local page = ToolAppearancePage(label, frameName, function()
-            if service and service.Toggle then service:Toggle() end
-        end, function()
-            return not service or self.profile.enableSpeedrunSuite == false or
-                       self.profile[setting] ~= true
-        end, description, instructions)
-        page.order = order
-        page.args.enable = {
-            name = fmt(L("Enable %s"), label),
-            desc = L("Applies immediately. Disabling preserves settings and history while cancelling this tool's owned work."),
-            type = "toggle", width = optionsWidth, order = 0.5,
-            get = function() return self.profile[setting] == true end,
-            set = function(_, value)
-                self.profile[setting] = value and true or false
-                ApplySpeedrunSettings()
-            end,
-            disabled = function() return self.profile.enableSpeedrunSuite == false end,
-        }
-        return page
-    end
-
-    local coachToolPage = SpeedrunToolPage(L("Live Speedrun Coach"),
-        "RXPSpeedrunCoachWindow", "enableSpeedrunCoach", addon.speedrunCoach, 2,
-        "Times every stable guide step and compares the current run with a compatible personal best, recent median, selected archive, or best known segments. It shows pace, projected finish, and meaningful time gains or losses.",
-        "Enable the Speedrunning Suite and this tool, then open it or click the RUN badge in the guide footer. Follow the guide normally; stable step changes split automatically. Choose the active or wall clock and the comparison source below.")
-    coachToolPage.args.clock = {
-        name = L("Displayed clock"), type = "select", style = "radio",
-        values = {active = L("Active in-game time"), wall = L("Wall-clock time")},
-        width = optionsWidth, order = 2.1,
-        get = function() return self.profile.speedrunDisplayClock or "active" end,
-        set = function(_, value)
-            self.profile.speedrunDisplayClock = value == "wall" and "wall" or "active"
-            ApplySpeedrunSettings()
-        end,
-    }
-    coachToolPage.args.comparison = {
-        name = L("Automatic comparison"), type = "select", style = "radio",
-        values = {pb = L("Fastest compatible personal best"),
-                  median = L("Recent compatible median"),
-                  best = L("Best compatible segments"),
-                  manual = L("Selected archive")},
-        width = optionsWidth, order = 2.2,
-        get = function() return self.profile.speedrunComparison or "pb" end,
-        set = function(_, value)
-            self.profile.speedrunComparison = value
-            ApplySpeedrunSettings()
-        end,
-    }
-    coachToolPage.args.paceThreshold = {
-        name = L("Meaningful pace threshold"),
-        desc = L("Seconds gained or lost before the Coach and Audio Director surface a pace change."),
-        type = "range", min = 1, max = 120, step = 1,
-        width = optionsWidth, order = 2.3,
-        get = function() return self.profile.speedrunPaceThreshold or 15 end,
-        set = function(_, value)
-            self.profile.speedrunPaceThreshold = math.floor(value + 0.5)
-        end,
-    }
-
-    local grindToolPage = SpeedrunToolPage(L("Dynamic Grind Optimizer"),
-        "RXPSpeedrunGrindWindow", "enableSpeedrunGrind", addon.speedrunGrind, 3,
-        "Ranks validated guide mobs when extra XP may be useful, using travel distance, observed kill pace, recovery time, rested XP, danger, and route proximity.",
-        "Enable and open the tool when the route predicts an XP shortfall. Review the target, kill count, XP, time, and confidence, then activate a suggestion manually. Cancel or finish it to restore the normal guide arrow and Active Targets.")
-    grindToolPage.args.lookahead = {
-        name = L("Guide steps considered"), type = "range", min = 1, max = 100,
-        step = 1, width = optionsWidth, order = 2.1,
-        get = function() return self.profile.speedrunGrindLookahead or 20 end,
-        set = function(_, value)
-            self.profile.speedrunGrindLookahead = math.floor(value + 0.5)
-            if addon.speedrunGrind then addon.speedrunGrind:ScheduleRefresh() end
-        end,
-    }
-    local pitToolPage = SpeedrunToolPage(L("Pit Stop Planner"),
-        "RXPSpeedrunPitStopWindow", "enableSpeedrunPitStop", addon.speedrunPitStop, 4,
-        "Combines upcoming purchases, class supplies, ammunition, repairs, junk sales, training, hearth binding, pet needs, and bag-space requirements into ordered stops.",
-        "Choose the lookahead, enable the tool, and open it before visiting a town or service NPC. Open the relevant merchant or trainer to refresh stock, price, money, and training data. Purchases, repairs, selling, training, and binding always require a user click.")
-    pitToolPage.args.lookahead = {
-        name = L("Guide steps considered"), type = "range", min = 1, max = 100,
-        step = 1, width = optionsWidth, order = 2.1,
-        get = function() return self.profile.speedrunPitStopLookahead or 20 end,
-        set = function(_, value)
-            self.profile.speedrunPitStopLookahead = math.floor(value + 0.5)
-            if addon.speedrunPitStop then addon.speedrunPitStop:ScheduleRefresh() end
-        end,
-    }
-    local routeToolPage = SpeedrunToolPage(L("Adaptive Route Strategist"),
-        "RXPSpeedrunRouteWindow", "enableSpeedrunRoute", addon.speedrunRoute, 5,
-        "Compares verified route alternatives using measured segments, travel data, discovered flight paths, hearth cooldown, XP state, class, mount speed, and completed quests.",
-        "Enable and open the tool when a branch is available. Review each option's expected duration, confidence, assumptions, and estimated savings. Applying a route or guide change always asks for confirmation.")
-    local deathwarpToolPage = SpeedrunToolPage(L("Deathwarp Decision Assistant"),
-        "RXPSpeedrunDeathwarpWindow", "enableSpeedrunDeathwarp", addon.speedrunDeathwarp, 6,
-        "Compares ordinary travel, hearths, flights, corpse recovery, and verified Spirit Healer routes while accounting for durability, resurrection sickness, cooldowns, and the active run ruleset.",
-        "Enable and open the tool when considering a deathwarp. Follow a recommendation only after checking its route, costs, and confidence. The assistant never recommends unknown graveyards and never kills, releases, or resurrects your character automatically.")
-    local practiceToolPage = SpeedrunToolPage(L("Segment Practice Lab"),
-        "RXPSpeedrunPracticeWindow", "enableSpeedrunPractice", addon.speedrunPractice, 7,
-        "Times a chosen start-to-end guide segment in a temporary shadow state without changing the real checkpoint, skipped steps, waypoints, automation state, or Active Targets.",
-        "Choose stable start and end steps, then use Start, Pause, Manual Split, Finish, or Abort. Practice mode cannot reset completed quests or world state, and guide automation remains suppressed until the original state is restored.")
-    local audioToolPage = SpeedrunToolPage(L("Speedrun Audio Director"),
-        "RXPSpeedrunAudioWindow", "enableSpeedrunAudio", addon.speedrunAudio, 8,
-        "Plays optional, throttled cues for quest actions, loot, travel, hearths, vendors, trainers, danger, deathskips, grind completion, inventory warnings, and pace changes.",
-        "Enable the tool, select the cue categories you want, configure combat muting and lead steps, then use the window's test action. Audio is advisory and can be disabled without affecting timing or guide progress.")
-    audioToolPage.args.muteCombat = {
-        name = L("Mute ordinary cues in combat"), type = "toggle",
-        width = optionsWidth, order = 2.1,
-        get = function() return self.profile.speedrunAudioMuteCombat ~= false end,
-        set = function(_, value) self.profile.speedrunAudioMuteCombat = value == true end,
-    }
-    audioToolPage.args.leadSteps = {
-        name = L("Audio lead steps"), type = "range", min = 0, max = 10,
-        step = 1, width = optionsWidth, order = 2.2,
-        get = function() return self.profile.speedrunAudioLeadSteps or 1 end,
-        set = function(_, value) self.profile.speedrunAudioLeadSteps = math.floor(value + 0.5) end,
-    }
-    audioToolPage.args.categoryHeader = {
-        name = L("Cue Categories"), type = "header", width = "full", order = 3,
-    }
-    local audioCategories = {"quest", "turnin", "loot", "travel", "hearth",
-        "vendor", "trainer", "danger", "deathskip", "grind", "inventory", "pace"}
-    local function AddAudioCategory(category, index)
-        audioToolPage.args["category_" .. category] = {
-            name = L(category:gsub("^%l", string.upper)), type = "toggle",
-            width = optionsWidth, order = 3 + index / 20,
-            get = function()
-                local values = self.profile.speedrunAudioCategories
-                return type(values) ~= "table" or values[category] ~= false
-            end,
-            set = function(_, value)
-                self.profile.speedrunAudioCategories =
-                    type(self.profile.speedrunAudioCategories) == "table" and
-                        self.profile.speedrunAudioCategories or {}
-                self.profile.speedrunAudioCategories[category] = value == true
-                if addon.speedrunAudio then addon.speedrunAudio:Refresh() end
-            end,
-        }
-    end
-    for index, category in ipairs(audioCategories) do AddAudioCategory(category, index) end
-    local rulesToolPage = SpeedrunToolPage(L("Run Ruleset and Integrity"),
-        "RXPSpeedrunRulesWindow", "enableSpeedrunRules", addon.speedrunRules, 9,
-        "Records anonymous run deviations such as grouping, deaths, rested XP, heirlooms, XP-rate changes, guide changes, and manual skips so timing comparisons use compatible rules.",
-        "Enable the tool and select Solo Any%, Solo Deathless, or Custom before a run. Configure allowed actions for Custom rules. Deviations never delete or invalidate a run; they only explain compatibility and remain available for manual comparison.")
-    rulesToolPage.args.ruleset = {
-        name = L("Run ruleset"), type = "select", style = "radio",
-        values = { ["solo-any"] = L("Solo Any%"),
-                   ["solo-deathless"] = L("Solo Deathless"),
-                   custom = L("Custom")},
-        width = optionsWidth, order = 2.1,
-        get = function() return self.profile.speedrunRuleset or "solo-any" end,
-        set = function(_, value)
-            self.profile.speedrunRuleset = value
-            ApplySpeedrunSettings()
-        end,
-    }
-    rulesToolPage.args.customHeader = {
-        name = L("Custom Rules"), type = "header", width = "full", order = 3,
-    }
-    local customRules = {
-        {"allowDeaths", L("Allow deaths")},
-        {"allowGrouping", L("Allow grouping")},
-        {"allowRestedXP", L("Allow rested XP")},
-        {"allowHeirlooms", L("Allow heirlooms")},
-        {"allowXPRateChanges", L("Allow XP-rate changes")},
-        {"allowGuideChanges", L("Allow guide changes")},
-        {"allowManualSkips", L("Allow manual skips")},
-    }
-    local function AddCustomRule(spec, index)
-        local key, label = spec[1], spec[2]
-        rulesToolPage.args["custom_" .. key] = {
-            name = label, type = "toggle", width = optionsWidth,
-            order = 3 + index / 10,
-            disabled = function() return self.profile.speedrunRuleset ~= "custom" end,
-            get = function()
-                local values = self.profile.speedrunCustomRules
-                return type(values) == "table" and values[key] == true
-            end,
-            set = function(_, value)
-                self.profile.speedrunCustomRules =
-                    type(self.profile.speedrunCustomRules) == "table" and
-                        self.profile.speedrunCustomRules or {}
-                self.profile.speedrunCustomRules[key] = value == true
-                ApplySpeedrunSettings()
-            end,
-        }
-    end
-    for index, spec in ipairs(customRules) do AddCustomRule(spec, index) end
-
-    local speedrunningToolPage = {
-        type = "group", name = L("Speedrunning"), order = 6,
-        childGroups = "tree", args = {
-            overview = {type = "group", name = L("Overview"), order = 1, args = {
-                descriptionHeader = {
-                    name = L("What it does"), type = "header", width = "full",
-                    order = 0.01,
-                },
-                description = {
-                    name = L("The Speedrunning Suite adds step timing, pace comparisons, route and resource advisors, segment practice, audio cues, and anonymous ruleset tracking. Every component is independently optional and recommendations never perform protected gameplay actions."),
-                    type = "description", width = "full", order = 0.02,
-                },
-                instructionsHeader = {
-                    name = L("How to use it"), type = "header", width = "full",
-                    order = 0.03,
-                },
-                instructions = {
-                    name = L("Turn on the master switch, then open each page in this tree to read its instructions and enable only the tools you want. Windows can also be opened from the guide or minimap Feature Tools menu and with the listed /rxp commands."),
-                    type = "description", width = "full", order = 0.04,
-                },
-                enableSpeedrunSuite = {
-                    name = L("Enable Speedrunning Suite"),
-                    desc = L("Master runtime pause. Individual choices and history are preserved."),
-                    type = "toggle", width = optionsWidth, order = 1,
-                    get = function() return self.profile.enableSpeedrunSuite ~= false end,
-                    set = function(_, value)
-                        self.profile.enableSpeedrunSuite = value and true or false
-                        ApplySpeedrunSettings()
-                    end,
-                },
-                explanation = {
-                    name = L("The coach is lightweight and enabled by default. Advisors, practice, audio, and integrity tracking remain opt-in and never automate protected gameplay actions."),
-                    type = "description", width = "full", order = 2,
-                },
-            }},
-            coach = coachToolPage, grind = grindToolPage,
-            pitstop = pitToolPage, route = routeToolPage,
-            deathwarp = deathwarpToolPage, practice = practiceToolPage,
-            audio = audioToolPage, rules = rulesToolPage,
-        },
-    }
 
     local optionsTable = {
         type = "group",
@@ -2630,234 +1996,6 @@ function addon.settings:CreateAceOptionsPanel()
                             addon.RXPFrame.GenerateMenuTable()
                         end,
                     },
-                    preflightHeader = {
-                        name = L("Route Planning"),
-                        type = "header",
-                        width = "full",
-                        order = 3.0,
-                        hidden = addon.gameVersion ~= 30300
-                    },
-                    enableRoutePreflight = {
-                        name = L("Enable Route Preflight"),
-                        desc = L("Checks upcoming processed guide steps for proven prerequisite, quest-log, flight, map, item, and XP risks."),
-                        type = "toggle",
-                        width = optionsWidth,
-                        order = 3.1,
-                        hidden = addon.gameVersion ~= 30300,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            if addon.routePreflight then addon.routePreflight:ScheduleScan(0.05) end
-                        end
-                    },
-                    preflightLookahead = {
-                        name = L("Preflight steps ahead"),
-                        desc = L("Number of current and upcoming steps checked by Route Preflight and the XP predictor."),
-                        type = "range",
-                        width = optionsWidth,
-                        order = 3.2,
-                        min = 1,
-                        max = 100,
-                        step = 1,
-                        hidden = addon.gameVersion ~= 30300,
-                        set = function(info, value)
-                            SetProfileOption(info, math.floor(value + 0.5))
-                            if addon.routePreflight then addon.routePreflight:ScheduleScan(0.05) end
-                        end,
-                        disabled = function() return not self.profile.enableRoutePreflight end
-                    },
-                    enableXPShortfallPredictor = {
-                        name = L("XP Shortfall Predictor"),
-                        desc = L("Uses explicit XP gates, current XP, live rewards, and anonymous observed quest rewards. Unknown rewards remain clearly marked as unknown."),
-                        type = "toggle",
-                        width = optionsWidth,
-                        order = 3.3,
-                        hidden = addon.gameVersion ~= 30300,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            if addon.routePreflight then addon.routePreflight:ScheduleScan(0.05) end
-                        end
-                    },
-                    enableItemReservations = {
-                        name = L("Enable Item Reservations"),
-                        desc = L("Protects items required by upcoming guide steps from automatic junk handling and marks them in bags."),
-                        type = "toggle",
-                        width = optionsWidth,
-                        order = 3.4,
-                        hidden = addon.gameVersion ~= 30300,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            if addon.routePreflight then addon.routePreflight:ScheduleScan(0.05) end
-                            if addon.inventoryManager then addon.inventoryManager.RefreshJunkIcons(0.05) end
-                        end
-                    },
-                    reservationLookahead = {
-                        name = L("Reservation steps ahead"),
-                        desc = L("Number of current and upcoming steps searched for item requirements."),
-                        type = "range",
-                        width = optionsWidth,
-                        order = 3.5,
-                        min = 1,
-                        max = 100,
-                        step = 1,
-                        hidden = addon.gameVersion ~= 30300,
-                        set = function(info, value)
-                            SetProfileOption(info, math.floor(value + 0.5))
-                            if addon.routePreflight then addon.routePreflight:ScheduleScan(0.05) end
-                        end,
-                        disabled = function() return not self.profile.enableItemReservations end
-                    },
-                    stuckWatchdogTimeout = {
-                        name = L("Manual watchdog timeout"),
-                        desc = L("Seconds without measurable progress before an explicitly armed step watchdog warns. The watchdog never starts automatically."),
-                        type = "range",
-                        width = optionsWidth,
-                        order = 3.6,
-                        min = 30,
-                        max = 600,
-                        step = 10,
-                        hidden = addon.gameVersion ~= 30300
-                    },
-                    openRoutePreflight = {
-                        name = L("Open Route Preflight"),
-                        type = "execute",
-                        width = optionsWidth,
-                        order = 3.7,
-                        hidden = addon.gameVersion ~= 30300,
-                        func = function()
-                            if addon.routePreflight then addon.routePreflight:Toggle() end
-                        end
-                    },
-                    xpAssistantHeader = {
-                        name = L("XP Progress and Mob Estimates"),
-                        type = "header",
-                        width = "full",
-                        order = 3.71,
-                        hidden = addon.gameVersion ~= 30300
-                    },
-                    showXPRemaining = {
-                        name = L("Show XP remaining in the guide footer"),
-                        desc = L("Shows the exact XP still needed for the next level. Click the footer value to open the yellow-mob estimator."),
-                        type = "toggle",
-                        width = optionsWidth,
-                        order = 3.72,
-                        hidden = addon.gameVersion ~= 30300,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            if addon.xpAssistant then
-                                addon.xpAssistant:RefreshFooter()
-                            end
-                        end
-                    },
-                    enableMobXPEstimator = {
-                        name = L("Enable Yellow-Mob Estimator"),
-                        desc = L("Shows stock WotLK XP and kill estimates for ordinary solo mobs from two levels below to two levels above you."),
-                        type = "toggle",
-                        width = optionsWidth,
-                        order = 3.73,
-                        hidden = addon.gameVersion ~= 30300,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            if addon.xpAssistant then
-                                addon.xpAssistant:ApplySettings()
-                            end
-                        end
-                    },
-                    adaptiveMobXP = {
-                        name = L("Learn private-server mob XP"),
-                        desc = L("Learns a safe median XP multiplier from verified ordinary solo yellow-mob kills. Grouped, rested-uncertain, elite, rare, and instance kills are ignored."),
-                        type = "toggle",
-                        width = optionsWidth,
-                        order = 3.74,
-                        hidden = addon.gameVersion ~= 30300,
-                        disabled = function()
-                            return not self.profile.enableMobXPEstimator
-                        end,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            if addon.xpAssistant then
-                                addon.xpAssistant:ApplySettings()
-                            end
-                        end
-                    },
-                    openMobXPEstimator = {
-                        name = L("Open XP & Yellow-Mob Estimator"),
-                        type = "execute",
-                        width = optionsWidth,
-                        order = 3.75,
-                        hidden = addon.gameVersion ~= 30300,
-                        disabled = function()
-                            return not self.profile.enableMobXPEstimator
-                        end,
-                        func = function()
-                            if addon.xpAssistant then addon.xpAssistant:Toggle() end
-                        end
-                    },
-                    resetMobXPSamples = {
-                        name = L("Reset learned XP samples"),
-                        desc = L("Clears the anonymous per-character calibration samples used by the adaptive estimate."),
-                        type = "execute",
-                        width = optionsWidth,
-                        order = 3.76,
-                        hidden = addon.gameVersion ~= 30300,
-                        confirm = L("Clear all learned mob XP samples for this character?"),
-                        func = function()
-                            if addon.xpAssistant then
-                                addon.xpAssistant:ResetCalibration(true)
-                            end
-                        end
-                    },
-                    enablePetAssistant = {
-                        name = L("Enable Hunter Pet Assistant"),
-                        desc = L("Tracks pet happiness, compatible food, talents, known skills, supplies, and guide-linked stable/tame preparation."),
-                        type = "toggle",
-                        width = optionsWidth,
-                        order = 3.8,
-                        hidden = function()
-                            return addon.gameVersion ~= 30300 or
-                                not (addon.player and addon.player.class == "HUNTER")
-                        end,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            if value and addon.petAssistant then
-                                if addon.roadmap then
-                                    addon.roadmap:RunOptional("hunter pet assistant",
-                                        function() addon.petAssistant:Setup() end)
-                                else
-                                    addon.petAssistant:Setup()
-                                end
-                            end
-                            if not value and addon.petAssistant and addon.petAssistant.frame then
-                                addon.petAssistant.frame:Hide()
-                            end
-                        end
-                    },
-                    openPetAssistant = {
-                        name = L("Open Hunter Pet Assistant"),
-                        type = "execute",
-                        width = optionsWidth,
-                        order = 3.9,
-                        hidden = function()
-                            return addon.gameVersion ~= 30300 or
-                                not (addon.player and addon.player.class == "HUNTER")
-                        end,
-                        disabled = function() return not self.profile.enablePetAssistant end,
-                        func = function()
-                            if addon.petAssistant then addon.petAssistant:Toggle() end
-                        end
-                    },
-                    resetToolWindows = {
-                        name = L("Reset Tool Window Positions"),
-                        desc = L("Restores the Route Preflight, Personal-Best Archives, Hunter Pet Assistant, Performance Inspector, and XP Estimator windows to their default size and position."),
-                        type = "execute",
-                        width = optionsWidth,
-                        order = 3.95,
-                        hidden = addon.gameVersion ~= 30300,
-                        func = function()
-                            if addon.toolWindows then
-                                addon.toolWindows:ResetPlacements()
-                            end
-                        end
-                    },
                     questCleanupHeader = {
                         name = L("Quest Cleanup"),
                         type = "header",
@@ -2910,22 +2048,6 @@ function addon.settings:CreateAceOptionsPanel()
                         width = optionsWidth
                     }
                 }
-            },
-            featureToolsSettings = {
-                type = "group",
-                name = L("Feature Tools"),
-                desc = L("Open and customize each optional feature window independently."),
-                order = 8,
-                childGroups = "tree",
-                hidden = addon.gameVersion ~= 30300,
-                args = {
-                    routePreflight = preflightToolPage,
-                    archives = archiveToolPage,
-                    petAssistant = petToolPage,
-                    performance = performanceToolPage,
-                    xpEstimator = xpToolPage,
-                    speedrunning = speedrunningToolPage,
-                },
             },
             targeting = {
                 type = "group",
@@ -3001,14 +2123,10 @@ function addon.settings:CreateAceOptionsPanel()
                         disabled = function()
                             return not self.profile.enableTargetAutomation
                         end,
+                        hidden = addon.gameVersion == 30300,
                         set = function(info, value)
                             SetProfileOption(info, value)
-                            if addon.gameVersion == 30300 then
-                                addon.targeting:ApplyLegacyTargetRange()
-                                addon.targeting:RefreshScanTicker()
-                            else
-                                addon.targeting:Setup()
-                            end
+                            addon.targeting:Setup()
                         end
                     },
                     showTargetingOnProximity = {
@@ -3092,8 +2210,6 @@ function addon.settings:CreateAceOptionsPanel()
                             SetProfileOption(info, value)
                             if addon.targeting.RefreshRareScanning then
                                 addon.targeting:RefreshRareScanning()
-                            else
-                                addon.targeting:RefreshLegacyTargets()
                             end
                         end,
                         disabled = function()
@@ -3266,10 +2382,7 @@ function addon.settings:CreateAceOptionsPanel()
                         set = function(info, value)
                             SetProfileOption(info, value)
                             if value then
-                                addon.roadmap:RunOptional("leveling tracker",
-                                    function()
-                                        addon.tracker:SetupTracker()
-                                    end)
+                                addon.tracker:SetupTracker()
                             else
                                 addon.tracker:ShutdownTracker()
                             end
@@ -3433,17 +2546,6 @@ function addon.settings:CreateAceOptionsPanel()
                         disabled = function()
                             return not self.profile.enableTracker or
                                        not self.profile.enablelevelSplits
-                        end
-                    },
-                    personalBestArchives = {
-                        name = L("Personal-Best Archives"),
-                        desc = L("Open anonymous account-wide leveling runs and select a split comparison."),
-                        type = "execute",
-                        width = optionsWidth,
-                        order = 2.8,
-                        hidden = addon.gameVersion ~= 30300,
-                        func = function()
-                            if addon.runArchive then addon.runArchive:Toggle() end
                         end
                     }
                 }
@@ -4857,53 +3959,7 @@ function addon.settings:CreateAceOptionsPanel()
                                         addon.tickers.RestartTickerLoops then
                                         addon.tickers:RestartTickerLoops()
                                     end
-                                    if addon.targeting and
-                                        addon.targeting.RefreshScanTicker then
-                                        addon.targeting:RefreshScanTicker()
-                                    end
                             end)
-                        end
-                    },
-                    performanceInspector = {
-                        name = L("Open Performance Inspector"),
-                        desc = L("Measures bounded RXPGuides work and exports a sanitized report."),
-                        type = "execute",
-                        width = optionsWidth,
-                        order = 1.61,
-                        hidden = addon.gameVersion ~= 30300,
-                        func = function()
-                            if addon.performanceInspector then
-                                addon.performanceInspector:Toggle()
-                            end
-                        end
-                    },
-                    enableAdaptivePerformance = {
-                        name = L("Adaptive performance throttling"),
-                        desc = L("Opt in to temporary RXP-only scan/update slowing after sustained low FPS. Saved preferences are not changed and normal rates return automatically."),
-                        type = "toggle",
-                        width = optionsWidth,
-                        order = 1.62,
-                        hidden = addon.gameVersion ~= 30300,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            if not value and addon.performanceInspector then
-                                addon.performanceInspector:SetAdapted(false,
-                                    "adaptation disabled")
-                            end
-                        end
-                    },
-                    adaptivePerformanceFPSThreshold = {
-                        name = L("Adaptive FPS threshold"),
-                        desc = L("Temporary adaptation begins only after FPS remains below this value for five samples."),
-                        type = "range",
-                        width = optionsWidth,
-                        order = 1.63,
-                        min = 15,
-                        max = 60,
-                        step = 1,
-                        hidden = addon.gameVersion ~= 30300,
-                        disabled = function()
-                            return not self.profile.enableAdaptivePerformance
                         end
                     },
                     preLoadData = {
@@ -5376,10 +4432,6 @@ function addon.settings:DetectXPRate(softUpdate)
     end
 
     addon.settings.profile.xprate = calculatedRate
-    if addon.xpAssistant then
-        addon.xpAssistant:ResetCalibration(false, true)
-    end
-
     -- Gold assistant, ignore reloads, silently update
     if (RXPCData and RXPCData.GA) or (addon.guide and addon.guide.farm) or softUpdate then
         return
@@ -5422,9 +4474,6 @@ function addon.settings:RefreshProfile()
 
     -- Restore frame positions on profile change
     addon.settings:LoadFramePositions()
-    if addon.toolWindows then addon.toolWindows:RestoreAll() end
-    if addon.xpAssistant then addon.xpAssistant:ApplySettings() end
-    if addon.speedrun then addon.speedrun:ApplySuiteSettings() end
 end
 
 function addon.settings:CopyProfile()
@@ -5445,9 +4494,6 @@ function addon.settings:CopyProfile()
 
     -- Restore frame positions on profile change
     addon.settings:LoadFramePositions()
-    if addon.toolWindows then addon.toolWindows:RestoreAll() end
-    if addon.xpAssistant then addon.xpAssistant:ApplySettings() end
-    if addon.speedrun then addon.speedrun:ApplySuiteSettings() end
 end
 
 function addon.settings:ResetProfile()
@@ -5570,11 +4616,9 @@ function addon.settings.ReplaceColors(element)
     local function replace(textLine)
         if type(textLine) ~= "string" then return textLine end
         for RXP_ in string.gmatch(textLine, "RXP_[A-Z]+_") do
-            local prefix = addon.accessibility and
-                               addon.accessibility:GetTokenPrefix(RXP_) or ""
             textLine = textLine:gsub(RXP_,
                 (addon.guideTextColors[RXP_] or
-                    addon.guideTextColors.default["error"]) .. prefix)
+                    addon.guideTextColors.default["error"]))
         end
 
         -- Replace raw hex values

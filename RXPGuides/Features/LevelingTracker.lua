@@ -1683,7 +1683,12 @@ function addon.tracker:CompileLevelSplits(kind)
         addon.db.profile.reports.splits =
             type(addon.db.profile.reports.splits) == "table" and
                 addon.db.profile.reports.splits or {}
-        addon.db.profile.reports.splits[self.reportKey] = splitsReportData
+        -- Settings can compile a preview before SetupTracker has initialized
+        -- the module field. The report already owns the canonical character
+        -- identity, so persist it under that key instead of unrelated setup
+        -- timing state.
+        addon.db.profile.reports.splits[splitsReportData.reportKey] =
+            splitsReportData
     end
 
     return splitsReportData

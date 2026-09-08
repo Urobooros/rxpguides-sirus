@@ -50,7 +50,11 @@ end
 function addon.tips:RefreshCheckTicker()
     local enabled = addon.settings and addon.settings.profile and
                         addon.settings.profile.enableTips
-    if not enabled then
+    -- Health changes are handled by UNIT_HEALTH. Poll only while the legacy
+    -- mirror timer is actively draining, because 3.3.5 exposes no progress
+    -- event between MIRROR_TIMER_START and MIRROR_TIMER_STOP.
+    local wanted = enabled and session.breath ~= nil
+    if not wanted then
         if self.checkTicker then
             self.checkTicker:Cancel()
             self.checkTicker = nil
@@ -80,6 +84,7 @@ function addon.tips:Setup()
 
     self:RegisterEvent("MIRROR_TIMER_START")
     self:RegisterEvent("MIRROR_TIMER_STOP")
+    self:RegisterEvent("UNIT_HEALTH")
 
     self:CatalogInventory()
 
@@ -320,17 +325,24 @@ function addon.tips:MIRROR_TIMER_START(_, timerName, value, maxValue, rate)
     -- Recovering breath
     if rate > 0 then
         session.breath = nil
+        self:RefreshCheckTicker()
         return
     end
 
     -- Draining down, event fires with 30 when regaining breath
     session.breath = {value = value, maxValue = maxValue}
+    self:RefreshCheckTicker()
 end
 
 function addon.tips:MIRROR_TIMER_STOP(_, timerName)
     if timerName ~= "BREATH" then return end
 
     session.breath = nil
+    self:RefreshCheckTicker()
+end
+
+function addon.tips:UNIT_HEALTH(_, unit)
+    if unit == "player" then self:CheckEmergencyActions() end
 end
 
 function addon.tips.CheckEvents()

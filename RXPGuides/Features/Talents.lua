@@ -1919,4 +1919,7 @@ function addon.talents.cata.CleanupTalentPlan()
     end
 end
 
-_G.RXPGuides.talents = {RegisterGuide = addon.talents.RegisterGuide}
+_G.RXPGuides.talents = {
+    RegisterGuide = addon.talents.RegisterGuide,
+    RegisterBuild = addon.talents.RegisterBuild,
+}

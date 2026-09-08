@@ -28,8 +28,10 @@ local englishClient = locale == "enUS" or locale == "enGB"
 local cache = {}
 local catalog
 local standingNames
-local FALLBACK_BADGE = " |cff9d9d9d[EN]|r"
-local MACHINE_BADGE = " |cff70a0ff[MT]|r"
+-- Keep translation provenance in tooltips. Inline badges change wrapping and
+-- make the guide rows and arrow differ from the original interface.
+local FALLBACK_BADGE = ""
+local MACHINE_BADGE = ""
 local FALLBACK_PATTERN = "%s*|cff9d9d9d%[EN%]|r$"
 local MACHINE_PATTERN = "%s*|cff70a0ff%[MT%]|r$"
 local PACK_SCHEMA = 1
@@ -499,6 +501,34 @@ function service:RegisterTranslationPack(code, pack)
     return true
 end
 
+local COMPACT_SEPARATOR = string.char(31)
+local function CompactPackEntry(text, signature, tokenized, status)
+    return table.concat({text, signature, tokenized and "1" or "0", status},
+                        COMPACT_SEPARATOR)
+end
+
+local function ExpandPackEntry(container, key)
+    if not container then return end
+    local value = container[key]
+    if type(value) ~= "string" then return value end
+    local text, signature, tokenized, status = value:match(
+        "^(.-)" .. COMPACT_SEPARATOR .. "(.-)" .. COMPACT_SEPARATOR ..
+        "([01])" .. COMPACT_SEPARATOR .. "([RM])$")
+    if not text then return end
+    local entry = {
+        text = text,
+        sourceSignature = signature,
+        tokenized = tokenized == "1",
+        status = status == "R" and "reviewed" or "machine",
+        source = catalog and catalog.packSource,
+        revision = catalog and catalog.revision,
+    }
+    -- Only displayed entries pay for a Lua table. The untouched bulk remains
+    -- as compact strings, which is considerably cheaper on the 32-bit client.
+    container[key] = entry
+    return entry
+end
+
 function service:RegisterCompressedPack(code, encoded)
     if code ~= locale or type(encoded) ~= "string" or encoded == "" then
         return false
@@ -511,11 +541,12 @@ function service:RegisterCompressedPack(code, encoded)
         return false
     end
     local recordSeparator, fieldSeparator = string.char(30), string.char(31)
-    local pack = {
-        schema = PACK_SCHEMA,
+    catalog = catalog or {}
+    catalog.translations = catalog.translations or {
         reviewed = {}, machine = {}, contextualReviewed = {},
         contextualMachine = {}, uiReviewed = {}, uiMachine = {},
     }
+    local translations = catalog.translations
     local first = true
     for record in payload:gmatch("[^" .. recordSeparator .. "]+") do
         local fields, offset = {}, 1
@@ -531,87 +562,32 @@ function service:RegisterCompressedPack(code, encoded)
         if first then
             first = false
             if kind ~= "H" or tonumber(status) ~= PACK_SCHEMA then return false end
-            pack.revision, pack.source = key, english
+            catalog.revision, catalog.packSource = key, english
         else
             local destination
             if kind == "G" then
-                destination = status == "R" and pack.reviewed or pack.machine
+                destination = status == "R" and translations.reviewed or
+                                  translations.machine
                 english = key
             elseif kind == "C" then
-                destination = status == "R" and pack.contextualReviewed or
-                                  pack.contextualMachine
+                destination = status == "R" and
+                                  translations.contextualReviewed or
+                                  translations.contextualMachine
             elseif kind == "U" then
-                destination = status == "R" and pack.uiReviewed or pack.uiMachine
+                destination = status == "R" and translations.uiReviewed or
+                                  translations.uiMachine
                 english = key
             end
             if destination and english and translated and signature then
-                destination[key] = {
-                    english = kind == "C" and english or nil,
-                    text = translated,
-                    status = status == "R" and "reviewed" or "machine",
-                    sourceSignature = signature,
-                    tokenized = tokenized == "1",
-                }
+                destination[key] = CompactPackEntry(translated, signature,
+                                                    tokenized == "1", status)
             end
         end
     end
-    local registered = self:RegisterTranslationPack(code, pack)
-    if registered then self.loadedCompanion = code end
-    return registered
-end
-
-function service:GetCompanionAddonName()
-    if englishClient or not supported[locale] then return end
-    return "RXPGuides_Locale_" .. locale
-end
-
-function service:LoadCompanion()
-    local companion = self:GetCompanionAddonName()
-    if not companion then
-        self.companionState = "not-required"
-        return true
-    end
-    if self.loadedCompanion == locale then
-        self.companionState = "loaded"
-        return true
-    end
-    if type(GetAddOnInfo) ~= "function" or type(LoadAddOn) ~= "function" then
-        self.companionState = "unsupported"
-        return false, "API_UNAVAILABLE"
-    end
-    local installed = GetAddOnInfo(companion)
-    if not installed then
-        self.companionState = "missing"
-        return false, "MISSING"
-    end
-    if type(IsAddOnLoaded) == "function" and IsAddOnLoaded(companion) then
-        self.companionState = self.loadedCompanion == locale and "loaded" or
-                                  "invalid"
-        return self.loadedCompanion == locale, "PACK_NOT_REGISTERED"
-    end
-    local called, loaded, reason = pcall(LoadAddOn, companion)
-    if not called then
-        self.companionState = "failed"
-        self.companionError = loaded
-        return false, "LOAD_ERROR"
-    end
-    if not loaded then
-        self.companionState = "unavailable"
-        self.companionError = reason
-        return false, reason
-    end
-    if self.loadedCompanion ~= locale then
-        self.companionState = "invalid"
-        return false, "PACK_NOT_REGISTERED"
-    end
-    self.companionState = "loaded"
-    self.companionError = nil
+    payload, compressed = nil, nil
+    cache = {}
+    self.loadedCompanion = code
     return true
-end
-
-function service:GetCompanionState()
-    return self.companionState, self.companionError,
-           self:GetCompanionAddonName()
 end
 
 function service:RegisterEnglishNames(names)
@@ -655,12 +631,14 @@ local function LookupTranslation(source, element, field, wantedStatus)
     local context = ContextKey(element, field, source)
     local entry
     if wantedStatus ~= "machine" then
-        entry = context and translations.contextualReviewed[context] or nil
-        entry = entry or translations.reviewed[source]
+        entry = context and ExpandPackEntry(translations.contextualReviewed,
+                                            context) or nil
+        entry = entry or ExpandPackEntry(translations.reviewed, source)
     end
     if not entry and wantedStatus ~= "reviewed" then
-        entry = context and translations.contextualMachine[context] or nil
-        entry = entry or translations.machine[source]
+        entry = context and ExpandPackEntry(translations.contextualMachine,
+                                            context) or nil
+        entry = entry or ExpandPackEntry(translations.machine, source)
     end
     if not entry or entry.sourceSignature ~= HashSource(source) then return end
     if entry.tokenized then
@@ -679,8 +657,8 @@ end
 function service:UIWithMetadata(key)
     local translations = catalog and catalog.translations
     local entry = translations and
-                      (translations.uiReviewed[key] or
-                           translations.uiMachine[key])
+                      (ExpandPackEntry(translations.uiReviewed, key) or
+                           ExpandPackEntry(translations.uiMachine, key))
     if entry and entry.sourceSignature == HashSource(key) then
         local text = entry.tokenized and
                          Materialize(entry.text, select(2, Tokenize(key))) or
@@ -733,6 +711,12 @@ local function ReplaceCreatureNames(text)
     local changed = false
     local function Replace(prefix, name, suffix)
         local translated = addon.GetCreatureName(name) or name
+        -- Guide prose commonly pluralizes an NPC name inside the coloured
+        -- entity span, while the locale table stores its singular name.
+        if translated == name then
+            local singular = name:match("^(.+)s$")
+            if singular then translated = addon.GetCreatureName(singular) or name end
+        end
         if translated ~= name then changed = true end
         return prefix .. translated .. suffix
     end
@@ -875,6 +859,41 @@ local function LocalizeLocation(value)
         return lead .. translated .. tail
     end
     return value
+end
+
+local titleFactionIds = {
+    ["The Aldor"] = 932,
+    ["The Consortium"] = 933,
+    ["The Scryers"] = 934,
+    ["Netherwing"] = 1015,
+    ["Sha'tari Skyguard"] = 1031,
+    ["Ogri'la"] = 1038,
+}
+
+local function LocalizeTitleFactions(text)
+    if type(addon.GetFactionInfoByID) ~= "function" then return text, false end
+    local changed = false
+    for english, factionId in pairs(titleFactionIds) do
+        local localized = addon.GetFactionInfoByID(factionId)
+        if type(localized) == "string" and localized ~= "" and
+           localized ~= english and text:find(english, 1, true) then
+            local escaped = english:gsub("(%W)", "%%%1")
+            local count
+            text, count = text:gsub(escaped, localized)
+            changed = changed or count > 0
+        end
+    end
+    return text, changed
+end
+
+local function NormalizeTitleSpacing(text)
+    if type(text) ~= "string" then return text end
+    -- Imported guide names sometimes place the first letter directly after a
+    -- level range. Keep color escapes intact and repair only the visible seam.
+    text = text:gsub("^(%s*%d+%s*%-%s*%d+)(%S)", "%1 %2")
+    text = text:gsub("^(%s*%d+%s*–%s*%d+)(%S)", "%1 %2")
+    text = text:gsub("^(%s*%d+%s*—%s*%d+)(%S)", "%1 %2")
+    return text
 end
 
 local function ReplaceLocationName(text, element)
@@ -1439,6 +1458,14 @@ function service:RenderTitle(text, noBadge, context)
                 reviewed = true
             end
         end
+        if type(addon.LocalizeLegacyLocationText) == "function" then
+            local locationChanged
+            output, locationChanged = addon.LocalizeLegacyLocationText(output)
+            reviewed = reviewed or locationChanged
+        end
+        local factionChanged
+        output, factionChanged = LocalizeTitleFactions(output)
+        reviewed = reviewed or factionChanged
         status = reviewed and "reviewed" or "fallback"
         if not reviewed then
             local machineOutput, machineEntry =
@@ -1453,6 +1480,7 @@ function service:RenderTitle(text, noBadge, context)
     if addon.settings and addon.settings.ReplaceColors then
         output = addon.settings.ReplaceColors(output)
     end
+    output = NormalizeTitleSpacing(output)
     if not noBadge then
         if fallback then
             output = output .. FALLBACK_BADGE
