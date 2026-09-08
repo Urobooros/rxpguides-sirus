@@ -11,7 +11,11 @@ local GetRaidTargetIndex, SetRaidTarget = GetRaidTargetIndex, SetRaidTarget
 local GetTime, FlashClientIcon, PlaySound = GetTime, FlashClientIcon, PlaySound
 local wipe = wipe
 local GetRealZoneText = GetRealZoneText
-local GetNamePlates = C_NamePlate.GetNamePlates
+local sirusNameplates = addon.sirusBackend and addon.sirusBackend.nameplates
+local hasNativeNameplates = sirusNameplates and sirusNameplates.native
+local GetNamePlates = hasNativeNameplates and function()
+    return sirusNameplates:GetAll()
+end or C_NamePlate.GetNamePlates
 
 local HBD = LibStub("HereBeDragons-2.0")
 
@@ -571,7 +575,9 @@ function addon.targeting:Setup()
         self.ticker:Cancel()
         self.ticker = nil
     end
-    if addon.gameVersion == 30300 then self:StopLegacyScanner(false) end
+    if addon.gameVersion == 30300 and not hasNativeNameplates then
+        self:StopLegacyScanner(false)
+    end
     self:ApplyLegacyTargetRange()
 
     -- Setup is called for live option changes as well as login. Remove events
@@ -579,6 +585,8 @@ function addon.targeting:Setup()
     -- otherwise a previously enabled scanner can keep stale zone/nameplate
     -- callbacks after it has been disabled.
     self:UnregisterEvent("NAME_PLATE_UNIT_ADDED")
+    self:UnregisterEvent("NAME_PLATE_UNIT_REMOVED")
+    self:UnregisterEvent("NAME_PLATE_OWNER_CHANGED")
     self:UnregisterEvent("ADDON_ACTION_FORBIDDEN")
     self:UnregisterEvent("ZONE_CHANGED_NEW_AREA")
 
@@ -623,14 +631,21 @@ function addon.targeting:Setup()
     self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 
     if not addon.settings.profile.enableTargetAutomation then
-        if addon.gameVersion == 30300 then self:StopLegacyScanner(true) end
+        if addon.gameVersion == 30300 and not hasNativeNameplates then
+            self:StopLegacyScanner(true)
+        end
         self:ClearTargetButtons()
         return
     end
 
-    if addon.gameVersion ~= 30300 then
+    if addon.gameVersion ~= 30300 or hasNativeNameplates then
         -- Only works when nameplates are enabled
         self:RegisterEvent("NAME_PLATE_UNIT_ADDED")
+        if hasNativeNameplates then
+            self:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
+            self:RegisterEvent("NAME_PLATE_OWNER_CHANGED")
+            self:CheckNameplates()
+        end
     else
         self:UnregisterEvent("NAME_PLATE_UNIT_ADDED")
         self:UnregisterEvent("ADDON_ACTION_FORBIDDEN")
@@ -648,7 +663,7 @@ function addon.targeting:Setup()
         end
     end
 
-    if addon.gameVersion == 30300 then
+    if addon.gameVersion == 30300 and not hasNativeNameplates then
         self:RefreshScanTicker()
     elseif addon.settings.profile.showTargetingOnProximity then
         if addon.settings.profile and addon.settings.profile.updateFrequency then
@@ -972,13 +987,25 @@ function addon.targeting:CheckNameplates()
 
     if not nameplatesArray then return end
 
-    for _, nameplate in ipairs(nameplatesArray) do self:CheckNameplate(nameplate.namePlateUnitToken) end
+    for _, nameplate in ipairs(nameplatesArray) do
+        local unit = hasNativeNameplates and sirusNameplates:GetUnitToken(nameplate) or
+            nameplate.namePlateUnitToken
+        if unit then self:CheckNameplate(unit) end
+    end
 end
 
 function addon.targeting:NAME_PLATE_UNIT_ADDED(_, nameplateID)
     if not nameplateID or not shouldTargetCheck() then return end
 
     self:CheckNameplate(nameplateID)
+end
+
+function addon.targeting:NAME_PLATE_OWNER_CHANGED(_, nameplateID)
+    self:NAME_PLATE_UNIT_ADDED(nil, nameplateID)
+end
+
+function addon.targeting:NAME_PLATE_UNIT_REMOVED()
+    if shouldTargetCheck() then self:CheckNameplates() end
 end
 
 function addon.targeting:UPDATE_MOUSEOVER_UNIT()
@@ -1367,7 +1394,7 @@ function addon.targeting:UpdateUnitList()
 
     -- Don't process new targets if targeting disabled
     if addon.settings.profile.enableTargetAutomation then
-        if addon.gameVersion == 30300 then
+        if addon.gameVersion == 30300 and not hasNativeNameplates then
             addon.targeting:LegacyScanTick()
         else
             addon.targeting:CheckNameplates()

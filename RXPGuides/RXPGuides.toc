@@ -2,7 +2,7 @@
 ## Title: RestedXP Guides
 ## Notes: In-game leveling guides (3.3.5a backport)
 ## Author: RestedXP
-## Version: v4.8.25-335
+## Version: v6.7.1-sirus.0
 ## SavedVariables: RXPData, RXPDB, RXPSettings, RXP335
 ## SavedVariablesPerCharacter: RXPCData, RXPCTrackingData, RXPCComms, RXPCSettings
 ## X-Curse-Project-ID: 486246
@@ -11,6 +11,7 @@
 # --- Compatibility prelude: MUST load before libraries and runtime files. ---
 Compat\Bootstrap.lua
 Compat\InventoryCount335.lua
+Compat\Sirus\Backend.lua
 
 libs\embeds_335.xml
 locale\locales.xml
