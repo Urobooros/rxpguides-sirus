@@ -1,11 +1,9 @@
 local faction = UnitFactionGroup("player")
 if faction == "Horde" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #hardcore
 #classic
-#tbc
 << Alliance
 #name 1-6 Northshire
 #version 1
@@ -69,7 +67,7 @@ step << Warrior
     .train 6673 >>Train |T132333:0|t[Battle Shout]
     .target +Llane Beshere
     .goto Elwynn Forest,50.242,42.287
-    .mob Young Wolf
+    .mob Young Wolf   
 step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Marshal McBride|r
     .target Marshal McBride
@@ -369,7 +367,6 @@ step
 RXPGuides.RegisterGuide([[
 #hardcore
 #classic
-#tbc
 #era/som
 << Alliance
 #name 6-11 Elwynn Forest
@@ -447,7 +444,7 @@ step << Rogue
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Brog Hamfist|r
     .target Brog Hamfist
     .goto Elwynn Forest,43.96,65.92
-    .vendor 151 >>|cRXP_WARN_Buy a|r |T135641:0|t[Balanced Throwing Dagger] |cRXP_WARN_and equip it|r
+    .vendor 151 >>|cRXP_WARN_Buy a|r |T135641:0|t[Balanced Throwing Dagger] and equip it|r
 step << Warlock
     #completewith next
     .goto Elwynn Forest,44.1,66.0,10 >> Travel downstairs
@@ -1616,7 +1613,7 @@ step << Warrior
 step << Warrior
     .goto Ironforge,62.375,88.679
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Brenwyn Wintersteel|r down stairs
-    .vendor >>|cRXP_WARN_Buy a|r |T135641:0|t[Balanced Throwing Dagger] |cRXP_WARN_and equip it|r
+    .vendor >>|cRXP_WARN_Buy a|r |T135641:0|t[Balanced Throwing Dagger] and equip it|r
     .target Brenwyn Wintersteel
 step
     #ah
@@ -1852,7 +1849,6 @@ step
 RXPGuides.RegisterGuide([[
 #hardcore
 #classic
-#tbc
 #era/som--h
 << Alliance
 #name 11-13 Loch Modan
@@ -1905,7 +1901,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Vidra Hearthstove|r
     .accept 418 >> Accept Thelsamar Blood Sausages
 step
-    #completewith StormpikeO
+    #competewith StormpikeO
     .abandon 1338 >> Abandon Stormpike's Order. This is to unlock Mountaineer Stormpike's Task which will give a free 550xp turn in
 step
     #completewith next

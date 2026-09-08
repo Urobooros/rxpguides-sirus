@@ -1,4 +1,3 @@
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #cata
 #version 1
@@ -467,7 +466,7 @@ step << Horde
     >>Kill |cRXP_ENEMY_Tank|r
     >>|cRXP_WARN_Tank is an elite shark which patrols the Cape of Lost Hope|r
     .complete 28050,1 -- Tank slain (1)
-    .unitscan Tank
+    .unitscan Tank  
 step << Horde
     #completewith Seabass
     .subzone 5538 >> Travel to Rustberg Village
@@ -887,7 +886,7 @@ step
     >>Kill |cRXP_ENEMY_Captive Spirits|r, |cRXP_ENEMY_Ghastly Convicts|r and |cRXP_ENEMY_Cellblock Oozes|r
     .complete 28117,1 -- Ghosts Slain (9)
     .mob Captive Spirit
-    .mob Cellblock Ooze
+    .mob Cellblock Ooze 
     .mob Ghastly Convict
 step
     #completewith GalusStaff
@@ -907,7 +906,7 @@ step
     >>Kill |cRXP_ENEMY_Captive Spirits|r, |cRXP_ENEMY_Ghastly Convicts|r and |cRXP_ENEMY_Cellblock Oozes|r
     .complete 28117,1 -- Ghosts Slain (9)
     .mob Captive Spirit
-    .mob Cellblock Ooze
+    .mob Cellblock Ooze 
     .mob Ghastly Convict
 step
     #loop
@@ -924,7 +923,7 @@ step
     >>Kill |cRXP_ENEMY_Captive Spirits|r, |cRXP_ENEMY_Ghastly Convicts|r and |cRXP_ENEMY_Cellblock Oozes|r
     .complete 28117,1 -- Ghosts Slain (9)
     .mob Captive Spirit
-    .mob Cellblock Ooze
+    .mob Cellblock Ooze 
     .mob Ghastly Convict
 step
     #completewith SvarnosCollar
@@ -1075,7 +1074,7 @@ step
     .mob Horde Mage Infantry << Alliance
     .mob Horde Shaman Infantry << Alliance
     .mob Alliance Hunter Infantry << Horde
-    .mob Alliance Warrior Infantry << Horde
+    .mob Alliance Warrior Infantry << Horde 
     .mob Alliance Mage Infantry << Horde
     .mob Alliance Paladin Infantry << Horde
 step

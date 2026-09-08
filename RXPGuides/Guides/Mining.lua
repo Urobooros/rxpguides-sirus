@@ -1,4 +1,3 @@
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #wotlk
 #group +Profession Leveling

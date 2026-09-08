@@ -1,11 +1,9 @@
 local faction = UnitFactionGroup("player")
 if faction == "Horde" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #hardcore
 #classic
-#tbc
 << Alliance
 #name 1-6 Shadowglen
 #version 1
@@ -92,7 +90,7 @@ step << !Hunter
     .goto Teldrassil,59.8,34.1
     >>Kill |cRXP_ENEMY_Mangy Nightsabers|r and |cRXP_ENEMY_Thistle Boars|r
     .complete 457,1 --Kill Mangy Nightsaber (x7)
-    .mob +Mangy Nightsaber
+    .mob +Young Nightsaber
     .complete 457,2 --Kill Thistle Boar (x7)
     .mob +Thistle Boar
 step << !Hunter
@@ -262,7 +260,7 @@ step << Hunter
     .goto Teldrassil,59.8,34.1
     >>Kill |cRXP_ENEMY_Mangy Nightsabers|r and |cRXP_ENEMY_Thistle Boars|r
     .complete 457,1 --Kill Mangy Nightsaber (x7)
-    .mob +Mangy Nightsaber
+    .mob +Young Nightsaber
     .complete 457,2 --Kill Thistle Boar (x7)
     .mob +Thistle Boar
 step
@@ -300,7 +298,6 @@ step
 RXPGuides.RegisterGuide([[
 #hardcore
 #classic
-#tbc
 << Alliance
 #name 6-11 Teldrassil
 #version 1

@@ -1,6 +1,8 @@
-if GetLocale() == "zhCN" then return end
+-- Generated from RXPGuides v4.10.20 by tools/Build-TBCGuides335.ps1.
+-- Curated for the standalone 3.3.5a backport; do not replace with the upstream aggregate file.
 RXPGuides.RegisterGuide([[
 #tbc
+#wotlk
 #version 7
 #group RXP TBC Attunement Guide
 #name 1. Karazhan
@@ -100,7 +102,7 @@ step
     .zone Shattrath City >> Travel to Shattrath
 step
     .goto Shattrath City,54.751,44.322
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Khadgar's Servant|r
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Khadgar|r
     .turnin 9829 >> Turn in Khadgar
     .accept 9831 >> Accept Entry Into Karazhan
     .target Khadgar
@@ -119,7 +121,7 @@ step
     .zone Shattrath City >> Travel to Shattrath
 step
     .goto Shattrath City,54.751,44.322
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Khadgar's Servant|r
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Khadgar|r
     .turnin 9831 >> Turn in Entry Into Karazhan
     .accept 9832 >> Accept The Second and Third Fragments
     .target Khadgar
@@ -146,7 +148,7 @@ step
     .zone Shattrath City >> Travel to Shattrath
 step
     .goto Shattrath City,54.751,44.322
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Khadgar's Servant|r
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Khadgar|r
     .turnin 9832 >> Turn in The Second and Third Fragments
     .accept 9836 >> Accept The Master's Touch
     .target Khadgar
@@ -172,17 +174,17 @@ step
     .zone Shattrath City >> Travel to Shattrath
 step
     .goto Shattrath City,54.751,44.322
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Khadgar's Servant|r
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Khadgar|r
     .turnin 9837 >> Turn in Return to Khadgar
     .accept 9838 >> Accept The Violet Eye
     .target Khadgar
 step
     .isQuestTurnedIn 9837
     +|cRXP_WARN_Congratulations! You are now attuned for Karazhan|r
-]])
-
+]]);
 RXPGuides.RegisterGuide([[
 #tbc
+#wotlk
 #version 7
 #group RXP TBC Attunement Guide
 #name 2. Serpentshrine Cavern
@@ -195,6 +197,7 @@ step
     .subzone 3717 >> |cRXP_WARN_Find a group for HEROIC: Slave Pens in Zangarmarsh. Once you have found a group, zone into the Slave Pens|r
 step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Skar'this the Heretic|r
+    .turnin 10900 >> Turn in The Mark of Vashj
     .accept 10901 >> Accept The Cudgel of Kar'desh
     .target Skar'this the Heretic
 step
@@ -212,10 +215,10 @@ step
 step
     .isQuestTurnedIn 10901
     +|cRXP_WARN_Congratulations! You are now attuned for Serpentshrine Cavern|r
-]])
-
+]]);
 RXPGuides.RegisterGuide([[
 #tbc
+#wotlk
 #version 7
 #group RXP TBC Attunement Guide
 #name 3. Tempest Keep
@@ -616,10 +619,10 @@ step
 step
     .isQuestTurnedIn 10888
     +|cRXP_WARN_Congratulations! You are now attuned for The Eye: Tempest Keep|r
-]])
-
+]]);
 RXPGuides.RegisterGuide([[
 #tbc
+#wotlk
 #version 7
 #group RXP TBC Attunement Guide
 #name 4. Mount Hyjal
@@ -657,10 +660,10 @@ step
 step
     .isQuestTurnedIn 10445
     +|cRXP_WARN_Congratulations! You are now attuned for Mount Hyjal|r
-]])
-
+]]);
 RXPGuides.RegisterGuide([[
 #tbc
+#wotlk
 #version 7
 #group RXP TBC Attunement Guide
 #name 5. Black Temple
@@ -976,4 +979,4 @@ step
 step
     .isQuestTurnedIn 10985
     +|cRXP_WARN_Congratulations! You are now attuned for Black Temple|r
-]])
+]]);

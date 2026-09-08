@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Horde" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -135,7 +134,7 @@ step
 .target Dirania Silvershine
     .accept 3521 >> Accept Iverron's Antidote
 step << Hunter
-    #completewith htraining
+    #completewith EtchedSigil
     .goto Teldrassil,59.31,41.09
 	.vendor >> Go inside. Vendor trash and buy 3 stacks of arrows
 step
@@ -274,7 +273,7 @@ step
     .goto Teldrassil,56.80,26.45
 	>>Loot a Webwood Egg at the back of the cave
     .complete 917,1 --Collect Webwood Egg (x1)
-step << skip
+step
 	#completewith next
 	.deathskip >>Die and respawn at the Spirit Healer, or do the logout skip.
     .link https://www.youtube.com/watch?v=TTZZT3jpv1s >> CLICK HERE for reference on how to do the logout skip
@@ -586,7 +585,12 @@ step << Druid
 >>Talk to |cRXP_FRIENDLY_Corithras Moonrage|r
     .turnin 929 >> Turn in Crown of the Earth
 .target Corithras Moonrage
+step << Druid
+	#xprate <1.5
+    .goto Teldrassil,56.2,61.7
+>>Talk to |cRXP_FRIENDLY_Corithras Moonrage|r
     .accept 933 >> Accept Crown of the Earth
+.target Corithras Moonrage
 step << Druid
     .goto Teldrassil,55.9,61.6
 	.trainer >> Train your level 8 spells
@@ -635,7 +639,7 @@ step << !Druid
 .target Corithras Moonrage
 >>Talk to |cRXP_FRIENDLY_Corithras Moonrage|r
     .turnin 929 >> Turn in Crown of the Earth
-step
+step << !Druid
 	#xprate <1.5
     .goto Teldrassil,56.2,61.7
 .target Corithras Moonrage
@@ -1032,7 +1036,7 @@ step << Rogue
     .turnin -935 >> Turn in Crown of the Earth
 .target Arch Druid Fandral Staghelm
 >>Talk to |cRXP_FRIENDLY_Arch Druid Fandral Staghelm|r
-    .turnin 940 >> Turn in Teldrassil
+    .turnin -940 >> Turn in Teldrassil
 step << Rogue
     #xprate <1.5
     .goto Darnassus,34.7,9.0
@@ -1164,6 +1168,13 @@ step
 .target Arch Druid Fandral Staghelm
 >>Talk to |cRXP_FRIENDLY_Arch Druid Fandral Staghelm|r
     .turnin 940 >> Turn in Teldrassil << Hunter
+step << !Hunter !Rogue
+    #xprate >1.4999
+    .isOnQuest 940
+    .goto Darnassus,34.814,9.255
+.target Arch Druid Fandral Staghelm
+>>Talk to |cRXP_FRIENDLY_Arch Druid Fandral Staghelm|r
+    .turnin 940 >> Turn in Teldrassil
 step
     #xprate <1.5
     .goto Darnassus,34.814,9.255

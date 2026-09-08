@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Horde" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -128,13 +127,21 @@ step
 step << !Dwarf/!Hunter
     .xp 12 >> Grind to level 12
 step << !Dwarf/!Hunter
-    >> Talk to Sentinel Glynda and Tharnariun
+    #xprate <1.7
+    .goto Darkshore,37.706,43.390
 .target Sentinel Glynda Nal'Shea
 >>Talk to |cRXP_FRIENDLY_Sentinel Glynda Nal'Shea|r
     .accept 4811 >> Accept The Red Crystal
-    .goto Darkshore,37.706,43.390
-    .turnin -2118 >> Turn in Plagued Lands
+step << !Dwarf/!Hunter
     .goto Darkshore,38.8,43.4
+.target Tharnariun Treetender
+>>Talk to |cRXP_FRIENDLY_Tharnariun Treetender|r
+    .turnin -2118 >> Turn in Plagued Lands
+step << Dwarf Hunter
+    .goto Darkshore,38.8,43.4
+    .target Tharnariun Treetender
+    >>Talk to |cRXP_FRIENDLY_Tharnariun Treetender|r
+    .turnin -2118 >> Turn in Plagued Lands
 step
 #xprate <1.5
     .maxlevel 13
@@ -509,7 +516,7 @@ step
 	.zone Bloodmyst Isle >>Head north to Bloodmyst Isle
 step
 	#sticky
-	#completewith monunment
+	#completewith monument
     #title Secondary Objective
 	>> Collect Irradiated Crystal Shards from any mobs on Bloodmyst Isle. Don't throw these away.
 	.collect 23984,10 -- Collect Irradiated Crystal Shard (x10)
@@ -594,7 +601,7 @@ step
     .goto Bloodmyst Isle,56.421,56.788
 .target Jessera of Mac'Aree
 >>Talk to |cRXP_FRIENDLY_Jessera of Mac'Aree|r
-    .accept 9648 >> Accept Maatparm Mushroom Menagerie
+    .accept 9648 >> Accept Mac'Aree Mushroom Menagerie
     .goto Bloodmyst Isle,56.421,56.788
 step << Paladin
 	.goto Bloodmyst Isle,55.6,55.4
@@ -948,7 +955,6 @@ step
     .turnin 10063 >> Turn in Explorers' League, Is That Something for Gnomes?
 .target Clopper Wizbang
     .accept 9548 >> Accept Pilfered Equipment
-    .accept 9549 >> Accept Artifacts of the Blacksilt
 step
 	.goto Bloodmyst Isle,42.0,21.2
 	>> Buy a Bronze Tube from Clopper Wizbang (limited supply), skip this step if he doesn't have it
@@ -967,6 +973,12 @@ step
     >>Loot the crate that can spawn in any of the murloc camps
     .complete 9548,1 --Collect Clopper's Equipment (x1)
 step
+    .goto Bloodmyst Isle,42.142,21.174
+.target Clopper Wizbang
+>>Talk to |cRXP_FRIENDLY_Clopper Wizbang|r
+    .turnin 9548 >> Turn in Pilfered Equipment
+    .accept 9549 >> Accept Artifacts of the Blacksilt
+step
     .goto Bloodmyst Isle,39.5,20.7
 	>> Kill and loot murlocs
     .complete 9549,1 --Collect Crude Murloc Idol (x3)
@@ -977,7 +989,6 @@ step
     .goto Bloodmyst Isle,42.142,21.174
 .target Clopper Wizbang
 >>Talk to |cRXP_FRIENDLY_Clopper Wizbang|r
-    .turnin 9548 >> Turn in Pilfered Equipment
     .turnin 9549 >> Turn in Artifacts of the Blacksilt
 step
     .goto Bloodmyst Isle,42.142,21.174
@@ -1658,7 +1669,8 @@ step
 step
 #xprate <1.5
 	#sticky
-    #completewith crabraveboys
+    #label crabraveboys
+    #completewith bottomkeyman
     .isOnQuest 1138
 	>>Kill Reef Crawlers and Encrusted Tide Crawlers along the coast
     .complete 1138,1 --Collect Fine Crab Chunks (x6)
@@ -1865,7 +1877,7 @@ step
 .target Gwennyth Bly'Leggonde
 >>Talk to |cRXP_FRIENDLY_Gwennyth Bly'Leggonde|r
     .turnin 4725 >> Turn in Beached Sea Turtle
-    .turnin 4727 >> Turn in Beached Sea Turtle
+    .turnin -4727 >> Turn in Beached Sea Turtle
     .isQuestTurnedIn 4681
 step
 #xprate <1.5
@@ -1906,8 +1918,14 @@ step << Dwarf Hunter/!NightElf Rogue
     >> Exit Darnassus through the purple portal
     .fp Rut'theran >> Get the Rut'theran Village flight path
 step << Dwarf Hunter/Rogue
-    .goto Teldrassil,58.399,94.016
-    .fly Auberdine >>Fly back to Auberdine
+	.goto Teldrassil,58.399,94.016
+	.fly Auberdine >>Fly back to Auberdine
+step << NightElf
+    .isOnQuest 952
+    .goto Darkshore,43.5,76.2
+    >>Talk to |cRXP_FRIENDLY_Onu|r
+    .turnin 952 >> Turn in Grove of the Ancients
+    .target Onu
 step
 #xprate <1.5 << !Druid
     .isOnQuest 948
@@ -2343,7 +2361,7 @@ step << Draenei tbc/NightElf tbc
     .zoneskip Elwynn Forest
 
 
-step << skip -- Draenei tbc/NightElf tbc
+step << Draenei tbc/NightElf tbc
 #xprate >1.499
    #completewith next
    .goto Wetlands,63.9,78.6
@@ -2363,7 +2381,7 @@ step << NightElf tbc/Draenei tbc
     #completewith next
     .goto Loch Modan,21.30,68.60,40,0
     .zone Dun Morogh>> Run to Dun Morogh
-step << skip -- NightElf tbc/Draenei tbc
+step << NightElf tbc/Draenei tbc
 #xprate >1.499
 	>>Go inside the South-eastern Trogg cave. Perform a logout skip
     .goto Dun Morogh,70.63,56.70,60,0

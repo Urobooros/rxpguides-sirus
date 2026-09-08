@@ -1,4 +1,3 @@
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #version 1
 #group +RestedXP Northrend Daily Quests
@@ -123,7 +122,7 @@ step
     .goto TheStormPeaks,53.14,65.72
 	>>Talk to Brijana
     .turnin 12972 >>Turn in You'll Need a Bear
-    .accept 12851 >>Accept Bearly Hanging On
+    .accept 12851 >>Accept Going Bearback
 step
    	#completewith next
     .goto The Storm Peaks,53.12,65.61
@@ -343,7 +342,7 @@ step << !Human
 step << Human
     .goto TheStormPeaks,65.45,60.16
 	>>Talk to King Jokkum
-    .accept 13011 >>Accept Culling Jorcuttar
+    .accept 13011 >>Accept Jormuttar is Soo Fat...
     .accept 12975 >>Accept In Memoriam
 step << !Human
     .goto TheStormPeaks,65.45,60.16
@@ -388,7 +387,7 @@ step << Human
     .goto TheStormPeaks,65.45,60.16
     .turnin 12976 >>Turn in A Monument to the Fallen
     .turnin 12985 >>Turn in Forging a Head
-    .accept 12987 >>Accept Placing Hodir's Helm
+    .accept 12987 >>Accept Mounting Hodir's Helm
     .goto TheStormPeaks,63.20,63.27
     .turnin 12981 >>Turn in Hot and Cold
     .goto TheStormPeaks,63.13,62.94
@@ -403,7 +402,7 @@ step << Human
     .goto TheStormPeaks,65.45,60.16
     .turnin 12976 >>Turn in A Monument to the Fallen
     .turnin 12985 >>Turn in Forging a Head
-    .accept 12987 >>Accept Placing Hodir's Helm
+    .accept 12987 >>Accept Mounting Hodir's Helm
     .goto TheStormPeaks,63.20,63.27
     .turnin 12981 >>Turn in Hot and Cold
     .goto TheStormPeaks,63.13,62.94
@@ -438,7 +437,7 @@ step << !Human
 step << !Human
 	>>Return to Dun Niffelem. Talk to Njormeld and Hodir's Horn
     .turnin 12985 >>Turn in Forging a Head
-    .accept 12987 >>Accept Placing Hodir's Helm
+    .accept 12987 >>Accept Mounting Hodir's Helm
     .goto TheStormPeaks,63.20,63.27
     .daily 12977 >>Accept Hodir's Call
     .goto TheStormPeaks,64.17,65.01
@@ -459,7 +458,7 @@ step
 step << !Human
     .goto TheStormPeaks,65.45,60.16
 	>>Talk to King Jokkum
-    .accept 13011 >>Accept Culling Jorcutta
+    .accept 13011 >>Accept Jormuttar is Soo Fat...
 step
 	#completewith Jorcuttar
     .goto TheStormPeaks,54.4,63.2,0
@@ -656,7 +655,7 @@ step
 step -- checking that player has honored with hodir to get this quest. will only be humans and any other that turned in rep items
 	>>Talk to Lorekeeper Randvir in Dun Niffelem
 	.goto TheStormPeaks,64.84,59.05
-	.accept 13001 >>Accept Forging Hodir's Spear
+	.accept 13001 >>Accept Raising Hodir's Spear
 	.reputation 1119,honored,<0,1
 step
 	>>Kill Stoic Mammoths. Loot them for their Hides

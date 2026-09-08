@@ -1,7 +1,6 @@
 local _, class = UnitClass("player")
 if class ~= "DEATHKNIGHT" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #version 6
 #wotlk
@@ -9,8 +8,8 @@ RXPGuides.RegisterGuide([[
 #mop
 << DK
 #group RestedXP Death Knight Start
-#next RestedXP Alliance 60-70\59-61 Hellfire Peninsula << Alliance wotlk
-#next RestedXP Horde 60-70\59-61 Hellfire Peninsula << Horde wotlk
+#next RestedXP TBC Guide (A)\59-61 Hellfire Peninsula << Alliance wotlk
+#next RestedXP TBC Guide (H)\59-61 Hellfire Peninsula << Horde wotlk
 #next RXP Cataclysm 60-80 (H)\59-61 Hellfire Peninsula << Horde cata
 #next RXP Cataclysm 60-80 (A)\59-61 Hellfire Peninsula << Alliance cata
 #next RXP MoP 60-80 (H)\59-61 Hellfire Peninsula << Horde !wotlk !cata
@@ -200,7 +199,7 @@ step
 	#completewith next
 	.cast 48778 >> Go into your Character Panel (C), then into the collections tab. Summon your Archerus Deathcharger then bind it to your bars
 step
-	#completewith Mailbox
+	#completewith Citizens
     .goto ScarletEnclave,55.6,51.4,0
 	>>Kill Citizens of Havenshire in the area. Loot the Saronite arrows on the ground in the area
     .complete 12678,2 --Citizen of Havenshire (10)

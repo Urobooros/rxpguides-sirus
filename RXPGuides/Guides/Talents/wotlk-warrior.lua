@@ -4,7 +4,7 @@ if addon.player.class ~= "WARRIOR" or addon.game ~= "WOTLK" then return end
 
 addon.talents.RegisterGuide([[
 #name Protection 10-58
-#next Warrior 59-80
+#next Arms 59-80
 #minLevel 10
 #maxLevel 58
 
@@ -154,6 +154,28 @@ level -- Focused Rage (Rank 3)
 
 level -- Vitality (Rank 1)
     .talent 3,8,2,1
+]])
+
+-- Adapted from the locally supplied 3.3.5 TalentAdvisor builds and validated
+-- against the 3.3.5a talent layout. These full-range choices complement the
+-- original Protection-to-Arms leveling path.
+addon.talents.RegisterBuild("Arms 10-80", [[
+1,1,2,5;1,2,2,3;1,1,3,2;1,3,3,2;1,3,4,3;1,4,2,3;1,4,3,2;1,5,2,1;1,5,4,5;1,6,4,2;
+1,4,3,1;1,3,2,1;1,7,2,1;1,7,1,1;1,7,3,2;1,3,1,1;1,8,2,3;1,8,1,1;1,3,1,1;1,9,2,1;
+1,9,1,3;1,9,3,1;1,10,2,5;1,11,2,1;1,9,3,1;1,8,3,2;2,1,3,5;2,1,1,3;2,2,2,5;2,3,2,1;
+2,3,4,1;2,4,2,2
+]])
+
+addon.talents.RegisterBuild("Fury 10-80", [[
+2,1,3,5;2,1,1,3;2,2,3,2;2,3,3,3;2,3,1,2;2,4,1,5;2,5,2,1;2,5,1,3;2,4,3,1;2,6,3,5;
+2,7,2,1;2,7,4,2;2,7,1,2;2,8,4,5;2,9,3,3;2,7,1,1;2,4,3,1;2,10,2,5;2,11,2,1;2,4,3,2;
+1,1,1,3;1,1,2,5;1,2,2,2;1,3,3,2;1,3,4,3;1,4,2,3
+]])
+
+addon.talents.RegisterBuild("Protection 10-80", [[
+3,1,2,5;3,2,3,5;3,3,4,5;3,1,3,3;3,3,2,2;3,5,2,1;3,3,1,1;3,4,3,3;3,6,3,5;3,7,3,3;
+3,7,1,2;3,8,2,3;3,3,3,2;3,9,2,1;3,9,3,3;3,9,1,1;3,10,2,3;3,10,3,2;3,11,2,1;3,7,2,1;
+2,1,1,3;1,1,2,5;1,2,2,3;1,1,1,2;1,3,3,2;1,3,4,3;3,2,2,1
 ]])
 
 addon.talents.RegisterGuide([[

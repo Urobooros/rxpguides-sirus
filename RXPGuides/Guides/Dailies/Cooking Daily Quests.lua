@@ -1,4 +1,3 @@
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #version 1
 #group +RestedXP Northrend Daily Quests
@@ -126,26 +125,26 @@ step
 step << Alliance
 	>>Go down into the Dalaran Sewers. Loot the blue Infused Mushrooms scattered around on the ground
 	.goto Dalaran,35.31,45.28,10,0
-	.goto 126,22.66,41.71,10,0
-	.goto 126,36.30,43.97,10,0
-	.goto 126,54.12,64.98,10,0
-	.goto 126,57.12,49.90,10,0
-	.goto 126,45.46,47.06,10,0
-	.goto 126,47.29,33.14,10,0
-	.goto 126,53.79,29.20,10,0
-	.goto 126,59.73,44.33
+	.goto Dalaran,22.66,41.71,10,0
+	.goto Dalaran,36.30,43.97,10,0
+	.goto Dalaran,54.12,64.98,10,0
+	.goto Dalaran,57.12,49.90,10,0
+	.goto Dalaran,45.46,47.06,10,0
+	.goto Dalaran,47.29,33.14,10,0
+	.goto Dalaran,53.79,29.20,10,0
+	.goto Dalaran,59.73,44.33
 	.collect 43100,4 --Infused Mushrooms
 	.isOnQuest 13100
 step << Horde
 	>>Drop down the well into the Dalaran Sewers. Loot the blue Infused Mushrooms scattered around on the ground
 	.goto Dalaran,48.25,32.33,5,0
-	.goto 126,36.30,43.97,10,0
-	.goto 126,54.12,64.98,10,0
-	.goto 126,57.12,49.90,10,0
-	.goto 126,45.46,47.06,10,0
-	.goto 126,47.29,33.14,10,0
-	.goto 126,53.79,29.20,10,0
-	.goto 126,59.73,44.33
+	.goto Dalaran,36.30,43.97,10,0
+	.goto Dalaran,54.12,64.98,10,0
+	.goto Dalaran,57.12,49.90,10,0
+	.goto Dalaran,45.46,47.06,10,0
+	.goto Dalaran,47.29,33.14,10,0
+	.goto Dalaran,53.79,29.20,10,0
+	.goto Dalaran,59.73,44.33
 	.collect 43100,4 --Infused Mushrooms (4)
 	.isOnQuest 13112
 step
@@ -289,15 +288,15 @@ step << Horde
 step << Alliance
 	>>Talk to Ajay Green in the Dalaran Sewers
 	.goto Dalaran,35.31,45.28,10,0
-	.goto 126,22.66,41.71,10,0
-	.goto 126,36.30,43.97,10,0
-	.goto 126,35.47,57.55
+	.goto Dalaran,22.66,41.71,10,0
+	.goto Dalaran,36.30,43.97,10,0
+	.goto Dalaran,35.47,57.55
 	.turnin 13102 >>Turn in Sewer Stew
 	.isQuestComplete 13102
 step << Horde
 	>>Drop down the well into the Dalaran Sewers. Talk to Ajay Green
 	.goto Dalaran,48.25,32.33,5,0
-	.goto 126,35.47,57.55
+	.goto Dalaran,35.47,57.55
 	.turnin 13114 >>Turn in Sewer Stew
 	.isQuestComplete 13114
 

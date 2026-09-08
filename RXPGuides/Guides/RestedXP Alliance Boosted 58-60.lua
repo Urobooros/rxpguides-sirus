@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Horde" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -10,182 +9,182 @@ RXPGuides.RegisterGuide([[
 #version 1
 #group RestedXP Alliance Boosted 58-60
 #defaultfor 58Boost
-#next RestedXP Alliance 60-70\59-61 Hellfire Peninsula
-step << Warrior
+#next RestedXP TBC Guide (A)\59-61 Hellfire Peninsula
+step << Warrior !ac335
 .accept 64028 >>Accept A New Beginning
     .turnin 64028 >>Turn in A New Beginning
     .accept 64031 >>Accept Tools for Survival
     .complete 64031,1 --1/1 Open the Survival Kit (1)
     .complete 64031,2 --1/1 Equip a Weapon (1)
-step << Warrior
+step << Warrior !ac335
     .goto StormwindClassic,78.3,47.4
     .turnin 64031 >>Turn in Tools for Survival
     .accept 64034 >>Accept Combat Training
     .complete 64034,1 --1/1 Train a Spell (1)
-step << Warrior
+step << Warrior !ac335
     .goto StormwindClassic,78.3,47.4
     .turnin 64034 >>Turn in Combat Training
     .accept 64035 >>Accept Talented
     .complete 64035,1 --5 Talent Points Allocated (1)
-step << Warrior
+step << Warrior !ac335
     .goto StormwindClassic,78.3,47.4
     .turnin 64035 >>Turn in Talented
     .accept 64038 >>Accept The Dark Portal
 --
-step << Paladin
+step << Paladin !ac335
     .goto StormwindClassic,37.3,33.0
     .accept 64028 >>Accept A New Beginning
-step << Paladin
+step << Paladin !ac335
     .goto StormwindClassic,37.2,33.2
     .turnin 64028 >>Turn in A New Beginning
     .accept 64031 >>Accept Tools for Survival
     .complete 64031,1 --1/1 Open the Survival Kit (1)
     .complete 64031,2 --1/1 Equip a Weapon (1)
-step << Paladin
+step << Paladin !ac335
     .goto StormwindClassic,37.2,33.2
     .turnin 64031 >>Turn in Tools for Survival
     .accept 64034 >>Accept Combat Training
     .complete 64034,1 --1/1 Train a Spell (1)
-step << Paladin
+step << Paladin !ac335
     .goto StormwindClassic,37.2,33.2
     .turnin 64034 >>Turn in Combat Training
     .accept 64035 >>Accept Talented
     .complete 64035,1 --5 Talent Points Allocated (1)
-step << Paladin
+step << Paladin !ac335
     .goto StormwindClassic,37.2,33.2
     .turnin 64035 >>Turn in Talented
     .accept 64038 >>Accept The Dark Portal
 --
-step << Rogue
+step << Rogue !ac335
     .goto StormwindClassic,78.3,57.3
     .accept 64028 >>Accept A New Beginning
     .turnin 64028 >>Turn in A New Beginning
     .accept 64031 >>Accept Tools for Survival
     .complete 64031,1 --1/1 Open the Survival Kit (1)
     .complete 64031,2 --1/1 Equip a Weapon (1)
-step << Rogue
+step << Rogue !ac335
     .goto StormwindClassic,78.3,57.3
     .turnin 64031 >>Turn in Tools for Survival
     .accept 64034 >>Accept Combat Training
     .complete 64034,1 --1/1 Train a Spell (1)
-step << Rogue
+step << Rogue !ac335
     .goto StormwindClassic,78.3,57.3
     .turnin 64034 >>Turn in Combat Training
     .accept 64035 >>Accept Talented
     .complete 64035,1 --5 Talent Points Allocated (1)
-step << Rogue
+step << Rogue !ac335
     .goto StormwindClassic,78.3,57.3
     .turnin 64035 >>Turn in Talented
     .accept 64038 >>Accept The Dark Portal
 --
-step << Priest
+step << Priest !ac335
     .goto StormwindClassic,38.8,26.4
     .accept 64028 >>Accept A New Beginning
     .turnin 64028 >>Turn in A New Beginning
     .accept 64031 >>Accept Tools for Survival
     .complete 64031,1 --1/1 Open the Survival Kit (1)
     .complete 64031,2 --1/1 Equip a Weapon (1)
-step << Priest
+step << Priest !ac335
     .goto StormwindClassic,38.8,26.4
     .turnin 64031 >>Turn in Tools for Survival
     .accept 64034 >>Accept Combat Training
     .complete 64034,1 --1/1 Train a Spell (1)
-step << Priest
+step << Priest !ac335
     .goto StormwindClassic,38.8,26.4
     .turnin 64034 >>Turn in Combat Training
     .accept 64035 >>Accept Talented
     .complete 64035,1 --5 Talent Points Allocated (1)
-step << Priest
+step << Priest !ac335
     .goto StormwindClassic,38.8,26.4
-    .turnin 64035 >>Turn in Talented
-    .accept 64038 >>Accept The Dark Portal
-
---
-step << Mage
-    .goto StormwindClassic,38.7,79.3
-    .accept 64028 >>Accept A New Beginning
-    .turnin 64028 >>Turn in A New Beginning
-    .accept 64031 >>Accept Tools for Survival
-    .complete 64031,1 --1/1 Open the Survival Kit (1)
-    .complete 64031,2 --1/1 Equip a Weapon (1)
-step << Mage
-    .goto StormwindClassic,38.7,79.3
-    .turnin 64031 >>Turn in Tools for Survival
-    .accept 64034 >>Accept Combat Training
-    .complete 64034,1 --1/1 Train a Spell (1)
-step << Mage
-    .goto StormwindClassic,38.7,79.3
-    .turnin 64034 >>Turn in Combat Training
-    .accept 64035 >>Accept Talented
-    .complete 64035,1 --5 Talent Points Allocated (1)
-step << Mage
-    .goto StormwindClassic,38.7,79.3
     .turnin 64035 >>Turn in Talented
     .accept 64038 >>Accept The Dark Portal
 
 --
-step << Warlock
+step << Mage !ac335
+    .goto StormwindClassic,38.7,79.3
+    .accept 64028 >>Accept A New Beginning
+    .turnin 64028 >>Turn in A New Beginning
+    .accept 64031 >>Accept Tools for Survival
+    .complete 64031,1 --1/1 Open the Survival Kit (1)
+    .complete 64031,2 --1/1 Equip a Weapon (1)
+step << Mage !ac335
+    .goto StormwindClassic,38.7,79.3
+    .turnin 64031 >>Turn in Tools for Survival
+    .accept 64034 >>Accept Combat Training
+    .complete 64034,1 --1/1 Train a Spell (1)
+step << Mage !ac335
+    .goto StormwindClassic,38.7,79.3
+    .turnin 64034 >>Turn in Combat Training
+    .accept 64035 >>Accept Talented
+    .complete 64035,1 --5 Talent Points Allocated (1)
+step << Mage !ac335
+    .goto StormwindClassic,38.7,79.3
+    .turnin 64035 >>Turn in Talented
+    .accept 64038 >>Accept The Dark Portal
+
+--
+step << Warlock !ac335
     .goto StormwindClassic,26.0,77.4
     .accept 64028 >>Accept A New Beginning
     .turnin 64028 >>Turn in A New Beginning
     .accept 64031 >>Accept Tools for Survival
     .complete 64031,1 --1/1 Open the Survival Kit (1)
     .complete 64031,2 --1/1 Equip a Weapon (1)
-step << Warlock
+step << Warlock !ac335
     .goto StormwindClassic,26.0,77.4
     .turnin 64031 >>Turn in Tools for Survival
     .accept 64034 >>Accept Combat Training
     .complete 64034,1 --1/1 Train a Spell (1)
-step << Warlock
+step << Warlock !ac335
     .goto StormwindClassic,26.0,77.4
     .turnin 64034 >>Turn in Combat Training
     .accept 64035 >>Accept Talented
     .complete 64035,1 --5 Talent Points Allocated (1)
-step << Warlock
+step << Warlock !ac335
     .goto StormwindClassic,26.1,77.4
     .turnin 64035 >>Turn in Talented
     .accept 64038 >>Accept The Dark Portal
 
 --
-step << Hunter
+step << Hunter !ac335
     .goto StormwindClassic,61.7,15.2
     .accept 64028 >>Accept A New Beginning
     .turnin 64028 >>Turn in A New Beginning
     .accept 64031 >>Accept Tools for Survival
     .complete 64031,1 --1/1 Open the Survival Kit (1)
     .complete 64031,2 --1/1 Equip a Weapon (1)
-step << Hunter
+step << Hunter !ac335
     .goto StormwindClassic,61.7,15.2
     .turnin 64031 >>Turn in Tools for Survival
     .accept 64034 >>Accept Combat Training
     .complete 64034,1 --1/1 Train a Spell (1)
-step << Hunter
+step << Hunter !ac335
     .goto StormwindClassic,61.7,15.2
     .turnin 64034 >>Turn in Combat Training
     .accept 64035 >>Accept Talented
     .complete 64035,1 --5 Talent Points Allocated (1)
-step << Hunter
+step << Hunter !ac335
     .goto StormwindClassic,61.7,15.2
     .turnin 64035 >>Turn in Talented
     .accept 64038 >>Accept The Dark Portal
 
-step << Druid
+step << Druid !ac335
     .goto StormwindClassic,21.4,51.4
     .turnin 64028 >>Turn in A New Beginning
     .accept 64031 >>Accept Tools for Survival
     .complete 64031,1 --1/1 Open the Survival Kit (1)
     .complete 64031,2 --1/1 Equip a Weapon (1)
-step << Druid
+step << Druid !ac335
     .goto StormwindClassic,21.4,51.4
     .turnin 64031 >>Turn in Tools for Survival
     .accept 64034 >>Accept Combat Training
     .complete 64034,1 --1/1 Train a Spell (1)
-step << Druid
+step << Druid !ac335
     .goto StormwindClassic,21.4,51.4
     .turnin 64034 >>Turn in Combat Training
     .accept 64035 >>Accept Talented
     .complete 64035,1 --5 Talent Points Allocated (1)
-step << Druid
+step << Druid !ac335
     .goto StormwindClassic,21.4,51.4
     .turnin 64035 >>Turn in Talented
     .accept 64038 >>Accept The Dark Portal
@@ -198,10 +197,12 @@ step << skip
 -->>Talk to |cRXP_FRIENDLY_King Varian Wrynn|r
     .accept 6182 >>Accept The First and the Last
     >>There is a long scripted RP sequence part of the Onyxia attunement quest that makes Bolvar not able to interact with players for a few minutes, if that's the case, skip this step and try to get this quest later after finishing Burning Steppes
+step << ac335
+    .zone Stormwind City >>Travel to Stormwind City
 step
     #label bs1
     .goto StormwindClassic,66.2,62.2
-    .complete 64038,1 --Speak to Dungar Longdrink, the Gryphon Master (1)
+    .complete 64038,1 --Speak to Dungar Longdrink, the Gryphon Master (1) << !ac335
     .fly Morgan's Vigil>>Fly to Morgan's Vigil
 step
     .goto Burning Steppes,85.820,68.948
@@ -338,7 +339,6 @@ step
 >>Talk to |cRXP_FRIENDLY_Egan|r
     .turnin 5281 >>Turn in The Restless Souls
 .target Egan
-    .accept 5282 >>Accept The Restless Souls
 step
     #completewith next
     .hs >> Hearth to Southshore
@@ -644,7 +644,7 @@ step
     .turnin 5149 >>Turn in Pamela's Doll
 .target Pamela Redpath
     .accept 5152 >>Accept Auntie Marlene
-    .accept 5241 >>Accept in Uncle Carlin
+    .accept 5241 >>Accept Uncle Carlin
 step
     #completewith next
     .hs >> Hearth to Southshore

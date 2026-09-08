@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Alliance" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -9,7 +8,7 @@ RXPGuides.RegisterGuide([[
 #name 20-23 Stonetalon / The Barrens
 #version 1
 #group RestedXP Horde 1-30
-#next 23-27 Hillsbrad / Ashenvale
+#next 22-25 Hillsbrad / South Barrens
 #xprate <1.5
 
 step << Mage
@@ -108,15 +107,17 @@ step << !Shaman !Warrior
     .isOnQuest 9813 << !BloodElf
 step << !Shaman !Warrior
     #label MeetingTW
---   >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Thrall|r and |cRXP_FRIENDLY_Dawnsinger|r
->>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Thrall|r
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Thrall|r and |cRXP_FRIENDLY_Dawnsinger|r << BloodElf
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Thrall|r << !BloodElf
     .turnin 9626 >> Turn in Meeting the Warchief << BloodElf
     .accept 9627 >> Accept Allegiance to the Horde << BloodElf
     .turnin 9813 >> Turn in Meeting the Warchief << !BloodElf
     .goto Orgrimmar,31.62,37.82
---  .goto Orgrimmar,31.62,38.39 << BloodElf
+    .turnin 9627 >> Turn in Allegiance to the Horde << BloodElf
+    .accept 9428 >> Accept Report to Splintertree Post << BloodElf
+    .goto Orgrimmar,31.62,38.39 << BloodElf
     .target Thrall
---   .target Ambassador Dawnsinger << BloodElf
+    .target Ambassador Dawnsinger << BloodElf
 step << Paladin
     .goto Orgrimmar,32.29,35.74
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Pyreanor|r
@@ -214,7 +215,7 @@ step << Warlock
     .goto Orgrimmar,48.25,45.27
     .turnin 1507 >> Turn in Devourer of Souls
     .accept 1508 >> Accept Blind Cazul
-    .accept 65601 >> Accept Love Hurts
+    .accept 65601 >> Accept Love Hurts << !ac335
     .goto Orgrimmar,47.05,46.43
     .target Gan'rul Bloodeye
     .target Cazul
@@ -239,7 +240,7 @@ step << Warlock
     .goto Orgrimmar,55.88,56.81,30,0
     .goto Orgrimmar,61.49,50.55,15,0
     .goto Orgrimmar,63.65,49.93,15 >> Travel toward |cRXP_FRIENDLY_Magar|r
-step << Warlock
+step << Warlock !ac335
     .goto Orgrimmar,63.65,49.93
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Magar|r
     .turnin 65601 >> Turn in Love Hurts
@@ -497,6 +498,7 @@ step << Troll
     .goto The Barrens,63.08,37.16,30 >>Travel toward |cRXP_FRIENDLY_Bragok|r
     .zoneskip Durotar,1
 step
+    #label RatchetFP
     .goto The Barrens,63.08,37.16
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Bragok|r
     .fp Ratchet >> Get the Ratchet flight path << !Shaman !Warrior
@@ -860,8 +862,8 @@ step
     >>Find & kill Lakota'mani (Gray Kodo) around the area. Loot his Hoof. If you can't find him, skip this quest.
     .collect 5099,1,883 --Collect Hoof of Lakota'Mani
     .use 5099
-    .accept 883 >>Accept Lakota'Mani
-    .unitscan Lakota'Mani
+    .accept 883 >>Accept Lakota'mani
+    .unitscan Lakota'mani
 step
     #requires Lakota1
     #label weapons
@@ -1377,7 +1379,6 @@ step
 step
     #xprate <1.5
     #label zoramend
-    #requires wrathtailhead
     >>Return to Zoram'gar Outpost.
     .goto Ashenvale,12.223,34.216
 .target Warsong Runner
@@ -1475,7 +1476,7 @@ step
 >>Talk to |cRXP_FRIENDLY_Arch Druid Hamuul Runetotem|r
     .turnin 1489 >> Turn in Hamuul Runetotem
 .target Arch Druid Hamuul Runetotem
-    .accept 1490 >> Accept Nara Runetotem
+    .accept 1490 >> Accept Nara Wildmane
 step
     .isQuestTurnedIn 1489
     .goto Thunder Bluff,75.6,31.2
@@ -1751,11 +1752,17 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Zarise|r
     .fp Tarren Mill>> Get the Tarren Mill Flight Path
     .target Zarise
+step << Orc Hunter/Troll Hunter
+    .goto Hillsbrad Foothills,61.51,19.42,8,0
+    .goto Hillsbrad Foothills,61.44,19.06
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r
+    .turnin 1065 >> Turn in Journey to Tarren Mill
+    .target Apothecary Lydon
+    .isOnQuest 1065
 step << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r, |cRXP_FRIENDLY_Darthalia|r, the |cRXP_FRIENDLY_Wanted Poster|r, |cRXP_FRIENDLY_Krusk|r
     .turnin 493 >> Turn in Journey to Hillsbrad Foothills
     .accept 496 >> Accept Elixir of Suffering
-    .accept 501 >> Accept Elixir of Pain
     .turnin 1065 >> Turn in Journey to Tarren Mill
     .accept 1066 >> Accept Blood of Innocents
     .goto Hillsbrad Foothills,61.51,19.42,8,0
@@ -1776,7 +1783,6 @@ step << !Shaman !Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r, |cRXP_FRIENDLY_Darthalia|r, the |cRXP_FRIENDLY_Wanted Poster|r, and |cRXP_FRIENDLY_Krusk|r << !BloodElf
     .turnin 493 >> Turn in Journey to Hillsbrad Foothills
     .accept 496 >> Accept Elixir of Suffering
-    .accept 501 >> Accept Elixir of Pain
     .goto Hillsbrad Foothills,61.51,19.42,8,0
     .goto Hillsbrad Foothills,61.44,19.06
     .turnin 494 >> Turn in Time To Strike
@@ -2148,9 +2154,7 @@ step
     .goto Hillsbrad Foothills,38.45,38.77,45,0
     .goto Hillsbrad Foothills,38.70,36.71,45,0
     .goto Hillsbrad Foothills,39.79,34.43,45,0
-	>>Kill |cRXP_ENEMY_Starving Mountain Lions|r. Loot them for their |cRXP_LOOT_Blood|r
-    .complete 501,1 --Collect Mountain Lion Blood (x10)
-    .mob Starving Mountain Lion
+	>>Continue toward the Hillsbrad Fields
 step
     #label HFields1
     .goto Hillsbrad Foothills,36.02,39.19,80 >> Travel to the Hillsbrad Fields
@@ -2263,9 +2267,7 @@ step
 	.goto Hillsbrad Foothills,54.29,31.75,45,0
 	.goto Hillsbrad Foothills,52.93,29.45,45,0
 	.goto Hillsbrad Foothills,54.77,28.72,45,0
-	>>Kill |cRXP_ENEMY_Starving Mountain Lions|r. Loot them for their |cRXP_LOOT_Blood|r
-    .complete 501,1 --Collect Mountain Lion Blood (x10)
-    .mob Starving Mountain Lion
+	>>Continue back toward Tarren Mill
 step
     #label BearT
 #loop
@@ -2335,13 +2337,13 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r, |cRXP_FRIENDLY_Umpi|r, |cRXP_FRIENDLY_Darthalia|r, and |cRXP_FRIENDLY_Krusk|r
     .turnin 496 >> Turn in Elixir of Suffering
     .accept 499 >> Accept Elixir of Suffering
-    .turnin 501 >> Turn in Elixir of Pain
-    .accept 502 >> Accept Elixir of Pain
     .turnin 1066 >> Turn in Blood of Innocents << Shaman/Warrior
     .accept 1067 >> Accept Return to Thunder Bluff << Shaman/Warrior
     .goto Hillsbrad Foothills,61.51,19.42,8,0
     .goto Hillsbrad Foothills,61.44,19.06
     .turnin 499 >> Turn in Elixir of Suffering
+    .goto Hillsbrad Foothills,61.51,19.42
+    .accept 501 >> Accept Elixir of Pain
     .goto Hillsbrad Foothills,61.53,19.16
     .turnin 527 >> Turn in Battle of Hillsbrad
     .accept 528 >> Accept Battle of Hillsbrad
@@ -2354,6 +2356,21 @@ step
     .target Umpi
     .target High Executor Darthalia
     .target Krusk
+step
+#loop
+    .goto Hillsbrad Foothills,54.77,28.72,45,0
+    .goto Hillsbrad Foothills,52.93,29.45,45,0
+    .goto Hillsbrad Foothills,54.29,31.75,45,0
+    .goto Hillsbrad Foothills,51.28,35.37,45,0
+    >>Kill |cRXP_ENEMY_Starving Mountain Lions|r. Loot them for their |cRXP_LOOT_Blood|r
+    .complete 501,1 --Collect Mountain Lion Blood (x10)
+    .mob Starving Mountain Lion
+step
+    .goto Hillsbrad Foothills,61.51,19.42
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r
+    .turnin 501 >> Turn in Elixir of Pain
+    .accept 502 >> Accept Elixir of Pain
+    .target Apothecary Lydon
 step << Hunter
 	.goto Hillsbrad Foothills,62.56,19.91
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Kayren|r
@@ -2660,9 +2677,7 @@ step
 	.goto Hillsbrad Foothills,36.64,45.21,35,0
     .xp 24 >> Grind to level 24
 step
-    #xprate >1.499
 	.goto Hillsbrad Foothills,62.4,20.3
-    #requires humanskull
 .target High Executor Darthalia
 >>Talk to |cRXP_FRIENDLY_High Executor Darthalia|r
     .turnin 529 >> Turn in Battle of Hillsbrad
@@ -3080,6 +3095,10 @@ step
 >>Talk to |cRXP_FRIENDLY_Braelyn Firehand|r
     .turnin 1087 >> Turn in Cenarius' Legacy
 .target Braelyn Firehand
+step
+    #xprate <1.1
+    .goto Stonetalon Mountains,46.00,60.50
+    .target Braelyn Firehand
     .accept 1088 >> Accept Ordanus
 step
     .goto Stonetalon Mountains,47.10,61.10
@@ -3145,7 +3164,7 @@ RXPGuides.RegisterGuide([[
 #name 26-30 Ashenvale / Thousand Needles
 #version 1
 #group RestedXP Horde 1-30
-#next RestedXP Horde 30-45\30-33 Hillsbrad / Arathi / Shimmering Flats
+#next RestedXP TBC Guide (H)\30-33 Hillsbrad/Arathi part 1
 #xprate <1.5
 
 step
@@ -3225,6 +3244,7 @@ step
     .goto Ashenvale,73.1,61.5
 .target Senani Thunderheart
 >>Talk to |cRXP_FRIENDLY_Senani Thunderheart|r
+    .turnin 6382 >> Turn in The Ashenvale Hunt << Orc Hunter/Troll Hunter
     .turnin 6383 >> Turn in The Ashenvale Hunt
     .goto Ashenvale,73.8,61.5
 step << Rogue
@@ -3338,7 +3358,6 @@ step << Rogue
     .complete 6641,1 --Defeat Vorsha the Lasher
     .isOnQuest 6641
 step
-    #requires Phial
 	.goto Ashenvale,38.5,36.1,50 >>Run to Thistlefur Village
     .isOnQuest 216
 step
@@ -3526,7 +3545,6 @@ step
     .turnin 824 >> Turn in Je'neu of the Earthen Ring
 step << Rogue
     #label zoramend
-    #requires wrathtailhead
     >>Return to Zoram'gar Outpost.
     .goto Ashenvale,12.223,34.216
 .target Warsong Runner
@@ -3558,8 +3576,46 @@ step << Rogue
 	>> Stealth all the way to the Moonshine Ruins, then swim under the Bridge and prepare for the boss (Use all buffs you have)
 	>> Loot the Fathom Core, this spawns the boss.
 	>> Loot the Globe from Baron Aquanis. Accept the quest
-	.collect 16762,1,6922
+	.complete 6921,1 --Collect Fathom Core
+	.collect 16782,1,6922
+	.use 16782
 	.accept 6922 >> Accept Baron Aquanis
+    .mob Baron Aquanis
+step << Rogue
+    .goto Ashenvale,11.56,34.29
+    >>Return to Zoram'gar Outpost and talk to |cRXP_FRIENDLY_Je'neu Sancrea|r
+    .turnin 6564 >>Turn in Allegiance to the Old Gods
+    .target Je'neu Sancrea
+    .isOnQuest 6564
+step << Rogue
+    .goto Ashenvale,11.56,34.29
+    >>Talk to |cRXP_FRIENDLY_Je'neu Sancrea|r
+    .turnin 6563 >>Turn in The Essence of Aku'Mai
+    .target Je'neu Sancrea
+    .isQuestComplete 6563
+step << Rogue
+    .goto Ashenvale,11.56,34.29
+    >>Talk to |cRXP_FRIENDLY_Je'neu Sancrea|r
+    .turnin 6921 >>Turn in Amongst The Ruins
+    .target Je'neu Sancrea
+    .isQuestComplete 6921
+step << Rogue
+    .goto Ashenvale,11.56,34.29
+    >>Talk to |cRXP_FRIENDLY_Je'neu Sancrea|r
+    .turnin 6922 >>Turn in Baron Aquanis
+    .target Je'neu Sancrea
+    .isOnQuest 6922
+step
+    #xprate <1.1
+    .isQuestComplete 1088
+    .goto Ashenvale,12.2,33.8
+    .fly Sun Rock Retreat >>Fly to Sun Rock Retreat to return Ordanus' Head before hearthing
+step
+    #xprate <1.1
+    .isQuestComplete 1088
+    .goto Stonetalon Mountains,46.00,60.50
+    .turnin 1088 >>Turn in Ordanus
+    .target Braelyn Firehand
 step << Rogue
     .hs >> Hearth to Splintertree Post
 	>> Buy food/water if needed
@@ -4400,7 +4456,6 @@ step << Warrior tbc
 .target Klannoc Macleod
     .accept 1791 >>Accept The Windwatcher
 step << Warrior wotlk
-    #xprate >1.499
     .isOnQuest 1719
     .goto The Barrens,68.6,49.2
 .target Klannoc Macleod
@@ -4744,13 +4799,13 @@ RXPGuides.RegisterGuide([[
 #next 25-27 Ashenvale JJ
 #xprate >1.4999
 
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     .goto Orgrimmar,69.41,13.11
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Kildar|r
     .skill riding,75 >> Train |T136103:0|t[Apprentice Riding] from him
     .target Kildar
     .money <4.5
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     .goto Orgrimmar,69.38,12.25
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Ogunaro|r
     +|cRXP_BUY_Buy any|r |T132224:0|t[Wolf] |cRXP_BUY_that you like from him|r
@@ -4761,41 +4816,41 @@ step << Orc Shaman wotlk/Orc Warrior wotlk
     .itemcount 46099,<1 --Horn of the Black Wolf
     .money <0.9
     .skill riding,<75,1
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     .cast 55884 >> Use the |T132224:0|t[Horn of the Timber Wolf] to learn it
     .use 1132
     .itemcount 1132,1
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     .cast 55884 >> Use the |T132266:0|t[Horn of the Dire Wolf] to learn it
     .use 5665
     .itemcount 5665,1
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     .cast 55884 >> Use the |T132224:0|t[Horn of the Brown Wolf] to learn it
     .use 5668
     .itemcount 5668,1
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     .cast 55884 >> Use the |T132224:0|t[Horn of the Black Wolf] to learn it
     .use 46099
     .itemcount 46099,1
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     #completewith TZeppelin
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132224:0|t[Timber Wolf] |cRXP_WARN_onto your Action Bars|r
     .cast 580 >> Mount your |T132224:0|t[Timber Wolf]
     .train 580,3
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     #completewith TZeppelin
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132266:0|t[Dire Wolf] |cRXP_WARN_onto your Action Bars|r
     .cast 6653 >> Mount your |T132266:0|t[Dire Wolf]
     .train 6653,3
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     #completewith TZeppelin
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132224:0|t[Brown Wolf] |cRXP_WARN_onto your Action Bars|r
     .cast 6654 >> Mount your |T132224:0|t[Brown Wolf]
     .train 6654,3
-step << Orc Shaman wotlk/Orc Warrior wotlk
+step << Orc Shaman wotlk/Orc Warrior wotlk/Orc Hunter wotlk
     #completewith TZeppelin
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132224:0|t[Black Wolf] |cRXP_WARN_onto your Action Bars|r
@@ -4806,7 +4861,7 @@ step << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Gryshka|r
     .home >> Set your Hearthstone to Orgrimmar
     .target Innkeeper Gryshka
-step << Troll Shaman wotlk/Troll Warrior wotlk
+step << Troll Shaman wotlk/Troll Warrior wotlk/Troll Hunter wotlk
     #completewith next
     .goto Durotar,49.41,20.97,35,0
     .goto Durotar,50.21,26.30,35,0
@@ -4814,13 +4869,13 @@ step << Troll Shaman wotlk/Troll Warrior wotlk
     .goto Durotar,52.26,34.68,35,0
     .goto Durotar,55.28,75.48,50 >>Travel toward |cRXP_FRIENDLY_Xar'Ti|r
     .money <4.5
-step << Troll Shaman wotlk/Troll Warrior wotlk
+step << Troll Shaman wotlk/Troll Warrior wotlk/Troll Hunter wotlk
     .goto Durotar,55.28,75.48
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Xar'Ti|r
     .skill riding,75 >> Train |T136103:0|t[Apprentice Riding] from her
     .target Xar'Ti
     .money <4.5
-step << Troll Shaman wotlk/Troll Warrior wotlk
+step << Troll Shaman wotlk/Troll Warrior wotlk/Troll Hunter wotlk
     .goto Durotar,55.23,75.65
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Zjolnir|r
     +|cRXP_BUY_Buy any|r |T132253:0|t[Raptor Whistle] |cRXP_BUY_that you like from him|r
@@ -4830,44 +4885,44 @@ step << Troll Shaman wotlk/Troll Warrior wotlk
     .itemcount 8592,<1 --Whistle of the Violet Raptor
     .money <0.9
     .skill riding,<75,1
-step << Troll Shaman wotlk/Troll Warrior wotlk
+step << Troll Shaman wotlk/Troll Warrior wotlk/Troll Hunter wotlk
     .cast 55884 >> Use the |T132253:0|t[Whistle of the Emerald Raptor] to learn it
     .use 8588
     .itemcount 8588,1
-step << Troll Shaman wotlk/Troll Warrior wotlk
+step << Troll Shaman wotlk/Troll Warrior wotlk/Troll Hunter wotlk
     .cast 55884 >> Use the |T132253:0|t[Whistle of the Turquoise Raptor] to learn it
     .use 8591
     .itemcount 8591,1
-step << Troll Shaman wotlk/Troll Warrior wotlk
+step << Troll Shaman wotlk/Troll Warrior wotlk/Troll Hunter wotlk
     .cast 55884 >> Use the |T132253:0|t[Whistle of the Violet Raptor] to learn it
     .use 8592
     .itemcount 8592,1
-step << Troll Shaman wotlk/Troll Warrior wotlk
+step << Troll Shaman wotlk/Troll Warrior wotlk/Troll Hunter wotlk
     #completewith TZeppelin
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132253:0|t[Emerald Raptor] |cRXP_WARN_onto your Action Bars|r
     .cast 8395 >> Mount your |T132253:0|t[Emerald Raptor]
     .train 8395,3
-step << Troll Shaman wotlk/Troll Warrior wotlk
+step << Troll Shaman wotlk/Troll Warrior wotlk/Troll Hunter wotlk
     #completewith TZeppelin
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132253:0|t[Turquoise Raptor] |cRXP_WARN_onto your Action Bars|r
     .cast 10796 >> Mount your |T132253:0|t[Turquoise Raptor]
     .train 10796,3
-step << Troll Shaman wotlk/Troll Warrior wotlk
+step << Troll Shaman wotlk/Troll Warrior wotlk/Troll Hunter wotlk
     #completewith TZeppelin
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132253:0|t[Violet Raptor] |cRXP_WARN_onto your Action Bars|r
     .cast 10799 >> Mount your |T132253:0|t[Violet Raptor]
     .train 10799,3
-step << Shaman/Warrior
+step << Shaman/Warrior/Orc Hunter/Troll Hunter
     #completewith next
     .goto Orgrimmar,52.26,88.65,30,0
     .goto Orgrimmar,49.42,90.90,30,0
     .goto Orgrimmar,49.59,94.74,30,0
     .goto Durotar,50.61,13.27
     .zone Durotar >> Exit Orgrimmar
-step << Shaman/Warrior
+step << Shaman/Warrior/Orc Hunter/Troll Hunter
     #label TZeppelin
     .goto Durotar,50.61,13.27,12,0
     .goto Durotar,50.82,13.07,6,0
@@ -4881,6 +4936,41 @@ step << Shaman/Warrior
     >>Go up the Zeppelin Tower
     .zone Tirisfal Glades >>Take the Zeppelin to Tirisfal
     .zoneskip Silverpine Forest
+step << Orc Hunter/Troll Hunter
+    #completewith HunterUCHearth
+    .goto Tirisfal Glades,61.80,65.06,20,0
+    .zone Undercity >> Enter Undercity
+    .zoneskip Undercity
+step << Orc Hunter/Troll Hunter
+    #completewith HunterUCHearth
+    .goto Undercity,66.08,18.24,30,0
+    .goto Undercity,66.04,32.97,30,0
+    .goto Undercity,65.97,44.08,30,0
+    .goto Undercity,60.52,44.02,10,0
+    .goto Undercity,60.07,47.70,10 >> Take the lift down to the Undercity
+step << Orc Hunter/Troll Hunter
+    #optional
+    .goto Undercity,63.25,48.56
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Michael|r
+    .fp Undercity >> Get the Undercity flight path
+    .target Michael Garrett
+step << Orc Hunter/Troll Hunter
+    #label HunterUCHearth
+    .goto Undercity,67.73,37.89
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Norman|r
+    .home >> Set your Hearthstone to Undercity
+    .target Innkeeper Norman
+    .bindlocation 1497
+step << Orc Hunter/Troll Hunter
+    #completewith next
+    .goto Undercity,60.07,47.70,10,0
+    .goto Undercity,60.52,44.02,10,0
+    .goto Undercity,65.97,44.08,30,0
+    .goto Undercity,66.04,32.97,30,0
+    .goto Undercity,66.08,18.24,30,0
+    .goto Undercity,66.21,4.90,15 >> Take the lift back up toward Tirisfal
+    .goto Tirisfal Glades,61.73,64.87,20
+    .zone Tirisfal Glades >> Exit Undercity
 step
     #completewith next
     .goto Tirisfal Glades,56.30,66.20,30,0
@@ -4900,10 +4990,21 @@ step
     .goto Silverpine Forest,42.90,41.99 << Warrior/Shaman
     .target Apothecary Renferrel
     .target Mura Runetotem << Warrior/Shaman
+step << Orc Hunter/Troll Hunter
+    .goto Silverpine Forest,42.90,41.99
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Mura|r
+    .turnin 3301 >> Turn in Mura Runetotem
+    .target Mura Runetotem
+    .isOnQuest 3301
 step << Warrior/Shaman
     .goto Silverpine Forest,44.19,42.67
     >>Click |cRXP_PICK_Yuriv's Tombstone|r on the ground
     .turnin 264 >> Turn in Until Death Do Us Part
+step << Orc Hunter/Troll Hunter
+    .goto Silverpine Forest,44.19,42.67
+    >>Click |cRXP_PICK_Yuriv's Tombstone|r on the ground
+    .turnin 264 >> Turn in Until Death Do Us Part
+    .isOnQuest 264
 step
     .goto Silverpine Forest,45.62,42.60
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Karos|r
@@ -4927,6 +5028,13 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Zarise|r
     .fp Tarren Mill >> Get the Tarren Mill Flight Path
     .target Zarise
+step << Orc Hunter/Troll Hunter
+    .goto Hillsbrad Foothills,61.51,19.42,8,0
+    .goto Hillsbrad Foothills,61.44,19.06
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r
+    .turnin 1065 >> Turn in Journey to Tarren Mill
+    .target Apothecary Lydon
+    .isOnQuest 1065
 step << Shaman/Warrior
     #xprate >1.6999
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r, |cRXP_FRIENDLY_Darthalia|r, the |cRXP_FRIENDLY_Wanted Poster|r, and |cRXP_FRIENDLY_Krusk|r
@@ -4934,7 +5042,6 @@ step << Shaman/Warrior
     .accept 1066 >> Accept Blood of Innocents
     .turnin 493 >> Turn in Journey to Hillsbrad Foothills
     .accept 496 >> Accept Elixir of Suffering
-    .accept 501 >> Accept Elixir of Pain
     .goto Hillsbrad Foothills,61.51,19.42,8,0
     .goto Hillsbrad Foothills,61.44,19.06
     .turnin 494 >> Turn in Time To Strike
@@ -4954,7 +5061,6 @@ step << !Shaman !Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r, |cRXP_FRIENDLY_Darthalia|r, the |cRXP_FRIENDLY_Wanted Poster|r, and |cRXP_FRIENDLY_Krusk|r << !BloodElf
     .turnin 493 >> Turn in Journey to Hillsbrad Foothills
     .accept 496 >> Accept Elixir of Suffering
-    .accept 501 >> Accept Elixir of Pain
     .goto Hillsbrad Foothills,61.51,19.42,8,0
     .goto Hillsbrad Foothills,61.44,19.06
     .turnin 494 >> Turn in Time To Strike
@@ -4978,7 +5084,6 @@ step << Shaman/Warrior
     .accept 1066 >> Accept Blood of Innocents
     .turnin 493 >> Turn in Journey to Hillsbrad Foothills
     .accept 496 >> Accept Elixir of Suffering
-    .accept 501 >> Accept Elixir of Pain
     .goto Hillsbrad Foothills,61.51,19.42,8,0
     .goto Hillsbrad Foothills,61.44,19.06
     .turnin 494 >> Turn in Time To Strike
@@ -5001,7 +5106,6 @@ step << !Shaman !Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r, |cRXP_FRIENDLY_Darthalia|r, the |cRXP_FRIENDLY_Wanted Poster|r, |cRXP_FRIENDLY_Krusk|r, and the Inn's |cRXP_FRIENDLY_Wanted Poster|r << !BloodElf
     .turnin 493 >> Turn in Journey to Hillsbrad Foothills
     .accept 496 >> Accept Elixir of Suffering
-    .accept 501 >> Accept Elixir of Pain
     .goto Hillsbrad Foothills,61.51,19.42,8,0
     .goto Hillsbrad Foothills,61.44,19.06
     .turnin 494 >> Turn in Time To Strike
@@ -5375,9 +5479,7 @@ step
     .goto Hillsbrad Foothills,38.45,38.77,45,0
     .goto Hillsbrad Foothills,38.70,36.71,45,0
     .goto Hillsbrad Foothills,39.79,34.43,45,0
-	>>Kill |cRXP_ENEMY_Starving Mountain Lions|r. Loot them for their |cRXP_LOOT_Blood|r
-    .complete 501,1 --Collect Mountain Lion Blood (x10)
-    .mob Starving Mountain Lion
+	>>Continue toward the Hillsbrad Fields
 step
     #label HFields1
     .goto Hillsbrad Foothills,36.02,39.19,80 >> Travel to the Hillsbrad Fields
@@ -5499,9 +5601,7 @@ step
 	.goto Hillsbrad Foothills,54.29,31.75,45,0
 	.goto Hillsbrad Foothills,52.93,29.45,45,0
 	.goto Hillsbrad Foothills,54.77,28.72,45,0
-	>>Kill |cRXP_ENEMY_Starving Mountain Lions|r. Loot them for their |cRXP_LOOT_Blood|r
-    .complete 501,1 --Collect Mountain Lion Blood (x10)
-    .mob Starving Mountain Lion
+	>>Continue back toward Tarren Mill
 step
     #label BearT
 #loop
@@ -5572,13 +5672,12 @@ step
     .turnin 1066 >> Turn in Blood of Innocents << Shaman/Warrior
     .turnin 496 >> Turn in Elixir of Suffering
     .accept 499 >> Accept Elixir of Suffering
-    .turnin 501 >> Turn in Elixir of Pain
-    .accept 502 >> Accept Elixir of Pain
     .accept 1067 >> Accept Return to Thunder Bluff << Shaman/Warrior
-    .accept 509 >> Accept Elixir of Agony
     .goto Hillsbrad Foothills,61.51,19.42,8,0
     .goto Hillsbrad Foothills,61.44,19.06
     .turnin 499 >> Turn in Elixir of Suffering
+    .goto Hillsbrad Foothills,61.51,19.42
+    .accept 501 >> Accept Elixir of Pain
     .goto Hillsbrad Foothills,61.53,19.16
     .turnin 527 >> Turn in Battle of Hillsbrad
     .accept 528 >> Accept Battle of Hillsbrad
@@ -5597,12 +5696,12 @@ step
     .turnin 1066 >> Turn in Blood of Innocents << Shaman/Warrior
     .turnin 496 >> Turn in Elixir of Suffering
     .accept 499 >> Accept Elixir of Suffering
-    .turnin 501 >> Turn in Elixir of Pain
-    .accept 502 >> Accept Elixir of Pain
     .accept 1067 >> Accept Return to Thunder Bluff << Shaman/Warrior
     .goto Hillsbrad Foothills,61.51,19.42,8,0
     .goto Hillsbrad Foothills,61.44,19.06
     .turnin 499 >> Turn in Elixir of Suffering
+    .goto Hillsbrad Foothills,61.51,19.42
+    .accept 501 >> Accept Elixir of Pain
     .goto Hillsbrad Foothills,61.53,19.16
     .turnin 527 >> Turn in Battle of Hillsbrad
     .accept 528 >> Accept Battle of Hillsbrad
@@ -5615,6 +5714,21 @@ step
     .target Umpi
     .target High Executor Darthalia
     .target Krusk
+step
+#loop
+    .goto Hillsbrad Foothills,54.77,28.72,45,0
+    .goto Hillsbrad Foothills,52.93,29.45,45,0
+    .goto Hillsbrad Foothills,54.29,31.75,45,0
+    .goto Hillsbrad Foothills,51.28,35.37,45,0
+    >>Kill |cRXP_ENEMY_Starving Mountain Lions|r. Loot them for their |cRXP_LOOT_Blood|r
+    .complete 501,1 --Collect Mountain Lion Blood (x10)
+    .mob Starving Mountain Lion
+step
+    .goto Hillsbrad Foothills,61.51,19.42
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lydon|r
+    .turnin 501 >> Turn in Elixir of Pain
+    .accept 502 >> Accept Elixir of Pain
+    .target Apothecary Lydon
 step << Hunter
 	.goto Hillsbrad Foothills,62.56,19.91
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Kayren|r
@@ -6339,7 +6453,7 @@ step << Troll Mage
     .zoneskip Orgrimmar
     .itemcount 17031,1
     .train 3567,3
-step << skip --!Shaman !Warrior
+step << !Shaman !Warrior
     #completewith Durotar
     .goto Undercity,46.26,72.32
     .goto Undercity,67.88,14.97,30 >>|cRXP_WARN_Run onto the bookshelf. Perform a Logout Skip by logging out and back in|r
@@ -6347,7 +6461,7 @@ step << skip --!Shaman !Warrior
     .zoneskip Orgrimmar << Troll Mage
     .isQuestAvailable 885
 step << BloodElf !Warlock !Paladin wotlk
-    .goto Undercity,59,91,11.32,20,0
+    .goto Undercity,59.91,11.32,20,0
     .goto Undercity,54.67,11.25
     .zone Silvermoon City >> Take the Orb of Translocation to Silvermoon City
     .cooldown item,6948,<0
@@ -6409,7 +6523,7 @@ step << BloodElf !Warlock !Paladin wotlk
     .itemcount 29222,1
     .skill riding,75,1
 step << BloodElf !Warlock !Paladin wotlk
-    #completewith LorThemar
+    #completewith next
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132227:0|t[Red Hawkstrider] |cRXP_WARN_onto your Action Bars|r
     .cast 34795 >> Mount your |T132227:0|t[Red Hawkstrider]
@@ -6418,7 +6532,7 @@ step << BloodElf !Warlock !Paladin wotlk
     .zoneskip Tirisfal Glades
     .zoneskip Durotar
 step << BloodElf !Warlock !Paladin wotlk
-    #completewith LorThemar
+    #completewith next
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132229:0|t[Blue Hawkstrider] |cRXP_WARN_onto your Action Bars|r
     .cast 35020 >> Mount your |T132229:0|t[Blue Hawkstrider]
@@ -6427,7 +6541,7 @@ step << BloodElf !Warlock !Paladin wotlk
     .zoneskip Tirisfal Glades
     .zoneskip Durotar
 step << BloodElf !Warlock !Paladin wotlk
-    #completewith LorThemar
+    #completewith next
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132228:0|t[Black Hawkstrider] |cRXP_WARN_onto your Action Bars|r
     .cast 29221 >> Mount your |T132228:0|t[Black Hawkstrider]
@@ -6436,7 +6550,7 @@ step << BloodElf !Warlock !Paladin wotlk
     .zoneskip Tirisfal Glades
     .zoneskip Durotar
 step << BloodElf !Warlock !Paladin wotlk
-    #completewith LorThemar
+    #completewith next
     >>|cRXP_WARN_Press "Shift+P" to open your Mount tab|r
     >>|cRXP_WARN_Drag the|r |T132231:0|t[Purple Hawkstrider] |cRXP_WARN_onto your Action Bars|r
     .cast 29222 >> Mount your |T132231:0|t[Purple Hawkstrider]
@@ -6679,6 +6793,7 @@ step << !Shaman !Warrior
     .accept 9627 >> Accept Allegiance to the Horde << BloodElf
     .turnin 9813 >> Turn in Meeting the Warchief << !BloodElf
     .goto Orgrimmar,31.62,37.82
+    .turnin 9627 >> Turn in Allegiance to the Horde << BloodElf
     .accept 9428 >> Accept Report to Splintertree Post << BloodElf
     .goto Orgrimmar,31.62,38.39 << BloodElf
     .target Thrall
@@ -6690,6 +6805,7 @@ step << BloodElf
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Thrall|r and |cRXP_FRIENDLY_Dawnsinger|r
     .accept 9627 >> Accept Allegiance to the Horde << BloodElf
     .goto Orgrimmar,31.62,37.82
+    .turnin 9627 >> Turn in Allegiance to the Horde << BloodElf
     .accept 9428 >> Accept Report to Splintertree Post << BloodElf
     .goto Orgrimmar,31.62,38.39 << BloodElf
     .target Thrall
@@ -6850,7 +6966,7 @@ step << Warlock
     .goto Orgrimmar,48.25,45.27
     .turnin 1507 >> Turn in Devourer of Souls
     .accept 1508 >> Accept Blind Cazul
-    .accept 65601 >> Accept Love Hurts
+    .accept 65601 >> Accept Love Hurts << !ac335
     .goto Orgrimmar,47.05,46.43
     .target Gan'rul Bloodeye
     .target Cazul
@@ -6875,7 +6991,7 @@ step << Warlock
     .goto Orgrimmar,55.88,56.81,30,0
     .goto Orgrimmar,61.49,50.55,15,0
     .goto Orgrimmar,63.65,49.93,15 >> Travel toward |cRXP_FRIENDLY_Magar|r
-step << Warlock
+step << Warlock !ac335
     .goto Orgrimmar,63.65,49.93
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Magar|r
     .turnin 65601 >> Turn in Love Hurts
@@ -7350,10 +7466,11 @@ step << !Shaman !Warrior
     >>Kill |cRXP_ENEMY_Lakota'mani|r. Loot him for the |T132318:0|t[|cRXP_LOOT_Hoof of Lakota'mani|r]
     >>|cRXP_WARN_Use the |T132318:0|t[|cRXP_LOOT_Hoof of Lakota'mani|r] to start the quest|r
     .collect 5099,1,883,1 --Collect Hoof of Lakota'Mani
-    .accept 883 >>Accept Lakota'Mani
+    .accept 883 >>Accept Lakota'mani
     .use 5099
-    .unitscan Lakota'Mani
+    .unitscan Lakota'mani
 step << !Shaman !Warrior
+    #xprate <1.7 << !Tauren
     #label Weapons
     .goto The Barrens,45.10,57.68
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r
@@ -7596,6 +7713,12 @@ step << !Shaman !Warrior
 	.home >> Set your Hearthstone to Thunder Bluff
     .target Innkeeper Pala
     .isQuestAvailable 1195
+step << Orc Hunter/Troll Hunter
+    .goto Thunder Bluff,45.81,64.71
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Pala|r
+    .home >> Set your Hearthstone to Thunder Bluff
+    .target Innkeeper Pala
+    .bindlocation 1638
 step << skip
 	#completewith next
 	.goto Thunder Bluff,76.477,27.221
@@ -7776,7 +7899,7 @@ step << Rogue tbc
 	.goto The Barrens,60.90,3.82,10,0
 	.goto The Barrens,60.51,3.80,10,0 >>Travel toward the Boulder Lode Mine
     .zoneskip Orgrimmar
-step << skip --Rogue tbc
+step << Rogue tbc
     #label LogoutSkipRogue
     #completewith PoisonCleanse
     .zone Orgrimmar >>|cRXP_WARN_Jump onto the wooden beam above the |cRXP_PICK_Brazier|r. Perform a Logout Skip by logging out on top of the beam, then logging back in|r
@@ -7930,7 +8053,7 @@ step
     #requires HinottOil << Rogue tbc
     #completewith next
     .zone Ashenvale >> Travel to Ashenvale
-step << Warlock
+step << Warlock !ac335
 #loop
 	.line Ashenvale,67.36,82.59,67.30,80.85,66.61,79.75,65.53,79.62,65.16,80.23,65.74,81.65,65.66,82.72,66.61,84.10,67.03,83.39,67.36,82.59
 	.goto Ashenvale,67.36,82.59,40,0
@@ -7982,7 +8105,7 @@ step
 step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Senani|r, |cRXP_FRIENDLY_Mastok|r, and |cRXP_FRIENDLY_Pixel|r << !Shaman !Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Senani|r and |cRXP_FRIENDLY_Mastok|r << Shaman/Warrior
-    .turnin 6382 >> Turn in The Ashenvale Hunt << Shaman/Warrior
+    .turnin 6382 >> Turn in The Ashenvale Hunt << Shaman/Warrior/Orc Hunter/Troll Hunter
     .turnin 6383 >> Turn in The Ashenvale Hunt
     .goto Ashenvale,73.45,63.56,30,0
     .goto Ashenvale,73.78,61.46
@@ -8096,7 +8219,7 @@ step << !Shaman !Warrior
 --VV bad quest but its to help with xp gate later (shimmering 32, stv 35). Shaman/Warriors get about a level ahead so they can skip it
 step
     #completewith next
-    .line Ashenvale,62.39,49.80,61.99,49.81,61.30,50.03,61.03,50.43,61.01,51.09,60.94,51.53,60.49,52.41,59.83,53.40,59.55,53.71,59.26,54.25,59.10,54.76,58.80,55.24,58.17,55.57,57.91,55.90,57.54,56.03,56.93,56.06,56.37,55.90,56.16,55.46,55.62,55.41,54.80,55.09,54.06,54.91,53.01,54.54,52.68,54.42,52.24,54.38,
+    .line Ashenvale,62.39,49.80,61.99,49.81,61.30,50.03,61.03,50.43,61.01,51.09,60.94,51.53,60.49,52.41,59.83,53.40,59.55,53.71,59.26,54.25,59.10,54.76,58.80,55.24,58.17,55.57,57.91,55.90,57.54,56.03,56.93,56.06,56.37,55.90,56.16,55.46,55.62,55.41,54.80,55.09,54.06,54.91,53.01,54.54,52.68,54.42,52.24,54.38
     >>Kill |cRXP_ENEMY_Shadumbra|r. Loot her for |T132225:0|t[|cRXP_LOOT_Shadumbra's Head|r]
     >>|cRXP_WARN_Use |T132225:0|t[|cRXP_LOOT_Shadumbra's Head|r] to start the quest|r
     >>|cRXP_ENEMY_Shadumbra|r patrols around slightly
@@ -8576,9 +8699,9 @@ step
     >>Kill |cRXP_ENEMY_Lakota'mani|r. Loot him for the |T132318:0|t[|cRXP_LOOT_Hoof of Lakota'mani|r]
     >>|cRXP_WARN_Use the |T132318:0|t[|cRXP_LOOT_Hoof of Lakota'mani|r] to start the quest|r
     .collect 5099,1,883,1 --Collect Hoof of Lakota'Mani
-    .accept 883 >>Accept Lakota'Mani
+    .accept 883 >>Accept Lakota'mani
     .use 5099
-    .unitscan Lakota'Mani
+    .unitscan Lakota'mani
 step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Jorn|r
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Jorn|r and |cRXP_FRIENDLY_Ruga|r << Warrior
@@ -8711,7 +8834,7 @@ step
     .goto The Barrens,45.83,77.21,40,0
     .goto The Barrens,45.79,78.47,40,0
     .goto The Barrens,45.86,78.77,40,0
-    .goto The Barrens,46.07,79,19,40,0
+    .goto The Barrens,46.07,79.19,40,0
     .goto The Barrens,46.14,79.37,40,0
     .goto The Barrens,46.16,79.66,40,0
     .goto The Barrens,46.09,80.54,40,0
@@ -8722,6 +8845,7 @@ step
     .target Gann Stonespire
 step << Shaman/Warrior
     #completewith Lok
+    .isOnQuest 893
     >>Kill |cRXP_ENEMY_Razormane Stalkers|r and |cRXP_ENEMY_Razormane Pathfinders|r. Loot them for the |T135640:0|t[|cRXP_LOOT_Razormane Backstabber|r]
     >>|cRXP_WARN_The |cRXP_ENEMY_Razormane Stalkers|r are stealthed|r
     >>Kill |cRXP_ENEMY_Razormane Seers|r. Loot them for the |T135139:0|t[|cRXP_LOOT_Charred Razormane Wand|r]
@@ -8836,6 +8960,7 @@ step << !Shaman !Warrior
     .unitscan Washte Pawne
 step
     #completewith next
+    .isOnQuest 893
     >>Kill |cRXP_ENEMY_Razormane Stalkers|r and |cRXP_ENEMY_Razormane Pathfinders|r. Loot them for the |T135640:0|t[|cRXP_LOOT_Razormane Backstabber|r]
     >>|cRXP_WARN_The |cRXP_ENEMY_Razormane Stalkers|r are stealthed|r
     .complete 893,1 --Collect Razormane Backstabber (x1)
@@ -8843,6 +8968,7 @@ step
     .mob Razormane Pathfinder
 step
     #label WandShield
+    .isOnQuest 893
 #loop
 	.line The Barrens,42.57,78.81,42.12,78.48,41.49,78.69,41.22,79.72,40.91,80.60,40.55,80.84,41.62,80.92,41.54,82.28,42.48,82.28,42.57,78.81
 	.goto The Barrens,42.57,78.81,45,0
@@ -8872,6 +8998,7 @@ step << Shaman/Warrior
     .complete 879,2 --Lok's Skull (1)
     .mob Nak
 step
+    .isOnQuest 893
     .goto The Barrens,44.09,83.70,15,0
     .goto The Barrens,44.15,83.34,15,0
     .goto The Barrens,44.38,83.05,15,0
@@ -8967,7 +9094,7 @@ step
     .goto The Barrens,46.09,80.54,40,0
     .goto The Barrens,46.16,79.66,40,0
     .goto The Barrens,46.14,79.37,40,0
-    .goto The Barrens,46.07,79,19,40,0
+    .goto The Barrens,46.07,79.19,40,0
     .goto The Barrens,45.86,78.77,40,0
     .goto The Barrens,45.79,78.47,40,0
     .goto The Barrens,45.83,77.21,40,0
@@ -9097,7 +9224,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r, |cRXP_FRIENDLY_Jorn|r, and |cRXP_FRIENDLY_Mangletooth|r << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r << !Shaman !Warrior
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
+    .accept 1153 >> Accept A New Ore Sample << Tauren
     .goto The Barrens,45.10,57.68
     .turnin 884 >>Turn in Owatanka
     .turnin 885 >>Turn in Washte Pawne
@@ -9117,7 +9244,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r, |cRXP_FRIENDLY_Jorn|r, and |cRXP_FRIENDLY_Mangletooth|r << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r << !Shaman !Warrior
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
+    .accept 1153 >> Accept A New Ore Sample << Tauren
     .goto The Barrens,45.10,57.68
     .turnin 885 >>Turn in Washte Pawne
     .turnin 897 >>Turn in The Harvester
@@ -9135,7 +9262,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r, |cRXP_FRIENDLY_Jorn|r, and |cRXP_FRIENDLY_Mangletooth|r << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r << !Shaman !Warrior
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
+    .accept 1153 >> Accept A New Ore Sample << Tauren
     .goto The Barrens,45.10,57.68
     .turnin 884 >>Turn in Owatanka
     .turnin 897 >>Turn in The Harvester
@@ -9153,7 +9280,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r, |cRXP_FRIENDLY_Jorn|r, and |cRXP_FRIENDLY_Mangletooth|r << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r << !Shaman !Warrior
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
+    .accept 1153 >> Accept A New Ore Sample << Tauren
     .goto The Barrens,45.10,57.68
     .turnin 884 >>Turn in Owatanka
     .turnin 885 >>Turn in Washte Pawne
@@ -9171,7 +9298,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r, |cRXP_FRIENDLY_Jorn|r, and |cRXP_FRIENDLY_Mangletooth|r << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r << !Shaman !Warrior
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
+    .accept 1153 >> Accept A New Ore Sample << Tauren
     .goto The Barrens,45.10,57.68
     .turnin 884 >>Turn in Owatanka
     .goto The Barrens,44.86,59.13
@@ -9187,7 +9314,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r, |cRXP_FRIENDLY_Jorn|r, and |cRXP_FRIENDLY_Mangletooth|r << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r << !Shaman !Warrior
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
+    .accept 1153 >> Accept A New Ore Sample << Tauren
     .goto The Barrens,45.10,57.68
     .turnin 885 >>Turn in Washte Pawne
     .goto The Barrens,44.86,59.13
@@ -9203,7 +9330,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r, |cRXP_FRIENDLY_Jorn|r, and |cRXP_FRIENDLY_Mangletooth|r << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r << !Shaman !Warrior
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
+    .accept 1153 >> Accept A New Ore Sample << Tauren
     .goto The Barrens,45.10,57.68
     .turnin 897 >>Turn in The Harvester
     .goto The Barrens,44.86,59.13
@@ -9220,7 +9347,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Mangletooth|r << Shaman/Warrior
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r << !Shaman !Warrior
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
+    .accept 1153 >> Accept A New Ore Sample << Tauren
     .goto The Barrens,45.10,57.68
     .turnin 879 >> Turn in Betrayal from Within << Shaman/Warrior
     .accept 906 >> Accept Betrayal from Within << Shaman/Warrior
@@ -9233,7 +9360,7 @@ step
     .goto The Barrens,46.09,80.54,40,0
     .goto The Barrens,46.16,79.66,40,0
     .goto The Barrens,46.14,79.37,40,0
-    .goto The Barrens,46.07,79,19,40,0
+    .goto The Barrens,46.07,79.19,40,0
     .goto The Barrens,45.86,78.77,40,0
     .goto The Barrens,45.79,78.47,40,0
     .goto The Barrens,45.83,77.21,40,0
@@ -9257,7 +9384,7 @@ step
     .goto The Barrens,46.09,80.54,40,0
     .goto The Barrens,46.16,79.66,40,0
     .goto The Barrens,46.14,79.37,40,0
-    .goto The Barrens,46.07,79,19,40,0
+    .goto The Barrens,46.07,79.19,40,0
     .goto The Barrens,45.86,78.77,40,0
     .goto The Barrens,45.79,78.47,40,0
     .goto The Barrens,45.83,77.21,40,0
@@ -9278,7 +9405,7 @@ RXPGuides.RegisterGuide([[
 #name 28-30 Thousand Needles JJ
 #version 1
 #group RestedXP Horde 1-30
-#next RestedXP Horde 30-45\30-32 Hillsbrad/Arathi JJ
+#next RestedXP TBC Guide (H)\30-33 Hillsbrad/Arathi part 1
 #xprate >1.4999
 
 step
@@ -9459,7 +9586,7 @@ step
     .unitscan Galak Messenger
 step
 #loop
-	.line Thousand Needles,43.12,36.86,41.18,34.83,40.42,34.45,39.00,32.56,39.68,34.93,39.76,35.82,39.32,36.93,40.43,37.96,41.04,39.03,41.12,41.34,42.33,40.54,42.84,39.09,44.15,40.72,44.98,41.03,45.66,43.81,47.23,41.98,48.57,43.53,49.39,41.24,48.14,40.43,47.11,40.29,45.89,40.32,44.43,38.36,,43.12,36.86
+	.line Thousand Needles,43.12,36.86,41.18,34.83,40.42,34.45,39.00,32.56,39.68,34.93,39.76,35.82,39.32,36.93,40.43,37.96,41.04,39.03,41.12,41.34,42.33,40.54,42.84,39.09,44.15,40.72,44.98,41.03,45.66,43.81,47.23,41.98,48.57,43.53,49.39,41.24,48.14,40.43,47.11,40.29,45.89,40.32,44.43,38.36,43.12,36.86
 	.goto Thousand Needles,43.12,36.86,40,0
 	.goto Thousand Needles,41.18,34.83,40,0
 	.goto Thousand Needles,40.42,34.45,40,0
@@ -9490,9 +9617,10 @@ step
     .mob Galak Scout
     .mob Galak Wrangler
     .mob Galak Windchaser
-step
+step << Tauren
     #xprate <1.7 << !Shaman !Warrior
     #completewith next
+    .isOnQuest 1153
     >>Kill |cRXP_ENEMY_Gravelsnout Surveyors|r, |cRXP_ENEMY_Gravelsnout Diggers|r, and |cRXP_ENEMY_Gibblesnik|r (if he's up). Loot them for an |cRXP_LOOT_Ore Sample|r
     .complete 1153,1 --Unrefined Ore Sample (1)
     .unitscan Gravelsnout Digger;Gravelsnout Surveyor;Gibblesnik
@@ -9518,9 +9646,10 @@ step
     .turnin 1149 >> Turn in Test of Faith
     .accept 1150 >> Accept Test of Endurance
     .target Dorn Plainstalker
-step
+step << Tauren
     #xprate <1.7 << !Shaman !Warrior
     #completewith Purifying
+    .isOnQuest 1153
     .line Thousand Needles,51.89,43.02,53.41,46.19,54.05,44.96
     .line Thousand Needles,53.47,46.65,52.61,48.28,53.64,48.50,52.61,48.28,51.48,48.06
     .line Thousand Needles,62.21,47.76,63.05,48.92,62.63,48.38,62.96,47.64,64.01,47.52,63.92,46.63,63.10,45.53
@@ -9556,8 +9685,9 @@ step
     >>Kill |cRXP_ENEMY_Thundering Boulderkins|r. Loot them for their |cRXP_LOOT_Purifying Earth|r
     .complete 9431,1 --Collect Purifying Earth (x2)
     .mob Thundering Boulderkin
-step
+step << Tauren
     #xprate <1.7 << !Shaman !Warrior
+    .isOnQuest 1153
     .line Thousand Needles,51.89,43.02,53.41,46.19,54.05,44.96
     .line Thousand Needles,53.47,46.65,52.61,48.28,53.64,48.50,52.61,48.28,51.48,48.06
     .line Thousand Needles,62.21,47.76,63.05,48.92,62.63,48.38,62.96,47.64,64.01,47.52,63.92,46.63,63.10,45.53
@@ -10129,8 +10259,20 @@ step
 	.goto Thousand Needles,34.88,34.82,30,0
 	.goto Thousand Needles,35.62,36.20,30,0
 	.goto Thousand Needles,36.05,37.41,30,0
-	.goto Thousand Needles,36.58,38.77,30,0
+    .goto Thousand Needles,36.58,38.77,30,0
     .xp 29+28860 >> Grind to 28860+/36300xp
+step
+    .goto Thousand Needles,44.8,49.0
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Elu|r
+    .turnin 4767 >> Turn in Wind Rider
+    .target Elu
+    .isQuestComplete 4767
+step
+    .goto Thousand Needles,54.0,41.4
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Dorn Plainstalker|r
+    .turnin 1150 >> Turn in Test of Endurance
+    .target Dorn Plainstalker
+    .isQuestComplete 1150
 step
 	#completewith next
     .hs >> Hearth to Thunder Bluff
@@ -10288,7 +10430,6 @@ step << Tauren !Warrior !Shaman
     #xprate >1.6999
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
     .goto The Barrens,45.10,57.68
     .turnin 884 >>Turn in Owatanka
     .turnin 885 >>Turn in Washte Pawne
@@ -10304,7 +10445,6 @@ step << Tauren !Warrior !Shaman
     #xprate >1.6999
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
     .goto The Barrens,45.10,57.68
     .turnin 885 >>Turn in Washte Pawne
     .turnin 897 >>Turn in The Harvester
@@ -10318,7 +10458,6 @@ step << Tauren !Warrior !Shaman
     #xprate >1.6999
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
     .goto The Barrens,45.10,57.68
     .turnin 884 >>Turn in Owatanka
     .turnin 897 >>Turn in The Harvester
@@ -10332,7 +10471,6 @@ step << Tauren !Warrior !Shaman
     #xprate >1.6999
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
     .goto The Barrens,45.10,57.68
     .turnin 884 >>Turn in Owatanka
     .turnin 885 >>Turn in Washte Pawne
@@ -10346,7 +10484,6 @@ step << Tauren !Warrior !Shaman
     #xprate >1.6999
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
     .goto The Barrens,45.10,57.68
     .turnin 884 >>Turn in Owatanka
     .goto The Barrens,44.86,59.13
@@ -10358,7 +10495,6 @@ step << Tauren !Warrior !Shaman
     #xprate >1.6999
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
     .goto The Barrens,45.10,57.68
     .turnin 885 >>Turn in Washte Pawne
     .goto The Barrens,44.86,59.13
@@ -10370,7 +10506,6 @@ step << Tauren !Warrior !Shaman
     #xprate >1.6999
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r and |cRXP_FRIENDLY_Jorn|r
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
     .goto The Barrens,45.10,57.68
     .turnin 897 >>Turn in The Harvester
     .goto The Barrens,44.86,59.13
@@ -10384,7 +10519,6 @@ step << Tauren !Warrior !Shaman
     .goto The Barrens,45.10,57.68
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Tatternack|r
     .turnin 893 >> Turn in Weapons of Choice
-    .accept 1153 >> Accept A New Ore Sample
     .target Tatternack Steelforge
     .zoneskip Thunder Bluff
 step << Tauren
@@ -10421,14 +10555,14 @@ step
     .target Thork << Warrior/Shaman
 step << Mage
     #label TeleportOrg
-    #completewith TheSwarmOrg
+    #completewith OrgTrainGoto
     .cast 3567 >> Cast |T135759:0|t[Teleport: Orgrimmar]
     .itemcount 17031,1
     .zoneskip Orgrimmar
     .train 3567,3
 step << Shaman
     #xprate <1.7
-    #completewith TheSwarmOrg
+    #completewith OrgTrainGoto
     .goto The Barrens,51.50,30.33
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Devrak|r
     .fly Ratchet >> Fly to Ratchet
@@ -10459,7 +10593,7 @@ step << Shaman
     .target Islen Waterseer
 step << Shaman
     #xprate <1.7
-    #completewith TheSwarmOrg
+    #completewith OrgTrainGoto
     .goto The Barrens,63.08,37.16
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Bragok|r
     .fly Orgrimmar >> Fly to Orgrimmar
@@ -10468,7 +10602,7 @@ step << Shaman
 step
     #xprate >1.6999 << Shaman
     #requires TeleportOrg << Mage
-    #completewith TheSwarmOrg
+    #completewith OrgTrainGoto
     .goto The Barrens,51.50,30.33
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Devrak|r
     .fly Orgrimmar >> Fly to Orgrimmar
@@ -10564,15 +10698,15 @@ step << Warlock
     .turnin 1512 >>Turn in Love's Gift
     .accept 1513 >>Accept The Binding
     .accept 2996 >>Accept Seeking Strahad
-    .turnin 65610 >>Turn in Wish You Were Here
-    .accept 65604 >>Accept The Binding
+    .turnin 65610 >>Turn in Wish You Were Here << !ac335
+    .accept 65604 >>Accept The Binding << !ac335
     .target Gan'rul Bloodeye
 step << Warlock
     #completewith Succubus
     .goto Orgrimmar,49.43,50.00
     .cast 9224 >>Use |T133290:0|t[Dogran's Pendant] to summon a |cRXP_ENEMY_Summoned Succubus|r
     .use 6626
-step << Warlock
+step << Warlock !ac335
     #completewith Incubus
     .goto Orgrimmar,49.43,50.00
     .cast 366902 >>Use the |T133693:0|t[Withered Scarf] to summon a |cRXP_ENEMY_Summoned Incubus|r
@@ -10583,7 +10717,7 @@ step << Warlock
     >>Kill the |cRXP_ENEMY_Summoned Succubus|r
     .complete 1513,1 --Summoned Succubus (1)
     .mob Summoned Succubus
-step << Warlock
+step << Warlock !ac335
     #label Incubus
     .goto Orgrimmar,49.43,50.00
     >>Kill the |cRXP_ENEMY_Summoned Incubus|r
@@ -10593,7 +10727,7 @@ step << Warlock
     .goto Orgrimmar,48.25,45.27
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Gan'rul|r
     .turnin 1513 >>Turn in The Binding
-    .turnin 65604 >>Turn in The Binding
+    .turnin 65604 >>Turn in The Binding << !ac335
     .target Gan'rul Bloodeye
 step << Mage
     .goto Orgrimmar,45.44,56.55
@@ -10680,6 +10814,7 @@ step << Orc !Warlock wotlk
     .train 64658,3
 step
     #xprate <1.7 << !Undead
+    #label OrgFP
     .goto Orgrimmar,54.10,68.39
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Gryshka|r
     .home >> Set your Hearthstone to Orgrimmar

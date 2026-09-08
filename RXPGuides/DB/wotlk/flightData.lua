@@ -221,6 +221,9 @@ StaticPopupDialogs["m1"] = {timeout=10,hasEditBox = 1,text = ""} StaticPopup_Sho
 
 addon["FPDB"] = {
     ["Horde"] = {
+        [340] = {
+            ["name"] = "Argent Tournament Grounds, Icecrown",
+        },
         [122] = {
             [118] = 248,
             [120] = 306,
@@ -507,7 +510,7 @@ addon["FPDB"] = {
             [337] = 129,
             [254] = 230,
             [249] = 176,
-            ["name"] = "Dun Nifflelem, The Storm Peaks",
+            ["name"] = "Dun Niffelem, The Storm Peaks",
             [307] = 89,
             [323] = 128,
             [310] = 159,
@@ -2210,6 +2213,9 @@ addon["FPDB"] = {
         },
     },
     ["Alliance"] = {
+        [340] = {
+            ["name"] = "Argent Tournament Grounds, Icecrown",
+        },
         nil, -- [1]
         {
             nil, -- [1]
@@ -2678,7 +2684,7 @@ addon["FPDB"] = {
             [327] = 132,
             [320] = 88,
             [335] = 190,
-            ["name"] = "Dun Nifflelem, The Storm Peaks",
+            ["name"] = "Dun Niffelem, The Storm Peaks",
             [333] = 247,
             [326] = 85,
             [303] = 264,

@@ -1,11 +1,9 @@
 local faction = UnitFactionGroup("player")
 if faction == "Alliance" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #hardcore
 #classic
-#tbc
 << Horde
 #name 1-6 Orc/Troll
 #version 1
@@ -338,6 +336,7 @@ step << Warlock
     .train 172 >> Train |T136118:0|t[Corruption]
     .target Nartok
 step
+    #sticky
     #label Galgar
     .goto Durotar,42.73,67.23,0,0
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Galgar|r
@@ -1059,7 +1058,7 @@ step
     #completewith next
     .goto Durotar,47.09,69.21,25,0
     .goto Durotar,49.02,69.13,20,0
-    .goto Durotar,49.90,68.43,25 >>Exit the Valley of Trials
+    .goto Durotar,50.60,68.40,60 >>Exit the Valley of Trials
     .isOnQuest 805
 step
     .goto Durotar,52.06,68.30
@@ -1071,7 +1070,6 @@ step
 RXPGuides.RegisterGuide([[
 #hardcore
 #classic
-#tbc
 << Horde
 #name 6-13 Orc/Troll
 #version 1
@@ -1961,7 +1959,7 @@ step
 step
     #completewith next
     >>Kill |cRXP_ENEMY_Pygmy Surf Crawlers|r and |cRXP_ENEMY_Surf Crawlers|r. Loot them for their |cRXP_LOOT_Mucus|r
-    >>Kill |cRXP_ENEMY_Makrura Shellhides|r and |cRXP_ENEMY_Makrura Clackers|r. Loot them for their |cRXP_LOOT_Eyes|r
+    >>Kill |cRXP_ENEMY_Makrura Spellhides|r and |cRXP_ENEMY_Makrura Clackers|r. Loot them for their |cRXP_LOOT_Eyes|r
     .complete 818,2 --Crawler Mucus (8)
     .mob +Pygmy Surf Crawler
     .mob +Surf Crawler
@@ -1989,7 +1987,7 @@ step
 step
     #completewith next
     >>Kill |cRXP_ENEMY_Pygmy Surf Crawlers|r and |cRXP_ENEMY_Surf Crawlers|r. Loot them for their |cRXP_LOOT_Mucus|r
-    >>Kill |cRXP_ENEMY_Makrura Shellhides|r and |cRXP_ENEMY_Makrura Clackers|r. Loot them for their |cRXP_LOOT_Eyes|r
+    >>Kill |cRXP_ENEMY_Makrura Spellhides|r and |cRXP_ENEMY_Makrura Clackers|r. Loot them for their |cRXP_LOOT_Eyes|r
     .complete 818,2 --Crawler Mucus (8)
     .mob +Pygmy Surf Crawler
     .mob +Surf Crawler
@@ -2056,7 +2054,7 @@ step
 step
     #completewith next
     >>Kill |cRXP_ENEMY_Pygmy Surf Crawlers|r and |cRXP_ENEMY_Surf Crawlers|r. Loot them for their |cRXP_LOOT_Mucus|r
-    >>Kill |cRXP_ENEMY_Makrura Shellhides|r and |cRXP_ENEMY_Makrura Clackers|r. Loot them for their |cRXP_LOOT_Eyes|r
+    >>Kill |cRXP_ENEMY_Makrura Spellhides|r and |cRXP_ENEMY_Makrura Clackers|r. Loot them for their |cRXP_LOOT_Eyes|r
     .complete 818,2 --Crawler Mucus (8)
     .mob +Pygmy Surf Crawler
     .mob +Surf Crawler
@@ -2094,7 +2092,7 @@ step
     .goto Durotar,55.66,80.47,60,0
     .goto Durotar,53.8,83.14,60,0
     >>Kill |cRXP_ENEMY_Pygmy Surf Crawlers|r and |cRXP_ENEMY_Surf Crawlers|r. Loot them for their |cRXP_LOOT_Mucus|r
-    >>Kill |cRXP_ENEMY_Makrura Shellhides|r and |cRXP_ENEMY_Makrura Clackers|r. Loot them for their |cRXP_LOOT_Eyes|r
+    >>Kill |cRXP_ENEMY_Makrura Spellhides|r and |cRXP_ENEMY_Makrura Clackers|r. Loot them for their |cRXP_LOOT_Eyes|r
     .complete 818,2 --Crawler Mucus (8)
     .mob +Pygmy Surf Crawler
     .mob +Surf Crawler
@@ -2899,7 +2897,6 @@ step << Shaman
     .isQuestTurnedIn 806
     .group
 step << Shaman
-    #loop
     .goto Durotar,53.18,29.15,0
     .goto Durotar,53.18,29.15,20,0
     .goto Durotar,52.70,27.97,12,0
@@ -3421,7 +3418,7 @@ step << Shaman/Hunter
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Zargh|r, |cRXP_FRIENDLY_Sergra|r and |cRXP_FRIENDLY_Thork|r
     .turnin 6386 >> Turn in Return to the Crossroads
     .target +Zargh
-    .goto The Barrens,52.62,29.84
+    .goto The Barrens,51.50,30.87
     .turnin 844 >>Turn in Plainstrider Menace
     .accept 845 >>Accept The Zhevra
     .target +Sergra Darkthorn
@@ -3494,7 +3491,6 @@ step << Shaman/Hunter
     .turnin 813 >>Turn in Finding the Antidote
     .target Kor'ghan
     .isQuestComplete 813
-    .isQuestAvailable 812
 step << Shaman
     #label Shaman12training
     .goto Orgrimmar,38.82,36.41
@@ -3880,14 +3876,6 @@ step
     .turnin 404 >>Turn in A Putrid Task
     .accept 426 >>Accept The Mills Overrun
     .target Deathguard Dillinger
-    .isQuestComplete 404
-step
-    #optional
-    .goto Tirisfal Glades,58.20,51.43
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Dillinger|r
-    .accept 426 >>Accept The Mills Overrun
-    .target Deathguard Dillinger
-    .isQuestTurnedIn 404
 step
     .goto Tirisfal Glades,59.45,52.40
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Johaan|r
@@ -4341,7 +4329,6 @@ step
     .mob +Cracked Skull Soldier
     .complete 426,2 --Blackened Skull (3)
     .mob +Darkeye Bonecaster
-    .isOnQuest 426
 step
     #optional
     #requires MillsOverun
@@ -4629,9 +4616,9 @@ step << Warrior
     .xp <12,1
 step << Rogue
     .goto Tirisfal Glades,61.75,52.00
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Marion|r on the second floor
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Rwag|r on the second floor
     .train 1766 >> Train |T132219:0|t[Kick]
-    .target Marion Call
+    .target Rwag
     .xp <12,1
 step << Warlock
     .goto Tirisfal Glades,61.59,52.39
@@ -4946,9 +4933,9 @@ step << Warrior
     .xp <12,1
 step << Rogue
     .goto Tirisfal Glades,61.75,52.00
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Marion|r on the second floor
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Rwag|r on the second floor
     .train 1766,1 >> Train |T132219:0|t[Kick]
-    .target Marion Call
+    .target Rwag
     .xp <12,1
 step << Warlock
     .goto Tirisfal Glades,61.59,52.39
@@ -5085,7 +5072,6 @@ step << Priest
     .xp <12,1
     .xp >14,1
 step << Priest
-    #optional
     .goto Tirisfal Glades,61.57,52.19
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Beryl|r on the second floor
 	.train 6074 >> Train your class spells
@@ -5099,7 +5085,6 @@ step << Mage
     .xp <12,1
     .xp >14,1
 step << Mage
-    #optional
     .goto Tirisfal Glades,61.97,52.47
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Cain|r on the second floor
     .train 2137 >> Train your class spells
@@ -5113,7 +5098,6 @@ step << Warrior
     .xp <12,1
     .xp >14,1
 step << Warrior
-    #optional
     .goto Tirisfal Glades,61.85,52.53
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Austil|r
     .train 1160 >> Train your class spells
@@ -5121,17 +5105,16 @@ step << Warrior
     .xp <14,1
 step << Rogue
     .goto Tirisfal Glades,61.75,52.00
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Marion|r on the second floor
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Rwag|r on the second floor
     .train 1766,1 >> Train |T132219:0|t[Kick]
-    .target Marion Call
+    .target Rwag
     .xp <12,1
     .xp >14,1
 step << Rogue
-    #optional
     .goto Tirisfal Glades,61.75,52.00
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Marion|r on the second floor
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Rwag|r on the second floor
     .train 1758 >> Train your class spells
-    .target Marion Call
+    .target Rwag
     .xp <14,1
 step << Warlock
     .goto Tirisfal Glades,61.59,52.39
@@ -5141,7 +5124,6 @@ step << Warlock
     .xp <12,1
     .xp >14,1
 step << Warlock
-    #optional
     .goto Tirisfal Glades,61.59,52.39
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Rupert|r
     .train 6222 >> Train your class spells

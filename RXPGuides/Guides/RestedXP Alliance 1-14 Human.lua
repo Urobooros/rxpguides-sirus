@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Horde" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -11,7 +10,8 @@ RXPGuides.RegisterGuide([[
 #version 1
 #group RestedXP Alliance 1-20
 #defaultfor Human
-#next 12-14 Loch Modan;11-14 Darkshore;14-20 Bloodmyst
+#next 11-12 Loch Modan;11-14 Darkshore;14-20 Bloodmyst << !Warlock
+#next 12-14 Loch Modan;11-14 Darkshore;14-20 Bloodmyst << Warlock
 step << !Human
     #sticky
     #completewith next
@@ -76,7 +76,7 @@ step << Warrior
     .goto Elwynn Forest,47.5,41.6
     .vendor >>vendor trash
 step
-    >> Speak with |cRXP_FRIENDLY_Marshal McBridge|r inside the Abbey
+    >> Speak with |cRXP_FRIENDLY_Marshal McBride|r inside the Abbey
     .target Marshal McBride
     .goto Elwynn Forest,48.923,41.606
     .turnin 783 >> Turn in A Threat Within
@@ -106,7 +106,7 @@ step
     .target Eagan Peltskinner
     .goto Elwynn Forest,48.9,40.2
     .turnin 5261 >> Turn in Eagan Peltskinner
-    .accept 33 >> Accept Wolves Across The Border
+    .accept 33 >> Accept Wolves Across the Border
 step << tbc
     .goto Elwynn Forest,46.70,37.78
     >>Kill |cRXP_LOOT_Young Wolves|r. Loot them for their |cRXP_LOOT_Meat|r
@@ -137,7 +137,7 @@ step << !Priest !Mage !Warlock/wotlk
     .vendor >>Vendor trash
 step
     .goto Elwynn Forest,48.923,41.606
-    >> Speak with |cRXP_FRIENDLY_Marshal McBridge|r inside the Abbey
+    >> Speak with |cRXP_FRIENDLY_Marshal McBride|r inside the Abbey
     .target Marshal McBride
     .turnin 7 >> Turn in Kobold Camp Cleanup
     .accept 3100 >> Accept Simple Letter << Warrior
@@ -174,7 +174,7 @@ step
     .vendor >> Vendor trash
 step
     #requires xp3
-    >> Speak with |cRXP_FRIENDLY_Marshal McBridge|r inside the Abbey
+    >> Speak with |cRXP_FRIENDLY_Marshal McBride|r inside the Abbey
     .target Marshal McBride
     .goto Elwynn Forest,48.923,41.606
     .turnin 15 >> Turn in Investigate Echo Ridge
@@ -310,7 +310,7 @@ step
     .turnin 6,2 >> Turn in Bounty on Garrick Padfoot << Warrior/Rogue/Paladin
     .turnin 6 >> Turn in Bounty on Garrick Padfoot << !Warrior !Rogue !Paladin
 step
-    >> Speak with |cRXP_FRIENDLY_Marshal McBridge|r inside the Abbey
+    >> Speak with |cRXP_FRIENDLY_Marshal McBride|r inside the Abbey
     .target Marshal McBride
     .goto Elwynn Forest,48.923,41.606
     .turnin 21,2 >> Turn in Skirmish at Echo Ridge << Warrior/Paladin
@@ -339,7 +339,7 @@ step
     .accept 2158 >> Accept Rest and Relaxation
 step
     #hardcore
-    >> Talk to |cRXP_FRIENDLY_Marshall Dughan|r
+    >> Talk to |cRXP_FRIENDLY_Marshal Dughan|r
     .target Marshal Dughan
     .goto Elwynn Forest,42.105,65.927
     .turnin 54 >> Turn in Report to Goldshire
@@ -378,7 +378,7 @@ step << Mage/Priest/Warlock
     .vendor >> Vendor trash, repair
 step
     #label Goldshire
-    >> Talk to |cRXP_FRIENDLY_Marshall Dughan|r
+    >> Talk to |cRXP_FRIENDLY_Marshal Dughan|r
     .target Marshal Dughan
     .goto Elwynn Forest,42.105,65.927
     .turnin 54 >> Turn in Report to Goldshire
@@ -631,7 +631,7 @@ step << wotlk
     .hs >> Hearth or run back to Goldshire
 step
     >> Talk to |cRXP_FRIENDLY_Remy "Two Times"|r
-    .target Remy "TWo Times"
+    .target Remy "Two Times"
     .goto Elwynn Forest,42.1,67.3
     .turnin 47 >> Turn in Gold Dust Exchange
     .accept 40 >> Accept A Fishy Peril
@@ -811,6 +811,7 @@ step << Paladin tbc
     #completewith Prowlers
     .goto Elwynn Forest,83.6,69.7,120 >>Die and respawn at the Spirit Healer, or start running back if someone cleared the corpse prior
 step
+    .isOnQuest 5545
     .goto Elwynn Forest,76.8,62.4,90,0
     .goto Elwynn Forest,83.7,59.4,90,0
     .goto Elwynn Forest,76.8,62.4,90,0
@@ -821,6 +822,7 @@ step
     >>Start running back, finish off the bundles
     .complete 5545,1 --Collect Bundle of Wood (x8)
 step
+    .isOnQuest 5545
     .goto Elwynn Forest,81.382,66.112
 .target Supervisor Raelen
 >>Talk to |cRXP_FRIENDLY_Supervisor Raelen|r
@@ -933,12 +935,12 @@ step << Paladin
 step << Paladin
     #softcore
     .goto Redridge Mountains,30.6,59.4
-    .fp Redridge Mountains >> Get the Redridge Mountains flight path
+    .fp Lakeshire >> Get the Redridge Mountains flight path
 step << Paladin
     #hardcore
     >>Run toward the Flight Path. Be exceedingly careful to not aggro or die to any mobs en route. Try sticking to the road and keeping an eye out
     .goto Redridge Mountains,30.6,59.4
-    .fp Redridge Mountains >> Get the Redridge Mountains flight path
+    .fp Lakeshire >> Get the Redridge Mountains flight path
 step
     .hs >> Hearth to Goldshire
 step
@@ -1041,7 +1043,7 @@ step << Warlock/Mage wotlk
 #xprate >1.3 << Mage
     >>Click any of the wanted posters around
     .goto Elwynn Forest,24.6,74.7
-    .accept 176 >> Accept Wanted:   "Hogger"
+    .accept 176 >> Accept Wanted:  "Hogger"
 step
     >> Speak with Deputy Rainer
     .goto Elwynn Forest,24.2,74.5
@@ -1120,6 +1122,7 @@ step << Mage wotlk
 .target Marshal Dughan
 >>Talk to |cRXP_FRIENDLY_Marshal Dughan|r
     .turnin 176 >> Turn in Wanted:    "Hogger"
+    .turnin -123 >> Turn in The Collector
     .isQuestComplete 176
 step << Rogue
     .abandon 123 >>Abandon The Collector
@@ -1140,11 +1143,12 @@ step
     #completewith next
     .goto Westfall,51.7,49.4,150 >> Die and respawn at the Spirit Healer, or run to Sentinel Hill
 step << Warlock wotlk
-#xprate >1.3
+#xprate >1.119
     .goto Westfall,52.8,53.6
     .home >> Set your Hearthstone to Sentinel Hill
 step << Mage wotlk/Warlock wotlk
-#xprate >1.3
+#xprate >1.3 << Mage
+#xprate >1.119 << Warlock
     .goto Westfall,54.00,53.00
 .target Scout Galiaan
 >>Talk to |cRXP_FRIENDLY_Scout Galiaan|r
@@ -1156,7 +1160,8 @@ step
 >>Talk to |cRXP_FRIENDLY_Gryan Stoutmantle|r
     .turnin 109 >> Turn in Report to Gryan Stoutmantle
 step << Mage wotlk/Warlock wotlk
-#xprate >1.3
+#xprate >1.3 << Mage
+#xprate >1.119 << Warlock
     .goto Westfall,56.327,47.520
 .target Gryan Stoutmantle
 >>Talk to |cRXP_FRIENDLY_Gryan Stoutmantle|r
@@ -1199,7 +1204,7 @@ step << Human
 >>Talk to |cRXP_FRIENDLY_Thor|r
     .turnin 6181 >> Turn in A Swift Message
 .target Thor
-    .accept 6281 >> Accept Continue To Stormwind
+    .accept 6281 >> Accept Continue to Stormwind
 step << Mage wotlk
 #xprate >1.3
     .xp 12 >> Grind to level 12
@@ -1339,7 +1344,7 @@ step << Warlock
 step << Warlock wotlk
 #xprate >1.3
     .goto StormwindClassic,66.3,62.1
-    .accept 6262 >> Accept Return to Lewis
+    .accept 6285 >> Accept Return to Lewis
     .isQuestTurnedIn 6261
 step << Warlock
     #sticky
@@ -1413,7 +1418,7 @@ step << Priest tbc
     .goto StormwindClassic,38.62,26.10
     .train 13908 >> Train Desperate Prayer
 step << Warrior/Paladin/Rogue
-    #completewith StormpikeDelivery
+    #completewith next
     >>Put Sunder Armor on your bars (it's better damage than Heroic Strike) << Warrior tbc
     .goto StormwindClassic,56.3,17.0
     .collect 2901,1 >>Buy a Mining Pick. You'll train Mining later
@@ -1434,7 +1439,7 @@ step << tbc/Warlock wotlk
 #xprate >1.119 << Warlock wotlk
     #completewith next
     .goto StormwindClassic,63.9,8.3,25 >>Enter the Deeprun Tram
-step << skip -- tbc/Warlock wotlk
+step << tbc/Warlock wotlk
 #xprate >1.119 << Warlock wotlk
     >>Take the tram when it arrives, then get off when it arrives on the other side << !Rogue !Warrior !Paladin !Warlock
     .link https://www.youtube.com/watch?v=M_tXROi9nMQ >> Click here for a logout skip inside the tram
@@ -1596,7 +1601,7 @@ step
 #xprate <1.2
     #completewith next
     .goto StormwindClassic,63.9,8.3,25 >>Enter the Deeprun Tram
-step << skip
+step
 #xprate <1.2
     >>Take the tram when it arrives, then get off when it arrives on the other side << !Rogue !Warrior !Paladin !Warlock
     .link https://www.youtube.com/watch?v=M_tXROi9nMQ >> Click here for a logout skip inside the tram

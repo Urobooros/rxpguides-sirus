@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Horde" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -144,8 +143,8 @@ step << Shaman
     .goto Azuremyst Isle,71.315,39.097
 .target Spirit of the Vale
 >>Talk to |cRXP_FRIENDLY_Spirit of the Vale|r
-    .accept 9451 >> Accept Call of Earth
     .turnin 9450 >> Turn in Call of Earth
+    .accept 9451 >> Accept Call of Earth
 step << Shaman
     .goto Azuremyst Isle,79.277,49.123
 .target Firmanvaar
@@ -430,7 +429,7 @@ step
     .goto Azuremyst Isle,39.4,73.9
 	>>Finish off Root Trappers/Stags.
     .complete 9463,1 --Collect Root Trapper Vine (x8)
-	.complete 9454,1 --Collect Moongraze Stag Tenderloin (x6)
+    .collect 23676,6,9454,1 --Collect Moongraze Stag Tenderloin (x6) before accepting the quest
 step
 	.xp 8-950 >> Grind until you are 950xp away from level 8 (3550/4500). Try to finish near Azure Watch if possible.
 step
@@ -824,7 +823,7 @@ step << Hunter
 	.goto The Exodar,51.1,80.5,40,0
     .goto The Exodar,53.3,85.7
     .train 202 >>Train 2h swords
-step << skip -- Hunter
+step << Hunter
 	#completewith murloc1
 	>>Jump down and head out of The Exodar
 	.goto The Exodar,57.9,61.5,50,0
@@ -840,6 +839,11 @@ step << Hunter wotlk
 	.cast 1515 >> As you head the next quest hub, cast Tame Beast on a level 8+ cat on your way there
 step
     #label murloc1
+    .goto Azuremyst Isle,46.6,20.7
+.target High Chief Stillpine
+>>Talk to |cRXP_FRIENDLY_High Chief Stillpine|r
+    .turnin 9559 >> Turn in Stillpine Hold
+step
     .goto Azuremyst Isle,44.7,23.5
 .target Gurf
 >>Talk to |cRXP_FRIENDLY_Gurf|r
@@ -849,11 +853,6 @@ step
 .target Moordo
 >>Talk to |cRXP_FRIENDLY_Moordo|r
     .accept 9560 >> Accept Beasts of the Apocalypse!
-step
-    .goto Azuremyst Isle,46.6,20.7
-.target High Chief Stillpine
->>Talk to |cRXP_FRIENDLY_High Chief Stillpine|r
-    .turnin 9559 >> Turn in Stillpine Hold
 step << Shaman
     #sticky
 	#completewith next
@@ -884,6 +883,32 @@ step
 .target Moordo
 >>Talk to |cRXP_FRIENDLY_Moordo|r
     .turnin 9560 >> Turn in Beasts of the Apocalypse!
+step
+    #sticky
+    #label SGrain
+    .goto Azuremyst Isle,34.1,18.0,0,0
+    >>Kill the murlocs in the area. Loot them for their Grain
+    .complete 9562,1 --Collect Stillpine Grain (x5)
+step
+    #requires SGrain
+    .goto Azuremyst Isle,44.7,23.5
+.target Gurf
+>>Talk to |cRXP_FRIENDLY_Gurf|r
+    .turnin 9562 >> Turn in Murlocs... Why Here? Why Now?
+step
+    .goto Azuremyst Isle,34.0,25.9,70,0
+    .goto Azuremyst Isle,34.9,12.0,60,0
+    .goto Azuremyst Isle,34.0,25.9
+    >>Kill and loot Murgurgula. He patrols the coast. Be careful as he does a LOT of damage
+    .unitscan Murgurgula
+    .use 23850 >> Loot and click on Gurf's Dignity in your inventory
+    .collect 23850,1,9564 --Gurf's Dignity (1)
+    .accept 9564 >> Accept Gurf's Dignity
+step
+    .goto Azuremyst Isle,44.7,23.5
+.target Gurf
+>>Talk to |cRXP_FRIENDLY_Gurf|r
+    .turnin 9564 >> Turn in Gurf's Dignity
 step
     .goto Azuremyst Isle,46.8,21.2
 .target Stillpine the Younger
@@ -979,21 +1004,6 @@ step << Shaman
 .target Temper
     .accept 9468 >> Accept Call of Fire
 step
-	#sticky
-	#label SGrain
-    .goto Azuremyst Isle,34.1,18.0,0,0
-	>>Kill the murlocs in the area. Loot them for their Grain
-    .complete 9562,1 --Collect Stillpine Grain (x5)
-step
-    .goto Azuremyst Isle,34.0,25.9,70,0
-    .goto Azuremyst Isle,34.9,12.0,60,0
-    .goto Azuremyst Isle,34.0,25.9
-    >>Kill and loot Murgurgula. He patrols the coast. Be careful as he does a LOT of damage
-	.unitscan Murgurgula
-	.use 23850 >> Loot and click on Gurf's Dignity in your inventory
-	.collect 23850,1,9564 --Gurf's Dignity (1)
-    .accept 9564 >> Accept Gurf's Dignity
-step
 	#requires SGrain
     .goto Bloodmyst Isle,63.5,88.8
 	.zone Bloodmyst Isle >> Travel to Bloodmyst Isle
@@ -1051,7 +1061,7 @@ step
     .goto Bloodmyst Isle,56.421,56.788
 .target Jessera of Mac'Aree
 >>Talk to |cRXP_FRIENDLY_Jessera of Mac'Aree|r
-    .accept 9648 >> Accept Maatparm Mushroom Menagerie
+    .accept 9648 >> Accept Mac'Aree Mushroom Menagerie
 step
 	#completewith next
     .goto Bloodmyst Isle,57.6,54.0
@@ -1159,12 +1169,6 @@ step
 	.accept 9622 >> Accept Warn Your People << !Shaman
     .complete 9663,1 --High Chief Stillpine Warned
 	*IMPORTANT: Do not engage any mobs, attacking or casting spells will dismount you, if you get dazed by getting hit from behind you will also dismount
-step
-    .goto Azuremyst Isle,44.7,23.5
-.target Gurf
->>Talk to |cRXP_FRIENDLY_Gurf|r
-    .turnin 9564 >> Turn in Gurf's Dignity
-    .turnin 9562 >> Turn in Murlocs... Why Here? Why Now?
 step << Warrior
 	#completewith kesselrun
     .goto Azuremyst Isle,50.0,50.6
@@ -1706,7 +1710,6 @@ step
     .turnin 10063 >> Turn in Explorers' League, Is That Something for Gnomes?
 .target Clopper Wizbang
     .accept 9548 >> Accept Pilfered Equipment
-    .accept 9549 >> Accept Artifacts of the Blacksilt
 step
     #sticky
     #completewith gnome
@@ -1726,6 +1729,12 @@ step
     >>Loot the crate that can spawn in any of the murloc camps
     .complete 9548,1 --Collect Clopper's Equipment (x1)
 step
+    .goto Bloodmyst Isle,42.142,21.174
+.target Clopper Wizbang
+>>Talk to |cRXP_FRIENDLY_Clopper Wizbang|r
+    .turnin 9548 >> Turn in Pilfered Equipment
+    .accept 9549 >> Accept Artifacts of the Blacksilt
+step
     .goto Bloodmyst Isle,39.5,20.7
 	>> Kill and loot murlocs. Idols drop from Seers and Oracles. Knives from the melee murlocs.
     .complete 9549,1 --Collect Crude Murloc Idol (x3)
@@ -1734,7 +1743,6 @@ step
     .goto Bloodmyst Isle,42.142,21.174
 .target Clopper Wizbang
 >>Talk to |cRXP_FRIENDLY_Clopper Wizbang|r
-    .turnin 9548 >> Turn in Pilfered Equipment
     .turnin 9549 >> Turn in Artifacts of the Blacksilt
 step
     .goto Bloodmyst Isle,42.142,21.174
@@ -1882,23 +1890,6 @@ step
 .target Vindicator Aesom
 >>Talk to |cRXP_FRIENDLY_Vindicator Aesom|r
     .accept 9748 >> Accept Don't Drink the Water
-    .accept 9753 >> Accept What We Know...
-step
-    .goto Bloodmyst Isle,52.6,53.3
->>Talk to |cRXP_FRIENDLY_Exarch Admetius|r
-    .turnin 9753 >> Turn in What We Know...
-.target Exarch Admetius
-    .accept 9756 >> Accept What We Don't Know...
-step
-    >>Open the cage and speak to the prisoner
-    .skipgossip
-    .complete 9756,1
-    .goto Bloodmyst Isle,54.36,54.30
->>Talk to |cRXP_FRIENDLY_Exarch Admetius|r
-    .turnin 9756 >> Turn in What We Don't Know...
-    .goto Bloodmyst Isle,52.6,53.3
-.target Exarch Admetius
-    .accept 9760 >> Accept Vindicator's Rest
 step
 	#completewith AliveM
     .goto Bloodmyst Isle,43.9,43.7,0
@@ -1931,7 +1922,7 @@ step
 --
 --
     .accept 10067 >> Accept Fouled Water Spirits
-     .turnin 9760 >> Turn in Vindicator's Rest
+     .turnin -9760 >> Turn in Vindicator's Rest
 step
     #sticky
 	#completewith next
@@ -2012,31 +2003,6 @@ step
 	*Once you find him, use the flare in your bags to summon a Draenei NPC to assist you
 	*The flare gun only have 1 charge, if you fail this quest, you will have to abandon it
 	.unitscan Matis the Cruel
-step << Hunter/Shaman/Mage
-    #label limit1
-    #completewith L20
-	.xp 19-11,200,1
-    .goto Bloodmyst Isle,24.8,51.3
-    .complete 9746,1 --Kill Sunhawk Pyromancer (x10)
-    .complete 9746,2 --Kill Sunhawk Defender (x10)
-step << Hunter/Shaman/Mage
-    #label limit2
-    #completewith L20
-    #requires limit1
-    .isOnQuest 9746
-    .goto Bloodmyst Isle,55.6,55.3
->>Talk to |cRXP_FRIENDLY_Vindicator Aesom|r
-    .turnin 9746 >> Turn in Limits of Physical Exhaustion
-.target Vindicator Aesom
-    .accept 9740 >> Accept The Sun Gate
-step << Hunter/Shaman/Mage
-    #label sungate
-    #completewith L20
-    #requires limit2
-    .isOnQuest 9740
-    .goto Bloodmyst Isle,18.7,64.0
-    >>Click on the purple crystals around the lake and then on the big portal in the middle
-    .complete 9740,1
 step
     .goto Bloodmyst Isle,34.3,33.6
 	.use 24318 >>Use the Sampling Vial in your bags at the base of the waterfall
@@ -2084,12 +2050,61 @@ step
 step
 	.goto Bloodmyst Isle,55.6,55.3
 	.abandon 9711 >> Abandon Matis the Cruel
-step
+step << Hunter/Shaman/Mage
+    #label limit1
+    .isOnQuest 9746
+    .goto Bloodmyst Isle,24.8,51.3
+    .complete 9746,1 --Kill Sunhawk Pyromancer (x10)
+    .complete 9746,2 --Kill Sunhawk Defender (x10)
+step << Hunter/Shaman/Mage
+    #label limit2
+    #requires limit1
+    .isOnQuest 9746
+    .goto Bloodmyst Isle,55.6,55.3
+>>Talk to |cRXP_FRIENDLY_Vindicator Aesom|r
+    .turnin 9746 >> Turn in Limits of Physical Exhaustion
+.target Vindicator Aesom
+    .accept 9740 >> Accept The Sun Gate
+step << Hunter/Shaman/Mage
+    #label sungate
+    #requires limit2
+    .isOnQuest 9740
+    .goto Bloodmyst Isle,18.7,64.0
+    >>Click on the purple crystals around the lake and then on the big portal in the middle
+    .complete 9740,1
+step << Hunter/Shaman/Mage
 	#requires sungate
 	.goto Bloodmyst Isle,55.6,55.3
 .target Vindicator Aesom
 >>Talk to |cRXP_FRIENDLY_Vindicator Aesom|r
 	.turnin 9740 >> Turn in The Sun Gate
+step << Hunter/Shaman/Mage
+    .goto Bloodmyst Isle,55.6,55.3
+.target Vindicator Aesom
+>>Talk to |cRXP_FRIENDLY_Vindicator Aesom|r
+    .accept 9753 >> Accept What We Know...
+step << Hunter/Shaman/Mage
+    .goto Bloodmyst Isle,52.6,53.3
+>>Talk to |cRXP_FRIENDLY_Exarch Admetius|r
+    .turnin 9753 >> Turn in What We Know...
+.target Exarch Admetius
+    .accept 9756 >> Accept What We Don't Know...
+step << Hunter/Shaman/Mage
+    >>Open the cage and speak to the prisoner
+    .skipgossip
+    .complete 9756,1
+    .goto Bloodmyst Isle,54.36,54.30
+>>Talk to |cRXP_FRIENDLY_Exarch Admetius|r
+    .turnin 9756 >> Turn in What We Don't Know...
+    .goto Bloodmyst Isle,52.6,53.3
+.target Exarch Admetius
+    .accept 9760 >> Accept Vindicator's Rest
+step << Hunter/Shaman/Mage
+    .isOnQuest 9760
+    .goto Bloodmyst Isle,30.8,46.8
+    >>Talk to |cRXP_FRIENDLY_Vindicator Corin|r
+    .turnin 9760 >> Turn in Vindicator's Rest
+    .target Vindicator Corin
 step
 	#label bearend
     .goto Bloodmyst Isle,55.9,56.9
@@ -2910,7 +2925,7 @@ step << Draenei tbc/NightElf tbc
 #xprate >1.499
     .goto Wetlands,9.5,59.7
     .fp Menethil >> Get the Menethil Harbor flight path
-step << skip -- Draenei tbc/NightElf tbc
+step << Draenei tbc/NightElf tbc
 #xprate >1.499
     #completewith next
     .goto Wetlands,63.9,78.6
@@ -2930,7 +2945,7 @@ step << NightElf tbc/Draenei tbc
     #completewith next
     .goto Loch Modan,21.30,68.60,40,0
     .zone Dun Morogh>> Run to Dun Morogh
-step << skip -- NightElf tbc/Draenei tbc
+step << NightElf tbc/Draenei tbc
 #xprate >1.499
     >>Go inside the South-eastern Trogg cave. Perform a logout skip
     .goto Dun Morogh,70.63,56.70,60,0

@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Alliance" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -455,6 +454,7 @@ step << Warlock tbc
     .money >0.01
 --95c for imp
 step << Warlock tbc
+    #label Nartok2
     .goto Durotar,40.65,68.52
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Nartok|r
     .turnin 3090 >>Turn in Tainted Parchment
@@ -463,6 +463,7 @@ step << Warlock tbc
     .target Nartok
 step << Warlock wotlk
     #xprate >1.4999
+    #label Nartok2
     .goto Durotar,40.65,68.52
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Nartok|r
     .turnin 3090 >>Turn in Tainted Parchment
@@ -471,6 +472,7 @@ step << Warlock wotlk
     .target Nartok
 step << Warlock wotlk
     #xprate <1.5
+    #label Nartok2
     .goto Durotar,40.65,68.52
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Nartok|r
     .turnin 3090 >>Turn in Tainted Parchment
@@ -480,6 +482,7 @@ step << Warlock wotlk
     #completewith next
     .cast 688 >>|cRXP_WARN_Cast|r |T136218:0|t[Summon Imp]
 step
+    #sticky
     #label Galgar
     .goto Durotar,42.73,67.23,0,0
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Galgar|r
@@ -1119,9 +1122,9 @@ step << skip --logout skip
 step
     .goto Durotar,51.95,43.50
     >>|cRXP_WARN_You can talk to him from outside or on top of the bunker|r
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Gar'thok|r
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Gar'Thok|r
     .accept 784 >>Accept Vanquish the Betrayers
-    .target Gar'thok
+    .target Gar'Thok
 step
     #completewith next
     .goto Durotar,50.22,43.06,12,0
@@ -1241,6 +1244,7 @@ step << Rogue
     .goto Durotar,41.52,68.36,12,0
     .goto Durotar,41.27,68.00,12 >>Travel toward |cRXP_FRIENDLY_Rwag|r
 step << Rogue
+    #label Rwag2
     .goto Durotar,41.27,68.00
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Rwag|r
     .train 1757 >> Train |T136189:0|t[Sinister Strike]
@@ -1248,6 +1252,7 @@ step << Rogue
     .target Rwag
     .money <0.0190
 step << Rogue
+    #label Rwag2
     .goto Durotar,41.27,68.00
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Rwag|r
     .train 1757 >> Train |T136189:0|t[Sinister Strike]
@@ -1277,6 +1282,7 @@ step << Warlock tbc
     .target Hraug
     .money <0.0285
 step << Warlock
+    #label Nartok3
     .goto Durotar,40.65,68.52
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Nartok|r
     .train 695 >> Train |T136197:0|t[Shadow Bolt]
@@ -1337,7 +1343,7 @@ step
     #label Leave
     .goto Durotar,47.09,69.21,25,0
     .goto Durotar,49.02,69.13,20,0
-    .goto Durotar,49.90,68.43,25 >>Exit the Valley of Trials
+    .goto Durotar,50.60,68.40,60 >>Exit the Valley of Trials
     .isOnQuest 805
 ]])
 
@@ -1348,8 +1354,8 @@ RXPGuides.RegisterGuide([[
 #name 6-10 Durotar
 #version 1
 #group RestedXP Horde 1-30
-#next 10-13 Durotar << Warrior/Shaman
-#next 10-12 Eversong Woods << !Warrior !Shaman
+#next 10-13 Durotar << Warrior/Shaman/Orc Hunter/Troll Hunter
+#next 10-12 Eversong Woods << !Warrior !Shaman !(Orc Hunter) !(Troll Hunter)
 
 step
     .goto Durotar,52.06,68.30
@@ -1559,18 +1565,17 @@ step << !Shaman !Warrior
 .target Orgnil Soulscar
 >>Talk to |cRXP_FRIENDLY_Orgnil Soulscar|r
     .turnin 823 >>Turn in Report to Orgnil
-step << Warlock/Shaman/Warrior
+step << Warlock/Shaman/Warrior/Hunter
     #xprate <1.5
     .goto Durotar,51.9,43.5
 .target Gar'Thok
 >>Talk to |cRXP_FRIENDLY_Gar'Thok|r
 .accept 831 >>Accept The Admiral's Orders
 step
-    #xprate <1.5
 .goto Durotar,49.9,40.3
 .target Furl Scornbrow
 >>Talk to |cRXP_FRIENDLY_Furl Scornbrow|r
-    .turnin 791 >>Turn in Carry Your Weight
+    .turnin -791 >>Turn in Carry Your Weight
 step
     >> Talk to Cook Torka
     .goto Durotar,51.1,42.4
@@ -1635,20 +1640,19 @@ step << Shaman
     .train 8044 >>Train Earth Shock r2
     .train 8018 >>Train Rockbiter Weapon r2
 step << Priest
-    #xprate <1.5
     .goto Durotar,54.3,42.9
     .train 139 >>Train Renew
     .train 2052 >> Train Lesser Heal r2
 >>Talk to |cRXP_FRIENDLY_Tai'jin|r
-    .turnin 5649 >> In Favor of Spirituality
+    .turnin 5649 >> In Favor of Spirituality << Troll
 .target Tai'jin
-    .accept 5648 >> Garments of Spirituality
-step << Priest
+    .accept 5648 >> Garments of Spirituality << Troll
+step << Troll Priest
     .goto Durotar,53.1,46.5
     .cast 2052 >>Cast Lesser Heal (Rank 2) on Grunt Kor'ja
     .cast 1243 >>Cast Power Word: Fortitude (Rank 1) on Grunt Kor'ja
     .complete 5648,1 --Heal and cast Fortify on Grunt Kor'ja
-step << Priest
+step << Troll Priest
     .goto Durotar,54.3,42.9
 .target Tai'jin
 >>Talk to |cRXP_FRIENDLY_Tai'jin|r
@@ -1816,7 +1820,7 @@ step
 >>Talk to |cRXP_FRIENDLY_Master Gadrin|r
     .turnin 808 >>Turn in Minshina's Skull
     .turnin 826,1 >>Turn in Zalazane << Warrior
-    turnin 826 >>Turn in Zalazane << !Warrior
+    .turnin 826 >>Turn in Zalazane << !Warrior
 step
     >> Talk to Master Vornal, Vel'rin, and Lar Prowltusk
 .target Master Vornal
@@ -1854,7 +1858,7 @@ step
     >> Head to the bunker
 .target Gar'Thok
 >>Talk to |cRXP_FRIENDLY_Gar'Thok|r
-    .turnin 784 >>Turn in Vanquish the Betrayers
+    .turnin 825 >>Turn in From The Wreckage....
     .turnin 830 >>Turn in The Admiral's Orders
     .turnin 837 >>Turn in Encroachment
 step << Hunter
@@ -1932,7 +1936,7 @@ step << Warlock
     .goto Durotar,54.4,41.2
 .target Ophek
 >>Talk to |cRXP_FRIENDLY_Ophek|r
-    .accept 1506 >>Accept Gan'Rul's Summons
+    .accept 1506 >>Accept Gan'rul's Summons
 step << Warlock
     .goto Durotar,54.4,41.2
     .train 1120 >>Train Drain Soul
@@ -2139,18 +2143,18 @@ step << !Shaman !Warrior !Warlock
 step << Hunter tbc
     .goto Durotar,57.2,12.0
     .tame 3108 >>Tame an Encrusted Surf Crawler (They have Claw Rank 3)
-step << !Shaman !Warrior
+step << !Warrior !Shaman !(Orc Hunter) !(Troll Hunter)
     #sticky
     #completewith next
 +Go to the Zeppelin tower. Take the zeppelin to Undercity
     .goto Durotar,50.8,13.8
-step << !Shaman !Warrior
+step << !Warrior !Shaman !(Orc Hunter) !(Troll Hunter)
 .zone Tirisfal Glades >>Arrive in Tirisfal
-step << !Shaman !Warrior
+step << !Warrior !Shaman !(Orc Hunter) !(Troll Hunter)
 .goto Undercity,66.2,1.1,18 >>Go to Undercity
-step << !Shaman !Warrior
+step << !Warrior !Shaman !(Orc Hunter) !(Troll Hunter)
 .goto Undercity,62.0,11.3,18 >>Go up the stairs here
-step << !Shaman !Warrior
+step << !Warrior !Shaman !(Orc Hunter) !(Troll Hunter)
     .goto Undercity,54.63,11.28
     .zone Silvermoon City >>Use the Orb of Translocation to teleport to Silvermoon
     .zoneskip Eversong Woods
@@ -2167,7 +2171,7 @@ RXPGuides.RegisterGuide([[
 #name 10-13 Durotar
 #version 1
 #group RestedXP Horde 1-30
-#defaultfor Warrior !Tauren/Shaman !Tauren
+#defaultfor Warrior !Tauren/Shaman !Tauren/Orc Hunter/Troll Hunter
 #next 13-22 The Barrens
 step
     .goto Durotar,50.8,43.6
@@ -2278,6 +2282,18 @@ step << Undead Warrior
     .turnin 823 >>Turn in Report to Orgnil
 .target Orgnil Soulscar
     .accept 806 >>Accept Dark Storms
+step << Undead Warrior
+    .goto Durotar,51.9,43.5
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Gar'Thok|r
+    .turnin 784 >>Turn in Vanquish the Betrayers
+    .turnin 830 >>Turn in The Admiral's Orders
+    .accept 831 >>Accept The Admiral's Orders
+    .target Gar'Thok
+step << Undead Warrior
+    .goto Durotar,49.9,40.3
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Furl|r
+    .turnin 791 >>Turn in Carry Your Weight
+    .target Furl Scornbrow
 step
     #xprate >1.499
     .goto Durotar,48.9,48.5
@@ -2350,7 +2366,6 @@ step << !Tauren
 .target Thork
 >>Talk to |cRXP_FRIENDLY_Thork|r
     .accept 871 >>Accept Disrupt the Attacks
-    .accept 5041 >>Accept Supplies for the Crossroads
 step << !Tauren
 #xprate <1.5
     .goto The Barrens,51.5,30.4
@@ -2558,7 +2573,7 @@ step << Orc/Troll
     .turnin 6385 >>Turn in Doras the Wind Rider Master
 .target Doras
     .accept 6386 >>Accept Return to the Crossroads.
-step << Orc/Troll
+step << Orc/Troll/Undead Warrior
     .goto Orgrimmar,34.340,36.328
     >> Cross the bridge from the flightpath tower
 .target Vol'jin
@@ -2660,6 +2675,11 @@ step << Warrior
     .goto Durotar,54.3,42.4
     .train 5242 >>Train Battle Shout r2
     .train 7384 >>Train Overpower
+step << Hunter
+    #level 12
+    .goto Durotar,51.8,43.5
+    .target Thotar
+    .trainer >>Train your level 12 class spells
 step << !Warrior
     .goto Durotar,54.4,42.2
 .vendor >>Buy 6 slot bags from Jark until you can't equip new bags
@@ -2727,6 +2747,7 @@ step << Shaman
     .isOnQuest 1525
     .goto Durotar,52.8,28.7,20 >> Leave the cave
 step
+    #label harpingme
     .goto Durotar,54.0,27.7,30,0
     .goto Durotar,51.3,23.5,30,0
     .goto Durotar,51.5,19.1,30,0

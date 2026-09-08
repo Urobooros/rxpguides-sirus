@@ -1,8 +1,6 @@
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #hardcore
 #classic
-#tbc
 << Alliance
 #name 11-13 Darkshore (Night Elf)
 #version 1
@@ -534,7 +532,6 @@ step
 RXPGuides.RegisterGuide([[
 #hardcore
 #classic
-#tbc
 << Alliance
 #name 13-13 Loch Modan (Night Elf)
 #version 1
@@ -742,7 +739,7 @@ step
     .goto Dun Morogh,69.084,56.330
     .turnin 433 >> Turn in The Public Servant
     .target +Senator Mehr Stonehallow
-    .goto Dun Morogh,68.671,55.969
+    .goto Dun Morogh,68.671,55.969    
 step
     .goto Dun Morogh,81.2,42.7,45,0
     .goto Dun Morogh,83.892,39.188
@@ -811,7 +808,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Vidra Hearthstove|r
     .accept 418 >> Accept Thelsamar Blood Sausages
 step
-    #completewith StormpikeO
+    #competewith StormpikeO
     .abandon 1338 >> Abandon Stormpike's Order. This is to unlock Mountaineer Stormpike's Task which will give a free 550xp turn in
 step
     #completewith next

@@ -1,4 +1,3 @@
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #version 1
 #group +RestedXP Northrend Daily Quests
@@ -93,7 +92,7 @@ step
 step
 	>>Talk to Marcia Chase in Dalaran
 	.goto Dalaran,53.04,64.95
-	.turnin 13834 >>Turn in The Ghostfish
+	.turnin 13830 >>Turn in The Ghostfish
 	.isQuestComplete 13830
 
 -- Quest: Jewel Of The Sewers -- 13832
@@ -101,13 +100,13 @@ step
 	>>Remember to buy baubles to use on your fishing rod
 	>>Go down into the Dalaran Sewers. Fish for the Corroded Jewelry
 	.goto Dalaran,35.31,45.28,10,0
-	.goto 126,22.66,41.71,10,0
-	.goto 126,37.06,48.02
+	.goto Dalaran,22.66,41.71,10,0
+	.goto Dalaran,37.06,48.02
 	.complete 13832,1 --Corroded Jewelry (1)
 	.isOnQuest 13832
 step
 	>>Talk to Marcia Chase in Dalaran
-	.goto 126,22.66,41.71,10,0
+	.goto Dalaran,22.66,41.71,10,0
 	.goto Dalaran,35.31,45.28,10,0
 	.goto Dalaran,53.04,64.95
 	.turnin 13832 >>Turn in Jewel Of The Sewers
@@ -134,7 +133,7 @@ step
 step << Alliance
 	#completewith next
 	>>Remember to buy baubles to use on your fishing rod
-	.fly Une'pe >>Talk to Aludane to fly to Une'pe, Borean Tundra
+	.fly Unu'pe >>Talk to Aludane to fly to Unu'pe, Borean Tundra
 	.goto Dalaran,72.18,45.78,20,0
 	.isOnQuest 13833
 step << Horde
@@ -164,7 +163,7 @@ step
 step
 	>>Talk to Marcia Chase in Dalaran
 	.goto Dalaran,53.04,64.95
-	.turnin 13834 >>Turn in Blood Is Thicker
+	.turnin 13833 >>Turn in Blood Is Thicker
 	.isQuestComplete 13833
 step
 	+You have finished the Fishing Daily Quest for today

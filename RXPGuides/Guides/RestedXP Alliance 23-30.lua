@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Horde" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -27,7 +26,7 @@ step << Human !Warlock !Paladin wotlk
     .skill riding,1,1
 step << Human !Warlock !Paladin wotlk
     .goto Redridge Mountains,30.6,59.4
-    .fp Redridge Mountains >> Get the Redridge Mountains flight path
+    .fp Lakeshire >> Get the Redridge Mountains flight path
     .fly Stormwind >> Fly to Stormwind City
 step << Paladin wotlk
 	.goto StormwindClassic,38.6,32.8
@@ -110,7 +109,7 @@ step << wotlk
     .vendor 5519>> Check Billibub in the Dwarven District for a Bronze Tube. Buy one if it's available
     .collect 4371,1,175,1,1
     .bronzetube
-step << skip -- wotlk
+step << wotlk
     #label exit1
     .goto StormwindClassic,63.9,8.3
     .link https://www.youtube.com/watch?v=M_tXROi9nMQ >> Click here for a logout skip inside the tram
@@ -137,6 +136,7 @@ step << Mage wotlk
     .goto Ironforge,25.5,7.1
     .train 3562>>Train Teleport: Ironforge
 step << wotlk !Dwarf !Gnome
+    #label exit2
     #sticky
     .goto Dun Morogh,53.2,35.3
     .zone Dun Morogh >> Head outside to Dun Morogh
@@ -1017,6 +1017,12 @@ step << !Rogue !Druid
 	#requires spiders
     .goto Westfall,56.6,52.6
     .fp Sentinel >> Get the Sentinel Hill flight path
+step << Human Warlock
+    .isOnQuest 6285
+    .goto Westfall,57.00,47.17
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Quartermaster Lewis|r
+    .turnin 6285 >> Turn in Return to Lewis
+    .target Quartermaster Lewis
 step << !Rogue !Druid
     .goto Westfall,41.5,66.8
     .turnin 67 >> Turn in The Legend of Stalvan
@@ -1204,7 +1210,7 @@ step
 step
     #completewith fpwfend
 	.goto Redridge Mountains,30.5,59.3
-    .fly Westfall>> Fly to Westfall
+    .fly Sentinel Hill>> Fly to Westfall
 step
 	#sticky
 	#completewith HistoryB3
@@ -1219,6 +1225,7 @@ step
 .target Jitters
     .accept 268 >> Accept Return to Sven
 step
+    #label fpwfend
     .goto Duskwood,18.4,56.5
 .target Jitters
 >>Talk to |cRXP_FRIENDLY_Jitters|r
@@ -1369,7 +1376,7 @@ RXPGuides.RegisterGuide([[
 #next 30-32 Duskwood/STV
 #xprate <1.5
 
-step << skip
+step
     .goto StormwindClassic,60.5,12.3,40,0
     .goto StormwindClassic,60.5,12.3,0
     .link https://www.youtube.com/watch?v=M_tXROi9nMQ >> Click here for a logout skip inside the tram
@@ -1942,9 +1949,9 @@ RXPGuides.RegisterGuide([[
 #name 30-32 Duskwood/STV
 #version 1
 #group RestedXP Alliance 20-32
-#next RestedXP Alliance 32-47\32-33 Shimmering Flats
+#next RestedXP TBC Guide (A)\32-33 Shimmering Flats
 #xprate <1.5
-step << skip !Mage
+step << !Mage
 	.goto Ironforge,74.5,50.5,20,0
 	.goto StormwindClassic,51.7,12.3
     .link https://www.youtube.com/watch?v=M_tXROi9nMQ >> Click here for a logout skip inside the tram
@@ -2160,6 +2167,12 @@ step
     .turnin 228 >> Turn in Mor'Ladim
 .target Commander Althea Ebonlocke
     .accept 229 >> Accept The Daughter Who Lived
+step << Hunter/Paladin
+    .isOnQuest 229
+    .goto Duskwood,74.543,46.085
+>>Talk to |cRXP_FRIENDLY_Watcher Ladimore|r
+    .turnin 229 >> Turn in The Daughter Who Lived
+.target Watcher Ladimore
 step << !Hunter !Paladin
     .goto Duskwood,74.543,46.085
 >>Talk to |cRXP_FRIENDLY_Watcher Ladimore|r
@@ -2246,7 +2259,7 @@ step << Shaman
 step << Shaman
     #completewith next
 	.goto Duskwood,77.6,44.6
-    .fly Westfall>> Fly to Westfall
+    .fly Sentinel Hill>> Fly to Westfall
 step << Human Paladin
     .goto Elwynn Forest,72.7,51.5
     >>Use the Symbol of Life on Henze Faulk
@@ -2909,7 +2922,7 @@ step
 >>Talk to |cRXP_FRIENDLY_Mikhail|r
     .turnin 1249 >> Turn in The Missing Diplomat
 step
-    .isOnQuest 1250
+    .isQuestTurnedIn 1249
     .goto Wetlands,10.6,60.3
 .target Tapoke "Slim" Jahn
 >>Talk to |cRXP_FRIENDLY_Tapoke "Slim" Jahn|r
@@ -3093,8 +3106,10 @@ step << Warlock
     .goto StormwindClassic,25.3,78.7
 	.trainer >> Train your class spells
 step
-   .isOnQuest 337
+    .itemcount 2794,1
 	.goto StormwindClassic,74.1,7.6
+    >>Click the Old History Book in your bags
+    .use 2794
     .accept 337 >> Accept An Old History Book
 >>Talk to |cRXP_FRIENDLY_Milton Sheaf|r
     .turnin 337 >> Turn in An Old History Book
@@ -3236,6 +3251,12 @@ step
     .turnin 228 >> Turn in Mor'Ladim
 .target Commander Althea Ebonlocke
     .accept 229 >> Accept The Daughter Who Lived
+step << Hunter/Paladin
+    .isOnQuest 229
+    .goto Duskwood,74.543,46.085
+>>Talk to |cRXP_FRIENDLY_Watcher Ladimore|r
+    .turnin 229 >> Turn in The Daughter Who Lived
+.target Watcher Ladimore
 step << !Hunter !Paladin
     .goto Duskwood,74.543,46.085
 >>Talk to |cRXP_FRIENDLY_Watcher Ladimore|r
@@ -3326,7 +3347,7 @@ step << Shaman
 step << Shaman
     #completewith next
 	.goto Duskwood,77.6,44.6
-    .fly Westfall>> Fly to Westfall
+    .fly Sentinel Hill>> Fly to Westfall
 step << Human Paladin
     .goto Elwynn Forest,72.7,51.5
     >>Use the Symbol of Life on Henze Faulk
@@ -3378,7 +3399,7 @@ step
 	.unitscan Zzarc' Vul
     .isOnQuest 181
     .complete 181,1 --Collect Ogre's Monocle (x1)
-step << skip
+step
     .goto Stranglethorn Vale,38.2,4.1
     >>Head out of the cave and then south to STV. Alternatively do the logout skip by hopping on the banner.
     .link https://www.youtube.com/watch?v=i5dIhfOmyd8 >> Click here for a video on how to do the logout skip
@@ -3499,12 +3520,6 @@ step
 .target Lord Ello Ebonlocke
 >>Talk to |cRXP_FRIENDLY_Lord Ello Ebonlocke|r
     .turnin 252 >> Turn in Translation to Ello
-step
-#xprate <1.7
-    .goto Duskwood,71.9,46.6
-.target Lord Ello Ebonlocke
->>Talk to |cRXP_FRIENDLY_Lord Ello Ebonlocke|r
-    .accept 253 >> Accept Bride of the Embalmer
 step
 	#sticky
 	#completewith next
@@ -3796,7 +3811,7 @@ step << Draenei !Shaman !Paladin wotlk
 	.goto Wetlands,5.2,63.3,50,0
 	.money <5.00
 	.skill riding,75 >> Take the boat to Darkshore then the boat to the Exodar and buy your mount. Then hearth to Stormwind
-step << skip
+step
     #sticky
 	#completewith next
     .goto StormwindClassic,60.5,12.3,40,0
@@ -3973,6 +3988,8 @@ step << Gnome !Warlock wotlk
 	.goto Dun Morogh,49.2,48.1
 	.money <5.00
 	.skill riding,75 >> Head to Dun Morogh, train riding and purchase your mount.
+step
+    #label end
 
 ]])
 
@@ -3984,7 +4001,7 @@ RXPGuides.RegisterGuide([[
 #version 1
 #group RestedXP Alliance 20-32
 #name 30-32 Hillsbrad
-#next RestedXP Alliance 32-47\32-33 Shimmering Flats
+#next RestedXP TBC Guide (A)\32-33 Shimmering Flats
 #xprate >1.3
 
 step
@@ -4464,4 +4481,10 @@ step
 .target First Mate Fitzsimmons
 >>Talk to |cRXP_FRIENDLY_First Mate Fitzsimmons|r
     .turnin 289 >> Turn in The Cursed Crew
+step
+    .isOnQuest 286
+    .goto Wetlands,8.310,58.533
+.target Karl Boran
+>>Talk to |cRXP_FRIENDLY_Karl Boran|r
+    .turnin 286 >> Turn in Return the Statuette
 ]])

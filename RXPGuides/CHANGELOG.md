@@ -1,24 +1,15 @@
 # RestedXP Guides
 
-## [v4.10.2-19-gb4ce780](https://github.com/RestedXP/RXPGuides/tree/b4ce780e8ea568a923763a6d4e39a11d166cc73f) (2026-02-20)
-[Full Changelog](https://github.com/RestedXP/RXPGuides/compare/v4.10.2...b4ce780e8ea568a923763a6d4e39a11d166cc73f) [Previous Releases](https://github.com/RestedXP/RXPGuides/releases)
+## [v4.8.25](https://github.com/RestedXP/RXPGuides/tree/v4.8.25) (2025-11-08)
+[Full Changelog](https://github.com/RestedXP/RXPGuides/compare/v4.8.24...v4.8.25) [Previous Releases](https://github.com/RestedXP/RXPGuides/releases)
 
-- Added .explore command  
-- Fixed issue with include steps  
-- fixed multibox command  
-- Mangy Nightsaber typo fix  
-- Fix missing #wotlk tag  
-- Fixed issue with multiple include steps  
-- Updated zoneskip command  
-- Midnight Update  
-- Fixed issue with delves  
-- fixed line break issue  
-- Gnomeregan typo fix  
-- #next guide fix Tauren  
-- Karazhan attunement update  
-- Improved scenario handling  
-- Allowed arrow text line breaks  
-- typo fixes  
-- Add #ah step Ashenvale pages  
-- typo fixes  
-- Added various RP timers  
+- Remove 'stats' infix for non-weapon tooltips  
+    mostly leftover debugging  
+- Update budget AH scanner display  
+    EP/c too small to be meaningful at most levels, match format of BiS  
+- Fixed issue with quest completion checks  
+- Fixed quest issue with quest completion checks  
+- Remove ItemUpgrades TRAINER\_SHOW event  
+    Obsolete logic, armor types are level calculated now  
+- Update Active Target placeholders  
+- Exclude emergency action flashing when dead  

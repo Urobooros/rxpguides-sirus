@@ -1,6 +1,0 @@
-## Interface: 30300
-## Title: RXP Leveling (Sirus — routes disabled)
-## Notes: Routes will be enabled after the RXPGuides core is compatible
-## Author: The Curator
-## Version: 1.0.0-sirus.0
-## Dependencies: RXPGuides

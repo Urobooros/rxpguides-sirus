@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Alliance" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -216,7 +215,7 @@ step
     >>Go into the cave. Loot the Attack Plans in the center, and accept the quest.
     .goto Mulgore,63.2,82.7
     .collect 4850,1,24857 --Collect Bristleback Attack Plans.
-    .accept 24857 >>Accept Attack on Camp Narache.
+    .accept 24857 >>Accept Attack on Camp Narache
 step
 	#label nomoreboar
 	#completewith next
@@ -808,7 +807,7 @@ step << !Warrior !Shaman
     .goto Mulgore,47.0,57.2
   .abandon 759 >>Abandon Wildmane Totem
 step << Hunter
-    #requires mazzranache2
+    #requires Mazzranache
     .goto Mulgore,47.0,57.2
 .target Maur Raincaller
 >>Talk to |cRXP_FRIENDLY_Maur Raincaller|r
@@ -993,7 +992,7 @@ step << Tauren
     .turnin 854 >>Turn in Journey to the Crossroads
 step
     .goto The Barrens,51.5,30.4
-    .fp The Crossroads >>Get the The Crossroads Flight Path
+    .fp Crossroads >>Get the Crossroads Flight Path
 step
     .goto The Barrens,51.5,30.1
 .target Apothecary Helbrim
@@ -1104,6 +1103,16 @@ step << Druid
 .target Turak Runetotem
 >>Talk to |cRXP_FRIENDLY_Turak Runetotem|r
     .turnin 6002 >>Turn in Body and Heart
+step << Hunter
+    .goto Thunder Bluff,57.4,89.4
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Holt|r
+    .turnin 6089 >> Turn in Training the Beast
+    .target Holt Thunderhorn
+step << Hunter
+    .goto Thunder Bluff,54.08,84.08
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Hesuwa|r
+    .train 24547 >>Train your pet spells
+    .target Hesuwa Thunderhorn
 step << Druid/Hunter
     #sticky
     #completewith next
@@ -1138,7 +1147,7 @@ RXPGuides.RegisterGuide([[
 #version 1
 #group RestedXP Horde 1-30
 #defaultfor Tauren
-#next 13-23 The Barrens
+#next 13-22 The Barrens
 step
     #sticky
     #completewith ThunderBluff
@@ -1174,9 +1183,9 @@ step
     .goto Mulgore,48.6,16.1,40,0
     .goto Mulgore,51.8,33.8,40,0
     .goto Mulgore,56.2,32.9
->>Look around for Arra'Chea (Big black kodo). He walks clockwise. Kill and Loot him for his horn
+>>Look around for Arra'chea (Big black kodo). He walks clockwise. Kill and Loot him for his horn
     .complete 776,1 --Horn of Arra'chea (1)
-    .unitscan Arra'Chea
+    .unitscan Arra'chea
 step
     #requires Prowlers
     #label ThunderBluff
@@ -1272,7 +1281,6 @@ step
 .target Thork
 >>Talk to |cRXP_FRIENDLY_Thork|r
     .accept 871 >>Accept Disrupt the Attacks
-    .accept 5041 >>Accept Supplies for the Crossroads
 step
     .goto The Barrens,51.6,30.9
     >>Run upstairs

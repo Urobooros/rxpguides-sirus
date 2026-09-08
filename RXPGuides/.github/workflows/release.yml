@@ -1,0 +1,182 @@
+name: Build and publish release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example v4.8.25-335"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Package RXPGuides and publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          # Packaging and validation use only GITHUB_SHA; release notes are
+          # generated server-side by gh, so repository history is unnecessary.
+          fetch-depth: 1
+
+      - name: Install Lua 5.1 test runtime
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+
+      - name: Validate runtime, guides, and localization loader
+        shell: pwsh
+        run: |
+          ./tools/Validate-Runtime335.ps1 -RequireLua
+          ./tools/Validate-Guides335.ps1
+          ./tools/Validate-GuideTranslations335.ps1 -CoreOnly
+
+      - name: Resolve pinned localization commit
+        id: localizations
+        shell: bash
+        run: |
+          set -euo pipefail
+          commit="$(tr -d '\r\n[:space:]' < LOCALIZATIONS.lock)"
+          if [[ ! "${commit}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "LOCALIZATIONS.lock does not contain a full commit ID." >&2
+            exit 1
+          fi
+          echo "commit=${commit}" >> "${GITHUB_OUTPUT}"
+
+      - name: Check out pinned localization sources
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.localizations.outputs.commit }}
+          path: .release-localizations
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate pinned multilingual catalogs
+        shell: pwsh
+        run: ./.release-localizations/tools/Validate-GuideTranslations335.ps1 -RepoRoot .release-localizations
+
+      - name: Cache deterministic translation inventory
+        uses: actions/cache@v6
+        with:
+          path: .release-localizations/.validation-cache/translation-source.json
+          key: translation-source-v4-${{ runner.os }}-${{ hashFiles('LOCALIZATIONS.lock') }}
+
+      - name: Validate deterministic translation packs
+        shell: pwsh
+        run: ./.release-localizations/tools/Validate-TranslationPacks335.ps1 -RepoRoot .release-localizations -SourceCatalog .validation-cache/translation-source.json -RequireLua
+
+      - name: Validate quest flow, talents, roadmap, and privacy
+        shell: pwsh
+        run: |
+          ./tools/Validate-QuestFlow335.ps1
+          ./tools/Validate-Talents335.ps1
+          ./tools/Validate-Roadmap335.ps1
+          ./tools/Validate-Privacy335.ps1
+
+      - name: Resolve release metadata
+        id: metadata
+        shell: bash
+        env:
+          MANUAL_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            tag="${MANUAL_TAG}"
+          else
+            tag="${GITHUB_REF_NAME}"
+          fi
+
+          if [[ ! "${tag}" =~ ^v[0-9A-Za-z][0-9A-Za-z._-]*$ ]]; then
+            echo "Invalid release tag: ${tag}" >&2
+            echo "Release tags must start with 'v' and contain only letters, numbers, dots, underscores, or hyphens." >&2
+            exit 1
+          fi
+
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "archive=RXPGuides-${tag}.zip" >> "${GITHUB_OUTPUT}"
+
+      - name: Create addon ZIP
+        id: package
+        shell: bash
+        env:
+          ARCHIVE: ${{ steps.metadata.outputs.archive }}
+        run: |
+          set -euo pipefail
+
+          # git archive includes every tracked file from the release commit,
+          # excludes Git's internal metadata, and places the complete checkout
+          # beneath the folder players copy into Interface/AddOns.
+          git archive \
+            --format=zip \
+            --prefix=RXPGuides/ \
+            --output="${ARCHIVE}" \
+            "${GITHUB_SHA}"
+
+          unzip -Z1 "${ARCHIVE}" > "${RUNNER_TEMP}/rxpguides-archive-entries.txt"
+
+          if ! grep -Fxq "RXPGuides/RXPGuides.toc" "${RUNNER_TEMP}/rxpguides-archive-entries.txt"; then
+            echo "Package validation failed: RXPGuides/RXPGuides.toc is missing." >&2
+            exit 1
+          fi
+
+          if grep -Evq '^RXPGuides/' "${RUNNER_TEMP}/rxpguides-archive-entries.txt"; then
+            echo "Package validation failed: an entry exists outside the RXPGuides folder." >&2
+            exit 1
+          fi
+
+          echo "Created ${ARCHIVE}:"
+          du -h "${ARCHIVE}"
+
+      - name: Create optional locale ZIPs
+        shell: bash
+        env:
+          TAG: ${{ steps.metadata.outputs.tag }}
+        run: |
+          set -euo pipefail
+          bash ./tools/Build-LocalePackages335.sh \
+            --source .release-localizations \
+            --output .locale-release \
+            --version "${TAG}" \
+            --revision "${{ steps.localizations.outputs.commit }}"
+          du -h .locale-release/*.zip
+
+      - name: Create or update GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.metadata.outputs.tag }}
+          ARCHIVE: ${{ steps.metadata.outputs.archive }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release upload \
+              "${TAG}" \
+              "${ARCHIVE}" \
+              .locale-release/*.zip \
+              --clobber \
+              --repo "${GITHUB_REPOSITORY}"
+          else
+            gh release create \
+              "${TAG}" \
+              "${ARCHIVE}" \
+              .locale-release/*.zip \
+              --target "${GITHUB_SHA}" \
+              --title "RXPGuides ${TAG}" \
+              --generate-notes \
+              --repo "${GITHUB_REPOSITORY}"
+          fi

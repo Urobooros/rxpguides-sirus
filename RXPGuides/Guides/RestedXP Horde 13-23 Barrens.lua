@@ -1,15 +1,14 @@
 local faction = UnitFactionGroup("player")
 if faction == "Alliance" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Horde Warrior/Horde Shaman
+<< Horde Warrior/Horde Shaman/Horde Orc Hunter/Horde Troll Hunter
 #name 13-22 The Barrens
 #version 1
 #group RestedXP Horde 1-30
-#defaultfor Shaman/Warrior
+#defaultfor Shaman/Warrior/Orc Hunter/Troll Hunter
 #next 22-25 Hillsbrad / South Barrens;22-25 Hillsbrad Foothills JJ
 
 step << Tauren Shaman
@@ -69,7 +68,6 @@ step << !Tauren
 .target Thork
 >>Talk to |cRXP_FRIENDLY_Thork|r
     .accept 871 >>Accept Disrupt the Attacks
-    .accept 5041 >>Accept Supplies for the Crossroads
 step << !Tauren
 #xprate >1.499
     .goto The Barrens,51.5,30.4
@@ -192,7 +190,7 @@ step
 >>Talk to |cRXP_FRIENDLY_Thork|r
     .turnin 871 >>Turn in Disrupt the Attacks
 .target Thork
-    .accept 872 >>Accept The Disruption Ends
+    .accept 5041 >>Accept Supplies for the Crossroads
 .target Darsok Swiftdagger
 >>Talk to |cRXP_FRIENDLY_Darsok Swiftdagger|r
     .accept 867 >>Accept Harpy Raiders
@@ -230,20 +228,8 @@ step
 step
     #sticky
     #completewith Crates
-    >>Kill Razormanes while getting the Crates and killing Kreenig
-    .complete 872,1 --Razormane Geomancer (8)
-    .complete 872,2 --Razormane Defender (8)
-step
-    #sticky
-    #completewith Kreenig
 >>Loot the Supply Crates found in the area
     .complete 5041,1 --Crossroads' Supply Crates (1)
-step
-    #label Kreenig
->>Kill Kreenig Snarlsnout. Loot him for his Tusk
-.goto The Barrens,58.6,27.1
-    .complete 872,3 --Kreenig Snarlsnout's Tusk (1)
-    .unitscan Kreenig Snarlsnout
 step
 #label Crates
 >>Loot the crates found in the area
@@ -254,9 +240,6 @@ step
     .complete 5041,1 --Crossroads' Supply Crates (1)
 step
 .goto The Barrens,56.7,25.3
-    >>Finish killing the Razormanes
-    .complete 872,1 --Razormane Geomancer (8)
-    .complete 872,2 --Razormane Defender (8)
 step << Warrior
     >> Loot the Keg here. Wait for the respawn if it's not up.
 .goto The Barrens,55.8,20.0
@@ -269,7 +252,7 @@ step << !Tauren !Undead
     .complete 845,1 --Zhevra Hooves (4)
 step << Tauren Warrior
     .goto The Barrens,56.7,19.8,60 >> Run to here, grinding mobs en route
-step << !Tauren !Undead
+step << !Tauren
     .goto The Barrens,62.3,20.1
 .target Ak'Zeloth
 >>Talk to |cRXP_FRIENDLY_Ak'Zeloth|r
@@ -315,7 +298,7 @@ step
     .accept 887 >>Accept Southsea Freebooters
 step
     .goto The Barrens,63.1,37.1
-    #completewith ratchetfp
+    #completewith rachetfp
     .fp Ratchet >>Get the Ratchet Flight Path
 step
     .goto The Barrens,63.0,37.2
@@ -400,6 +383,28 @@ step
 .target Thork
 >>Talk to |cRXP_FRIENDLY_Thork|r
     .turnin 5041 >>Turn in Supplies for the Crossroads
+    .accept 872 >>Accept The Disruption Ends
+step
+    #sticky
+    #completewith Kreenig
+    >>Kill Razormanes while searching for Kreenig
+    .complete 872,1 --Razormane Geomancer (8)
+    .complete 872,2 --Razormane Defender (8)
+step
+    #label Kreenig
+    .goto The Barrens,58.6,27.1
+    >>Kill Kreenig Snarlsnout. Loot him for his Tusk
+    .complete 872,3 --Kreenig Snarlsnout's Tusk (1)
+    .unitscan Kreenig Snarlsnout
+step
+    .goto The Barrens,56.7,25.3
+    >>Finish killing the Razormanes
+    .complete 872,1 --Razormane Geomancer (8)
+    .complete 872,2 --Razormane Defender (8)
+step
+    .goto The Barrens,51.5,30.8
+.target Thork
+>>Talk to |cRXP_FRIENDLY_Thork|r
     .turnin 872 >>Turn in The Disruption Ends
 step
     .goto The Barrens,52.0,31.6
@@ -1075,7 +1080,7 @@ step
     .goto The Barrens,45.0,51.8,0
     .use 5099 >>Find & kill Lakota'mani (Gray Kodo) around the area. Loot his Hoof. If you can't find him, skip this quest.
     .collect 5099,1,883 --Collect Hoof of Lakota'Mani
-    .accept 883 >>Accept Lakota'Mani
+    .accept 883 >>Accept Lakota'mani
     .unitscan Lakota'mani
 step
     >>Kill a LOT of Quillboars. Prioritize Thornweavers, Water Seekers, and Geomancers where you can. Loot them for their tusks. Save the Blood Shards you get
@@ -1520,7 +1525,7 @@ step
 .target Je'neu Sancrea
 >>Talk to |cRXP_FRIENDLY_Je'neu Sancrea|r
     .turnin 6563 >> Turn in The Essence of Aku'Mai
-    .isOnQuest 6553
+    .isOnQuest 6563
 step
     #xprate <1.5
     #sticky
@@ -1652,6 +1657,10 @@ step << Shaman
 step << Paladin
     .goto Orgrimmar,32.272,35.794
         #completewith next
+    .trainer >> Go and train your class spells
+step << Hunter
+    .goto Orgrimmar,66.046,18.526
+    .target Ormak Grimshot
     .trainer >> Go and train your class spells
 step << Warrior
 .goto Orgrimmar,79.7,31.4

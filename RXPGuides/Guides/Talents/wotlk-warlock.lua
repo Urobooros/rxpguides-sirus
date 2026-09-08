@@ -193,6 +193,20 @@ level -- Death's Embrace (Rank 1)
 
 ]])
 
+-- Adapted from the locally supplied 3.3.5 TalentAdvisor builds and validated
+-- against the 3.3.5a talent layout. Compact entries are tab,tier,column,count.
+addon.talents.RegisterBuild("Demonology 10-80", [[
+2,1,4,2;2,1,3,3;2,2,3,3;2,2,1,2;2,3,2,1;2,3,3,1;2,3,4,3;2,4,2,5;2,5,1,1;2,4,3,2;
+2,5,3,2;2,6,2,5;2,7,2,1;2,7,3,3;2,7,1,1;2,8,2,5;2,9,2,1;2,9,1,3;2,7,1,1;2,10,2,5;
+2,11,2,1;2,9,3,3;2,7,1,1;1,1,3,5;1,2,2,2;1,1,1,2;1,2,4,1;1,3,2,3;1,2,4,1;1,2,3,2
+]])
+
+addon.talents.RegisterBuild("Destruction 10-80", [[
+3,1,3,5;3,2,3,3;3,2,1,2;3,3,3,5;3,4,1,2;3,4,2,1;3,3,1,2;3,5,3,1;3,5,2,3;3,5,1,1;
+3,6,3,5;3,7,2,1;3,7,4,3;3,5,1,1;3,8,2,5;3,9,3,3;3,9,1,2;3,10,2,5;3,11,2,1;3,9,1,1;
+3,5,1,1;3,7,3,3;3,8,3,2;2,1,2,3;2,1,3,2;2,2,3,3;2,1,4,2;2,3,4,3
+]])
+
 addon.talents.RegisterGuide([[
 #name Affliction 71-80
 #minLevel 10

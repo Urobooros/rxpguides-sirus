@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Alliance" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -348,21 +347,21 @@ step
     .mob Rattlecage Skeleton
 step
 #loop
-	.line Tirisfal Glades,31.72,63.98,30.69,63.88,30.90,62.20,30.73,61.66,31.14,61.41,31.80,61.83,32.85,32.38,63.02,32.90,63.54,33.41,63.06,33.75,62.86,33.51,63.82,33.55,64.57,33.29,64.96,31.72,63.98
+	.line Tirisfal Glades,31.72,63.98,30.69,63.88,30.90,62.20,30.73,61.66,31.14,61.41,31.80,61.83,32.85,63.02,32.90,63.54,33.41,63.06,33.75,62.86,33.51,63.82,33.55,64.57,33.29,64.96,31.72,63.98
 	.goto Tirisfal Glades,31.72,63.98,40,0
 	.goto Tirisfal Glades,30.69,63.88,40,0
 	.goto Tirisfal Glades,30.90,62.20,40,0
 	.goto Tirisfal Glades,30.73,61.66,40,0
 	.goto Tirisfal Glades,31.14,61.41,40,0
 	.goto Tirisfal Glades,31.80,61.83,40,0
-	.goto Tirisfal Glades,32.85,32.38,40,0
-	.goto Tirisfal Glades,63.02,32.90,40,0
-	.goto Tirisfal Glades,63.54,33.41,40,0
-	.goto Tirisfal Glades,63.06,33.75,40,0
-	.goto Tirisfal Glades,62.86,33.51,40,0
-	.goto Tirisfal Glades,63.82,33.55,40,0
-	.goto Tirisfal Glades,64.57,33.29,40,0
-	.goto Tirisfal Glades,64.96,31.72,40,0
+	.goto Tirisfal Glades,32.85,63.02,40,0
+	.goto Tirisfal Glades,32.90,63.54,40,0
+	.goto Tirisfal Glades,33.41,63.06,40,0
+	.goto Tirisfal Glades,33.75,62.86,40,0
+	.goto Tirisfal Glades,33.51,63.82,40,0
+	.goto Tirisfal Glades,33.55,64.57,40,0
+	.goto Tirisfal Glades,33.29,64.96,40,0
+	.goto Tirisfal Glades,31.72,63.98,40,0
     .xp 3+980 >>Grind to 980+/1400xp
     .mob Mindless Zombie
     .mob Wretched Zombie << tbc
@@ -696,7 +695,7 @@ step
     .goto Tirisfal Glades,61.71,52.05
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Renee|r
     .turnin 8 >>Turn in A Rogue's Deal
-    .home << Set your Hearthstone to Brill << Priest tbc
+    .home >> Set your Hearthstone to Brill << Priest tbc
     .vendor >>Vendor Trash << Warrior
     .isQuestAvailable 8463 << Warrior
 step << Warrior

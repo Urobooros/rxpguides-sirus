@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Alliance" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -10,96 +9,98 @@ RXPGuides.RegisterGuide([[
 #version 1
 #group RestedXP Horde Boosted 58-60
 #defaultfor 58Boost
-#next RestedXP Horde 60-70\60-61 Hellfire Peninsula
-step << !Druid !Paladin
+#next RestedXP TBC Guide (H)\59-61 Hellfire Peninsula
+step << !Druid !Paladin !ac335
     .turnin 64046 >>Turn in A New Beginning
-step << Druid
+step << Druid !ac335
     .turnin 64047 >>Turn in A New Beginning
 	.accept 64049 >>Accept Tools for Survival
 
-step << !Druid !Paladin
+step << !Druid !Paladin !ac335
     .accept 64048 >>Accept Tools for Survival
 
-step << !Paladin
+step << !Paladin !ac335
 	#sticky
 	#completewith next
 	>>Open your Azeroth Survival Kit & equip a weapon.
-step << !Druid !Paladin
+step << !Druid !Paladin !ac335
     .complete 64048,1 --1/1 Open the Survival Kit (1)
     .complete 64048,2 --1/1 Equip a Weapon (1)
-step << Druid
+step << Druid !ac335
     .complete 64049,1 --1/1 Open the Survival Kit (1)
     .complete 64049,2 --1/1 Equip a Weapon (1)
 
-step << !Druid !Paladin
+step << !Druid !Paladin !ac335
     .turnin 64048 >>Turn in Tools for Survival
     .accept 64050 >>Accept Combat Training
 
-step << Druid
+step << Druid !ac335
     .turnin 64049 >>Turn in Tools for Survival
     .accept 64051 >>Accept Combat Training
 
-step << Warrior
+step << Warrior !ac335
     .train 11581 >> Learn Thunder Clap.
-step << Rogue
+step << Rogue !ac335
     .train 11269 >> Learn Ambush
-step << Hunter
+step << Hunter !ac335
     .train 14325 >> Learn Hunter's Mark
-step << Shaman
+step << Shaman !ac335
     .train 10473 >> Learn Frost Shock
-step << Warlock
+step << Warlock !ac335
     .train 11726 >> Learn Enslave Demon
-step << Priest
+step << Priest !ac335
 	.train 10912 >> Learn Mind Control
-step << BloodElf Priest
+step << BloodElf Priest !ac335
     .train 32676 >> Learn Consume Magic
-step << Troll Priest
+step << Troll Priest !ac335
     .train 9035 >> Learn all the ranks of Hex of Weakness
     .train 18137 >> Learn all the ranks of Shadowguard
-step << Druid
+step << Druid !ac335
     .train 9853 >> Learn Entangling Roots
-step << Mage
+step << Mage !ac335
     .train 22783 >> Learn Mage Armor
 
-step << !Druid !Paladin
+step << !Druid !Paladin !ac335
 	.complete 64050,1 --1/1 Train a Spell (1)
-step << Druid
+step << Druid !ac335
     .complete 64051,1 --1/1 Train a Spell (1)
 
-step << !Druid !Paladin
+step << !Druid !Paladin !ac335
     .turnin 64050 >>Turn in Combat Training
     .accept 64052 >>Accept Talented
-step << Druid
+step << Druid !ac335
     .turnin 64051 >>Turn in Combat Training
-step << Druid
+step << Druid !ac335
     .accept 64053 >>Accept Talented
-step << !Druid !Paladin
+step << !Druid !Paladin !ac335
 	>>Spec into any talent build you want to play while leveling.
 	.complete 64052,1 --1/1 Spend a Talent Point (1)
-step << Druid
+step << Druid !ac335
 	>>Spec into any talent build you want to play while leveling.
     .complete 64053,1 --1/1 Spend a Talent Point (1)
 
-step << !Druid !Paladin
+step << !Druid !Paladin !ac335
     .turnin 64052 >>Turn in Talented
-step << Druid
+step << Druid !ac335
     .turnin 64053 >>Turn in Talented
-step << !Druid !Paladin
+step << !Druid !Paladin !ac335
 	#label nondruidboost
     .accept 64063 >> Accept The Dark Portal
-step << Druid
+step << Druid !ac335
 	#label druidboost
 	.accept 64217 >> Accept The Dark Portal
 
-step << Druid
+step << Druid !ac335
 
     .fly Orgrimmar >>Fly to Orgrimmar
 
-step << Mage
+step << Mage !ac335
     .goto Orgrimmar,38.7,85.5
     >>Run up to the 2nd floor to train Teleport & Portal to Orgrimmar
 	.train 3567 >> Teleport: Orgrimmar
 	.train 11417 >> Portal: Orgrimmar
+step << ac335
+    .zone Orgrimmar >>Travel to Orgrimmar
 step << Warlock
     .goto Orgrimmar,47.6,46.7,0
 	.vendor 5815 >> Talk to Kurgul to purchase your minions Grimoires
@@ -107,10 +108,10 @@ step	<<!Paladin
     .goto Orgrimmar,54.5,67.6
     >>Buy at least 2 stacks of food/water from Barkeep Morag.
 	.vendor
-step << Druid
+step << Druid !ac335
     .goto Durotar,50.7,12.9
     .complete 64217,1 --Visit Snurk Bucksquick, the Zeppelin Master (1)
-step << !Druid
+step << !Druid !ac335
     .goto Durotar,50.7,12.9
     .complete 64063,1 --Visit Snurk Bucksquick, the Zeppelin Master (1)
 step
@@ -657,25 +658,33 @@ step
     .goto Tirisfal Glades,61.9,59.1
 step
 .zone Stranglethorn Vale >>Arrive in Stranglethorn Vale
-step << Druid
+step << Druid !ac335
     .goto Stranglethorn Vale,32.5,29.3
     .complete 64217,2 --Speak to Thysta at Grom'gol Base Camp (1)
 	.fly Stonard >> Fly to Stonard
-step << !Druid
+step << !Druid !ac335
     .goto Stranglethorn Vale,32.5,29.3
     .complete 64063,2 --Speak to Thysta at Grom'gol Base Camp (1)
 	.fly Stonard >> Fly to Stonard
+step << ac335
+    .goto Stranglethorn Vale,32.5,29.3
+    .fly Stonard >> Fly to Stonard
 step
 	.zone Blasted Lands >> Run to Blasted Lands
-step << !Druid
+step << !Druid !ac335
     .goto Blasted Lands,58.1,56.1
     .turnin 64063 >>Turn in The Dark Portal
 .target Warlord Dar'toon
 >>Talk to |cRXP_FRIENDLY_Warlord Dar'toon|r
     .accept 9407 >>Accept Through the Dark Portal
-step << Druid
+step << Druid !ac335
     .goto Blasted Lands,58.1,56.1
     .turnin 64217 >>Turn in The Dark Portal
+.target Warlord Dar'toon
+>>Talk to |cRXP_FRIENDLY_Warlord Dar'toon|r
+    .accept 9407 >>Accept Through the Dark Portal
+step << ac335
+    .goto Blasted Lands,58.1,56.1
 .target Warlord Dar'toon
 >>Talk to |cRXP_FRIENDLY_Warlord Dar'toon|r
     .accept 9407 >>Accept Through the Dark Portal

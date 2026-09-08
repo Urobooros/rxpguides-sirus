@@ -1,15 +1,36 @@
 <Bindings>
-    <Binding name="CLICK RXPInventory_DeleteJunk:LeftButton" header="Inventory Management" category="BINDING_HEADER_RXPInventory" />
-    <Binding name="CLICK RXPItemFrameButton1:LeftButton" header="Active Items" category="BINDING_HEADER_RXPGuides" />
-    <Binding name="CLICK RXPItemFrameButton2:LeftButton" category="BINDING_HEADER_RXPGuides"/>
-    <Binding name="CLICK RXPItemFrameButton3:LeftButton" category="BINDING_HEADER_RXPGuides"/>
-    <Binding name="CLICK RXPItemFrameButton4:LeftButton" category="BINDING_HEADER_RXPGuides"/>
-    <Binding name="CLICK RXPTargetFrame_FriendlyButton1:LeftButton" header="Active Friendly Targets" category="BINDING_HEADER_RXPTargeting" />
-    <Binding name="CLICK RXPTargetFrame_FriendlyButton2:LeftButton" category="BINDING_HEADER_RXPTargeting"/>
-    <Binding name="CLICK RXPTargetFrame_FriendlyButton3:LeftButton" category="BINDING_HEADER_RXPTargeting"/>
-    <Binding name="CLICK RXPTargetFrame_FriendlyButton4:LeftButton" category="BINDING_HEADER_RXPTargeting"/>
-    <Binding name="CLICK RXPTargetFrame_EnemyButton1:LeftButton" header="Active Enemy Targets" category="BINDING_HEADER_RXPTargeting" />
-    <Binding name="CLICK RXPTargetFrame_EnemyButton2:LeftButton" category="BINDING_HEADER_RXPTargeting"/>
-    <Binding name="CLICK RXPTargetFrame_EnemyButton3:LeftButton" category="BINDING_HEADER_RXPTargeting"/>
-    <Binding name="CLICK RXPTargetFrame_EnemyButton4:LeftButton" category="BINDING_HEADER_RXPTargeting"/>
+    <Binding name="CLICK RXP_TargetBindingButton:LeftButton"
+             header="RXPGUIDES" runOnUp="true">
+        -- Secure RXPGuides targeting dispatcher
+    </Binding>
+    <Binding name="CLICK RXPInventory_DeleteJunk:LeftButton"
+             header="RXPGUIDES" runOnUp="true">
+        -- Delete the cheapest junk item
+    </Binding>
+    <Binding name="RXP_MOUSEOVER_CORPSE_LOOT"
+             header="RXPGUIDES" hidden="true">
+        -- Legacy binding retained only so existing saved keys can be migrated
+    </Binding>
+    <Binding name="CLICK RXPItemFrameButton1:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPItemFrameButton2:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPItemFrameButton3:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPItemFrameButton4:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPTargetFrame_FriendlyButton1:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPTargetFrame_FriendlyButton2:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPTargetFrame_FriendlyButton3:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPTargetFrame_FriendlyButton4:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPTargetFrame_EnemyButton1:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPTargetFrame_EnemyButton2:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPTargetFrame_EnemyButton3:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="CLICK RXPTargetFrame_EnemyButton4:LeftButton" header="RXPGUIDES" runOnUp="true" />
+    <Binding name="RXP_SPEEDRUN_PRACTICE_TOGGLE" header="RXPGUIDES" runOnUp="true">
+        if RXPGuides and RXPGuides.ToggleSpeedrunPractice then
+            RXPGuides.ToggleSpeedrunPractice()
+        end
+    </Binding>
+    <Binding name="RXP_SPEEDRUN_PRACTICE_SPLIT" header="RXPGUIDES" runOnUp="true">
+        if RXPGuides and RXPGuides.SplitSpeedrunPractice then
+            RXPGuides.SplitSpeedrunPractice()
+        end
+    </Binding>
 </Bindings>

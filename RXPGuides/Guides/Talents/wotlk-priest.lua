@@ -220,3 +220,17 @@ level -- Improved Inner Fire (Rank 1)
 level -- Improved Inner Fire (Rank 2)
     .talent 1,2,2,2
 ]])
+
+-- Adapted from the locally supplied 3.3.5 TalentAdvisor builds and validated
+-- against the 3.3.5a talent layout. Compact entries are tab,tier,column,count.
+addon.talents.RegisterBuild("Discipline 10-80", [[
+1,1,3,5;1,2,2,3;1,2,3,2;1,3,1,3;1,3,3,3;1,4,2,3;1,3,2,1;1,5,2,5;1,6,1,2;1,6,3,3;
+1,7,2,1;1,7,1,3;1,5,3,1;1,8,2,3;1,8,1,2;1,9,2,1;1,9,1,3;1,9,3,1;1,10,2,5;1,11,2,1;
+1,9,3,1;1,8,3,2;1,7,3,3;2,1,3,5;2,2,3,5;2,3,4,3;2,3,1,1
+]])
+
+addon.talents.RegisterBuild("Holy 10-80", [[
+2,1,3,5;2,2,3,5;2,3,4,3;2,1,2,3;2,4,2,3;2,3,1,1;2,5,2,1;2,5,3,5;2,6,1,2;2,6,3,5;
+2,7,1,2;2,8,2,5;2,9,2,1;2,7,1,1;2,9,1,3;2,10,2,5;2,11,2,1;2,9,3,3;2,8,3,3;1,1,3,5;
+1,2,2,3;1,2,3,2;1,3,1,3;1,3,2,1
+]])

@@ -1,4 +1,3 @@
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #version 1
 #group +RestedXP Northrend Daily Quests
@@ -179,19 +178,11 @@ step
     .goto IcecrownGlacier,42.9,24.9
 	>>Exit the Hall. Return to Baron Silver
     .turnin 12951 >>Turn in Let the Baron Know
-    .daily 12995 >>Accept Leave Our Mark
-    .accept 13085 >>Accept Vaelen Has Returned
 step
     .goto IcecrownGlacier,43.6,24.1,60,0
     .goto IcecrownGlacier,42.7,26.8
 	>>Talk to Vile patrolling along the main road
     .accept 12992 >>Accept Crush Dem Vrykuls!
-step
-    .goto IcecrownGlacier,43.8,23.3,30,0
-    .goto IcecrownGlacier,43.1,21.1
-	>> Go inside the building. Talk to Vaelen inside on the left
-    .turnin 13085 >>Turn in Vaelen Has Returned
-    .accept 12982 >>Accept Ebon Blade Prisoners
 step
     .goto IcecrownGlacier,44.7,20.4
 	>>Talk to Lankral
@@ -206,11 +197,7 @@ step
     .goto IcecrownGlacier,29.0,35.1,50,0
     .goto IcecrownGlacier,34.1,28.7,50,0
     .goto IcecrownGlacier,29.5,43.4
-	.use 42480 >>Kill Vrykul in the area and loot them for their cage keys. Use the Ebon Blade Banner in your bags on their corpses. Click any Keys looted on the cages found throughout Jotenheim
 	>>Burn the Banners found throughout Jotenheim
-	.collect 42422,8,12982,1,-1 --Jotunheim Cage Key (8)
-    .complete 12982,1 --Ebon Blade Prisoners set free (8)
-    .complete -12995,1 --Ebon Blade Banner planted near Vrykul corpse (0/15)
     .complete 12992,1 --Jotunheim Vrykul slain (0/15)
     .complete 13084,1 --Vrykul banners burned (10)
 step
@@ -218,19 +205,48 @@ step
     .goto IcecrownGlacier,43.6,24.1
 	>>Return to The Shadow Vault. Talk to Vile patrolling along the main road
     .turnin 12992 >>Turn in Crush Dem Vrykuls!
-    .daily 13071 >>Accept Vile Like Fire!
-step
-    .goto IcecrownGlacier,43.8,23.3,30,0
-    .goto IcecrownGlacier,43.1,21.1
-	>> Go inside the building. Talk to Vaelen inside on the left
-    .turnin 12982 >>Turn in Ebon Blade Prisoners
 step
     .goto IcecrownGlacier,44.7,20.4
 	>>Talk to Lankral
     .turnin 13084 >>Turn in Vandalizing Jotunheim
 step
     .goto IcecrownGlacier,42.9,24.9
-    >>Return to Silver
+	>>Return to Baron Silver
+    .accept 13085 >>Accept Vaelen Has Returned
+	.daily 12995 >>Accept Leave Our Mark
+step
+    .goto IcecrownGlacier,43.8,23.3,30,0
+    .goto IcecrownGlacier,43.1,21.1
+	>>Go inside the building. Talk to Vaelen inside on the left
+    .turnin 13085 >>Turn in Vaelen Has Returned
+    .accept 12982 >>Accept Ebon Blade Prisoners
+step
+    .goto IcecrownGlacier,43.6,24.1,60,0
+    .goto IcecrownGlacier,42.7,26.8
+	>>Talk to Vile patrolling along the main road
+    .daily 13071 >>Accept Vile Like Fire!
+step
+    .goto IcecrownGlacier,29.5,43.4,50,0
+    .goto IcecrownGlacier,29.6,45.7,50,0
+    .goto IcecrownGlacier,27.9,45.8,50,0
+    .goto IcecrownGlacier,27.8,40.2,50,0
+    .goto IcecrownGlacier,28.3,38.0,50,0
+    .goto IcecrownGlacier,29.0,35.1,50,0
+    .goto IcecrownGlacier,34.1,28.7,50,0
+    .goto IcecrownGlacier,29.5,43.4
+	>>Kill Vrykul and loot their cage keys. Use the keys on cages throughout Jotunheim
+	.collect 42422,8,12982,1,-1 --Jotunheim Cage Key (8)
+    .complete 12982,1 --Ebon Blade Prisoners set free (8)
+	.use 42480 >>Kill Vrykul and use the Ebon Blade Banner on their corpses
+    .complete 12995,1 --Ebon Blade Banner planted near Vrykul corpse (15)
+step
+    .goto IcecrownGlacier,43.8,23.3,30,0
+    .goto IcecrownGlacier,43.1,21.1
+	>>Go inside the building. Talk to Vaelen inside on the left
+    .turnin 12982 >>Turn in Ebon Blade Prisoners
+step
+    .goto IcecrownGlacier,42.9,24.9
+    >>Return to Baron Silver
 	.turnin 12995 >>Turn in Leave Our Mark
 	.isQuestComplete 12995
 step

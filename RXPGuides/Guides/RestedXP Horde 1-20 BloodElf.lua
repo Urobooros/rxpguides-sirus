@@ -1,7 +1,6 @@
 local faction = UnitFactionGroup("player")
 if faction == "Alliance" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
@@ -644,7 +643,7 @@ RXPGuides.RegisterGuide([[
 
 step
     .goto Eversong Woods,47.26,46.31
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Jarondis|r
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Magister Jaronis|r
     .accept 8472 >> Accept Major Malfunction
     .target Magister Jaronis
 step
@@ -846,7 +845,7 @@ step
     .complete 8472,1 --Collect Arcane Core (x6)
     .mob Arcane Patroller
 step
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Jarondis|r, |cRXP_FRIENDLY_Kan'ren|r, and |cRXP_FRIENDLY_Aeldon|r
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Magister Jaronis|r, |cRXP_FRIENDLY_Kan'ren|r, and |cRXP_FRIENDLY_Aeldon|r
     .turnin 8472 >> Turn in Major Malfunction
     .accept 8895 >> Accept Delivery to the North Sanctum
     .goto Eversong Woods,47.26,46.31
@@ -1308,11 +1307,11 @@ step << Warrior/Warlock/Hunter/Rogue
     .deathskip >> Die and respawn at the |cRXP_FRIENDLY_Spirit Healer|r (make sure your subzone is Eversong Woods and NOT West Sanctum)
     .target Spirit Healer
     .isOnQuest 8885
-step << Warrior/Warlock/Hunter/Rogue
+step
     #completewith next
     .goto Eversong Woods,46.70,49.09,20,0
     .goto Eversong Woods,46.69,48.02,20 >> Travel toward Aeldon
-step << Warrior/Warlock/Hunter/Rogue
+step
     .goto Eversong Woods,48.17,46.00
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Aeldon|r
     .turnin 8482 >> Turn in Incriminating Documents
@@ -1423,14 +1422,14 @@ step << Rogue
     .itemcount 2494,1
     .itemStat 16,QUALITY,<7
     .itemStat 16,ITEM_MOD_DAMAGE_PER_SECOND_SHORT,<3.3
-step << Warrior/Warlock/Hunter/Rogue
+step
     .goto Eversong Woods,44.57,53.30
     .gossipoption 91301 >>Talk to |cRXP_FRIENDLY_Anvilward|r
     .timer 28,Prospector Anvilward RP
     .target Prospector Anvilward
     .skipgossip 15420,1
     .isOnQuest 8483
-step << Warrior/Warlock/Hunter/Rogue
+step
     .goto Eversong Woods,44.57,53.11,10,0
     .goto Eversong Woods,44.01,52.83,10,0
     .goto Eversong Woods,43.91,53.12,10,0
@@ -1439,6 +1438,12 @@ step << Warrior/Warlock/Hunter/Rogue
     >>Kill |cRXP_ENEMY_Prospector Anvilward|r. Loot him for his |cRXP_LOOT_Head|r
     .complete 8483,1 --Collect Prospector Anvilward's Head (x1)
     .mob Prospector Anvilward
+step
+    .goto Eversong Woods,48.17,46.00
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Aeldon|r
+    .turnin 8483 >> Turn in The Dwarven Spy
+    .accept 9256 >> Accept Fairbreeze Village
+    .target Aeldon Sunbrand
 step << Warrior/Warlock/Hunter/Rogue
     #xprate <1.5
     .goto Eversong Woods,45.19,56.43
@@ -1519,6 +1524,7 @@ step
 step
     .goto Eversong Woods,43.34,70.82
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Degolien|r
+    .turnin 9256 >> Turn in Fairbreeze Village
     .accept 8892 >> Accept Situation at Sunsail Anchorage
     .target Ranger Degolien
 step
@@ -1958,6 +1964,12 @@ step
     >>|cRXP_WARN_Be careful as|r |cRXP_ENEMY_Darkwraiths|r |cRXP_WARN_cast|r |T136224:0|t[Enrage] |cRXP_WARN_(increased damage and attack speed) at low health|r
     .complete 9252,2 --Kill Darkwraith (x4)
     .mob Darkwraith
+step << Undead Warrior
+    .goto Eversong Woods,46.93,71.79
+    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Ranger Sareyn|r
+    .turnin 9252 >> Turn in Defending Fairbreeze Village
+    .target Ranger Sareyn
+    .isQuestComplete 9252
 step
     .goto Eversong Woods,54.28,70.97
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Mirveda|r
@@ -2232,54 +2244,10 @@ step
     .money <0.0238 << !Priest !Mage !Warlock !Druid !Paladin
     .money <0.0357 << Paladin
     .target Innkeeper Delaniel
-step << Paladin/Priest/Mage
-    #xprate <1.5
-    .goto Eversong Woods,48.17,46.00
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Aeldon|r
-    .turnin 8482 >> Turn in Incriminating Documents
-    .accept 8483 >> Accept The Dwarven Spy
-    .target Aeldon Sunbrand
-step << Paladin/Priest/Mage
-    #xprate >1.4999
-    .goto Eversong Woods,48.17,46.00
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Aeldon|r
-    .turnin 8482 >> Turn in Incriminating Documents
-    .target Aeldon Sunbrand
-step << Paladin/Priest/Mage
-    #xprate <1.5
-    .goto Eversong Woods,44.57,53.30
-    .gossipoption 91301 >>Talk to |cRXP_FRIENDLY_Anvilward|r
-    .timer 28,Prospector Anvilward RP
-    .target Prospector Anvilward
-    .skipgossip 15420,1
-    .isOnQuest 8483
-step << Paladin/Priest/Mage
-    #xprate <1.5
-    .goto Eversong Woods,44.57,53.11,10,0
-    .goto Eversong Woods,44.01,52.83,10,0
-    .goto Eversong Woods,43.91,53.12,10,0
-    .goto Eversong Woods,44.07,53.33
-    >>|cRXP_WARN_Wait out the RP|r
-    >>Kill |cRXP_ENEMY_Prospector Anvilward|r. Loot him for his |cRXP_LOOT_Head|r
-    .complete 8483,1 --Collect Prospector Anvilward's Head (x1)
-    .mob Prospector Anvilward
-step
-    #xprate <1.5
-    .goto Eversong Woods,48.17,46.00
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Aeldon|r
-    .turnin 8483 >> Turn in The Dwarven Spy
-    .target Aeldon Sunbrand
---VV !Hunter
 step
     .goto Eversong Woods,45.02,37.68
     .xp 10 >> Grind to level 10
     --VV !Hunter
-step << !Paladin !Priest !Mage
-    #xprate >1.4999
-    .goto Eversong Woods,48.17,46.00
-    >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Aeldon|r
-    .turnin 8483 >> Turn in The Dwarven Spy
-    .target Aeldon Sunbrand
 step << Warrior tbc/Rogue
     +Equip the |T135274:0|t[Slightly Used Ranger's Blade]
     .use 23396
@@ -2677,7 +2645,7 @@ step << Orc/Troll/Tauren
 step << Troll Mage
     .goto Eversong Woods,55.70,54.51
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Antheol|r
-    .accept 9403 >>Accept The Purest Water
+    .accept 9402 >>Accept Fetch!
     .target Instructor Antheol
 step << Troll Mage
     .goto Eversong Woods,54.69,56.23
@@ -2700,6 +2668,7 @@ step << Undead/BloodElf
     >>|cRXP_BUY_Buy the|r |T133974:0|t[Springpaw Appetizers] |cRXP_BUY_from her|r
     .collect 22776,1,9067,1 --Collect Springpaw Appetizers
     .target Zalene Firstlight
+    .isOnQuest 9067
 step
     .goto Eversong Woods,60.32,62.76
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Dawnrunner|r
@@ -3030,7 +2999,7 @@ step << !Troll Hunter
     .itemStat 16,QUALITY,<7
     .itemStat 18,ITEM_MOD_DAMAGE_PER_SECOND_SHORT,<8.5
 step << !Troll Hunter
-    #completewith HunterTrain
+    #completewith SMtraining01
     +Equip the |T135489:0|t[Laminated Recurve Bow]
     .use 2507
     .itemcount 2507,1
@@ -3198,7 +3167,7 @@ step << !Troll Hunter
     .itemStat 16,QUALITY,<7
     .itemStat 18,ITEM_MOD_DAMAGE_PER_SECOND_SHORT,<8.5
 step << !Troll Hunter
-    #completewith HunterTrain
+    #completewith SMtraining01
     +Equip the |T135489:0|t[Laminated Recurve Bow]
     .use 2507
     .itemcount 2507,1
@@ -3690,7 +3659,7 @@ step << Rogue
     .zoneskip Eversong Woods
     .zoneskip Ghostlands
 step << Rogue
-    .goto Undercity,59,91,11.32,20,0
+    .goto Undercity,59.91,11.32,20,0
     .goto Undercity,54.67,11.25
     .zone Silvermoon City >> Take the Orb of Translocation to Silvermoon City
     .cooldown item,6948,<0
@@ -3863,6 +3832,7 @@ step << Undead/BloodElf
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Saltheril|r
     .turnin 9067 >>Turn in The Party Never Ends
     .target Lord Saltheril
+    .isQuestComplete 9067
 step << Undead/BloodElf
     #completewith next
     .destroy 23500 >> Delete |T133461:0|t[Saltheril's Haven Party Invitation] from your bags, as it's no longer needed
@@ -4030,6 +4000,7 @@ step << BloodElf Warlock
 step << BloodElf Warlock
     .goto Ghostlands,43.66,15.97
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to the |cRXP_FRIENDLY_Purple Shard|r on the ground
+    .turnin 9529 >>Turn in The Stone
     .accept 9619 >>Accept The Rune of Summoning
 step << BloodElf Warlock
     #completewith next
@@ -4242,6 +4213,13 @@ step << BloodElf Warlock
     .target Quartermaster Lymel
     .target Rathis Tomber
     .target Arcanist Vandril
+step
+    .isQuestTurnedIn -9145
+    .isQuestTurnedIn -9143
+    .goto Ghostlands,45,32,50
+    >>Talk to |cRXP_FRIENDLY_Ranger Lethvalin|r near the flight master before leaving Tranquillien.
+    .accept 9145 >>Accept Help Ranger Valanna!
+    .target Ranger Lethvalin
 step << skip
     >>Do NOT fly to Silvermoon City. Talk to the Flight Master.
     .goto Ghostlands,45.5,30.6
@@ -4450,6 +4428,7 @@ step << Paladin
 step
     .goto Ghostlands,69.40,15.19
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Valanna|r
+    .turnin 9145 >> Turn in Help Ranger Valanna!
     .accept 9143 >> Accept Dealing with Zeb'Sora
     .target Ranger Valanna
 step
@@ -5364,7 +5343,7 @@ step << Rogue
     .zoneskip Ghostlands
     .xp <16,1
 step << Rogue
-    .goto Undercity,59,91,11.32,20,0
+    .goto Undercity,59.91,11.32,20,0
     .goto Undercity,54.67,11.25
     .zone Silvermoon City >> Take the Orb of Translocation to Silvermoon City
     .cooldown item,6948,<0
@@ -6589,7 +6568,7 @@ step << Rogue
     .zoneskip Eversong Woods
     .zoneskip Ghostlands
 step << Rogue
-    .goto Undercity,59,91,11.32,20,0
+    .goto Undercity,59.91,11.32,20,0
     .goto Undercity,54.67,11.25
     .zone Silvermoon City >> Take the Orb of Translocation to Silvermoon City
     .cooldown item,6948,<0
@@ -7562,7 +7541,7 @@ step << Rogue
     .zoneskip Eversong Woods
     .zoneskip Ghostlands
 step << Rogue
-    .goto Undercity,59,91,11.32,20,0
+    .goto Undercity,59.91,11.32,20,0
     .goto Undercity,54.67,11.25
     .zone Silvermoon City >> Take the Orb of Translocation to Silvermoon City
     .cooldown item,6948,<0
@@ -7820,7 +7799,7 @@ RXPGuides.RegisterGuide([[
 #wotlk
 << Horde !Warrior !Shaman
 #name 16-20 Ghostlands
-#next 22-26 Hillsbrad Foothills JJ;20-23 Stonetalon / The Barrens
+#next 22-25 Hillsbrad Foothills JJ;20-23 Stonetalon / The Barrens
 #version 1
 #group RestedXP Horde 1-30
 
@@ -7842,7 +7821,7 @@ step << Rogue
     .target Eralan
     .isQuestTurnedIn 10372
 step << Rogue wotlk
-    #completewith Clearing
+    #completewith next
     .goto Ghostlands,47.20,34.31
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Eralan|r
     >>|cRXP_BUY_Buy|r |T132273:0|t[Instant Poison] |cRXP_BUY_from her|r
@@ -7890,7 +7869,7 @@ step << Rogue
     .itemStat 18,ITEM_MOD_DAMAGE_PER_SECOND_SHORT,<12.5 << wotlk
 step << Rogue
     #label Eralan3
-    #completewith Clearing
+    #completewith next
     +Equip the |T135427:0|t[Throat Piercers] and |T135344:0|t[Sinister Scimitar]
     .use 29584
     .use 29583
@@ -7903,7 +7882,7 @@ step << Rogue
     .itemStat 18,ITEM_MOD_DAMAGE_PER_SECOND_SHORT,<12.5 << wotlk
 step << Rogue
     #requires Eralan3
-    #completewith Clearing
+    #completewith next
     +Equip the |T135344:0|t[Sinister Scimitar]
     .use 29583
     .itemcount 29583,1
@@ -7911,7 +7890,7 @@ step << Rogue
     .itemStat 16,ITEM_MOD_DAMAGE_PER_SECOND_SHORT,<10.0
 step << Rogue
     #requires Eralan3
-    #completewith Clearing
+    #completewith next
     +Equip the |T135427:0|t[Throat Piercers]
     .use 29584
     .itemcount 29584,1
@@ -8379,7 +8358,7 @@ step << Rogue
     .itemStat 18,ITEM_MOD_DAMAGE_PER_SECOND_SHORT,<12.5 << wotlk
 step << Rogue
     #label Eralan4
-    #completewith Clearing
+    #completewith next
     +Equip the |T135427:0|t[Throat Piercers] and |T135344:0|t[Sinister Scimitar]
     .use 29584
     .use 29583
@@ -8392,7 +8371,7 @@ step << Rogue
     .itemStat 18,ITEM_MOD_DAMAGE_PER_SECOND_SHORT,<12.5 << wotlk
 step << Rogue
     #requires Eralan4
-    #completewith Clearing
+    #completewith next
     +Equip the |T135344:0|t[Sinister Scimitar]
     .use 29583
     .itemcount 29583,1
@@ -8400,7 +8379,7 @@ step << Rogue
     .itemStat 16,ITEM_MOD_DAMAGE_PER_SECOND_SHORT,<10.0
 step << Rogue
     #requires Eralan4
-    #completewith Clearing
+    #completewith next
     +Equip the |T135427:0|t[Throat Piercers]
     .use 29584
     .itemcount 29584,1
@@ -10139,7 +10118,7 @@ step
     .accept 9626 >> Accept Meeting the Warchief << BloodElf
     .turnin 9180 >> Turn in Journey to Undercity << BloodElf
     .turnin 9812 >> Turn in Envoy to the Horde << !BloodElf
-    .accept 9813 >> Accept Meeting the Orcs << !BloodElf
+    .accept 9813 >> Accept Meeting the Warchief << !BloodElf
     .turnin 9177 >> Turn in Journey to Undercity << !BloodElf
     .goto Undercity,58.06,91.79
     .accept 9425 >> Accept Report to Tarren Mill << BloodElf
@@ -10152,7 +10131,7 @@ step
     >>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Sylvanas|r and |cRXP_FRIENDLY_Sunsorrow|r
     .accept 9626 >> Accept Meeting the Warchief << BloodElf
     .turnin 9180 >> Turn in Journey to Undercity << BloodElf
-    .accept 9813 >> Accept Meeting the Orcs << !BloodElf
+    .accept 9813 >> Accept Meeting the Warchief << !BloodElf
     .turnin 9177 >> Turn in Journey to Undercity << !BloodElf
     .goto Undercity,58.06,91.79
     .accept 9425 >> Accept Report to Tarren Mill << BloodElf

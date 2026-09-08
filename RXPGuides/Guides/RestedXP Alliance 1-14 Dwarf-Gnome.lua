@@ -1,11 +1,10 @@
 local faction = UnitFactionGroup("player")
 if faction == "Horde" then return end
 
-if GetLocale() == "zhCN" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Alliance !Warlock !Hunter
+<< Alliance !Warlock !Hunter !DK
 #name 1-6 Coldridge Valley
 #next 6-11 Dun Morogh
 #version 1
@@ -450,7 +449,7 @@ step << !Priest
 .target Ragnar Thunderbrew
 >>Talk to |cRXP_FRIENDLY_Ragnar Thunderbrew|r
     .accept 384 >> Accept Beer Basted Boar Ribs
-step << !Priest
+step
     .goto Dun Morogh,47.217,52.195
 .target Tannok Frosthammer
 >>Talk to |cRXP_FRIENDLY_Tannok Frosthammer|r
@@ -1594,7 +1593,7 @@ RXPGuides.RegisterGuide([[
 #version 1
 #group RestedXP Alliance 1-20
 #defaultfor Gnome Warlock
-#next 12-14 Loch Modan Gnome;11-14 Darkshore
+#next 12-14 Loch Modan Gnome;11-14 Darkshore;14-20 Bloodmyst
 step << !Gnome !Dwarf
     #sticky
     #completewith next
@@ -2542,7 +2541,7 @@ step
     .accept 88 >> Accept Princess Must Die!
 step
     .goto Elwynn Forest,24.6,78.2
-    .accept 176 >> Accept Wanted:   "Hogger"
+    .accept 176 >> Accept Wanted:  "Hogger"
 step
     #sticky
     #completewith next
@@ -2607,7 +2606,7 @@ step << tbc
     .accept 61 >> Accept Shipment to Stormwind
 step
     #sticky
-    #completewith soylago
+    #completewith next
     .goto Elwynn Forest,44.1,66.0,12 >>If you're level 12, go to the room behind the innkeeper, then go downstairs. Otherwise, skip this step
     .goto Elwynn Forest,44.4,66.2
     .train 755 >>Train Health Funnel
@@ -3118,6 +3117,7 @@ step
     #completewith next
     .goto Loch Modan,32.0,47.2,150 >> Run to Thelsamar
 step
+#label FlyIF
 .goto Loch Modan,33.938,50.954
     .fly Ironforge >> Fly to Ironforge
 step
