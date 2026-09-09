@@ -1502,8 +1502,11 @@ GuideName:SetHeight(35)
 GuideName.text = GuideName:CreateFontString(nil, "OVERLAY")
 -- GuideName.text:SetFontObject(GameFontNormalSmall)
 GuideName.text:ClearAllPoints()
-GuideName.text:SetPoint("LEFT", GuideName, 29, 0)
-GuideName.text:SetPoint("RIGHT", GuideName, 0, 0)
+-- The 42px logo extends to x=37. Keep the title wholly to its right and bound
+-- it vertically so automatic wrapping at the minimum window width cannot draw
+-- a third line over the guide body or the frame border.
+GuideName.text:SetPoint("TOPLEFT", GuideName, "TOPLEFT", 42, -3)
+GuideName.text:SetPoint("BOTTOMRIGHT", GuideName, "BOTTOMRIGHT", -5, 3)
 GuideName.text:SetJustifyH("CENTER")
 GuideName.text:SetJustifyV("MIDDLE")
 
