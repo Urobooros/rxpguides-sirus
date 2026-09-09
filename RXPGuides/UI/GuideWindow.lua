@@ -298,6 +298,16 @@ RXPFrame.OnMouseUp = function(self, button)
         addon.settings.profile.frameHeight = RXPFrame:GetHeight()
         addon.SetStep(RXPCData.currentStep)
         RXPFrame:SetScript("OnUpdate", nil)
+        -- Legacy FontStrings can apply their new wrapping width one frame
+        -- after StopMovingOrSizing. Re-measure once after that propagation so
+        -- wrapped lines cannot retain the height calculated for the old width.
+        C_Timer.After(0, function()
+            if not (addon.currentGuide and RXPCData and
+                    RXPCData.currentStep) then return end
+            CurrentStepFrame.UpdateText(true)
+            BottomFrame.UpdateFrame(RXPFrame)
+            BottomFrame:StepScroll(RXPCData.currentStep, true)
+        end)
     end
     SetStepFrameAnchor()
     addon.UpdateItemFrame()
@@ -2729,6 +2739,14 @@ end
 function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
     local level = UnitLevel("player")
 
+    -- Width determines FontString wrapping and therefore must be committed
+    -- before any GetStringHeight call below. The previous order resized the
+    -- child after measuring, leaving narrow layouts with stale row heights.
+    local contentWidth = math.max(1, RXPFrame:GetWidth() - 35)
+    if math.abs(ScrollChild:GetWidth() - contentWidth) > 0.01 then
+        ScrollChild:SetWidth(contentWidth)
+    end
+
     if stepPos[0] and ((not self and stepn) or (self and self.step)) and IsFrameShown(self,self and self.step) then
         local stepNumber = stepn or self.step.index
         local frame = ScrollChild.framePool[stepNumber]
@@ -2945,8 +2963,6 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
                                   (tonumber(BottomFrame.hiddenFrames) or 0) * 4)
     end
 
-    local w = RXPFrame:GetWidth() - 35
-    ScrollChild:SetWidth(w)
     local bottomFrameHeight = BottomFrame:GetHeight()
 
     if bottomFrameHeight < 30 then
