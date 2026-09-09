@@ -117,6 +117,16 @@ local function BuildBridge()
 
     local stableMapIDs = buildStableMapLookup(mapId)
 
+    -- The Sirus client exposes its combined Azeroth view as uiMapID 947. Keep
+    -- the world view distinct from the player's current continent so callers
+    -- do not mistake an open Azeroth map for a zone map.
+    local worldID = mapId.Azeroth
+    if worldID then
+        uiMapIDToCZ[worldID] = { 0, 0 }
+        czToUiMapID[czKey(0, 0)] = worldID
+        nameByID[worldID] = "Azeroth"
+    end
+
     -- Continent indexes are stable in the 3.3.5 client; only their display
     -- names are localized. Resolve the authored map IDs by canonical identity.
     local continents = { _G.GetMapContinents() }
@@ -885,6 +895,22 @@ if Pins then
         end
     end
 
+    -- Coordinate rectangles from the Sirus-compatible map database. They are
+    -- immutable and shared by every pin refresh to avoid per-pin allocations.
+    local sirusContinentWorldData = {
+        [1] = {36799.810546875, 24533.200195313,
+               17066.599609375, 12799.900390625, 1},
+        [2] = {40741.181640625, 27149.6875,
+               18171.970703125, 11176.34375, 0},
+        [4] = {17763.010742188, 11842.702514648,
+               9198.58203125, 10619.23046875, 571},
+    }
+    local sirusAzerothWorldData = {
+        [0] = {77314.8128, 51543.2086, 65990.7383, 24790.1228},
+        [1] = {77136.2590, 51424.1727, 13071.5926, 28037.5675},
+        [571] = {76781.6088, 51187.7392, 37189.2718, 14038.3139},
+    }
+
     local function placeWorldIcon(icon, c, z, x, y)
         if not worldMapAnchor then worldMapAnchor = _G.WorldMapDetailFrame end
         if not worldMapAnchor then return end
@@ -904,7 +930,42 @@ if Pins then
         icon:SetParent(iconParent)
         icon:SetFrameStrata(iconParent:GetFrameStrata())
         icon:SetFrameLevel((iconParent:GetFrameLevel() or 0) + 5)
-        local ok = Astrolabe:PlaceIconOnWorldMap(worldMapAnchor, icon, c, z, x, y)
+        local ok
+
+        -- Sirus replaced only the combined Azeroth artwork. Its continents use
+        -- different rectangles than stock 3.3.5, while zone and continent maps
+        -- still use the normal Astrolabe projection. Project through the map
+        -- bounds shipped with the Sirus-compatible client database only while
+        -- the combined world map is displayed.
+        local mapContinent = _G.GetCurrentMapContinent and
+                                 _G.GetCurrentMapContinent()
+        local mapZone = _G.GetCurrentMapZone and _G.GetCurrentMapZone()
+        if mapContinent == 0 and mapZone == 0 then
+            local continent = sirusContinentWorldData[c]
+            local world = continent and sirusAzerothWorldData[continent[5]]
+            if continent and world then
+                local cx, cy = Astrolabe:TranslateWorldMapPosition(c, z, x, y,
+                                                                    c, 0)
+                if cx and cy then
+                    local worldX = continent[3] - continent[1] * cx
+                    local worldY = continent[4] - continent[2] * cy
+                    local mapX = (world[3] - worldX) / world[1]
+                    local mapY = (world[4] - worldY) / world[2]
+                    if mapX > 0 and mapX <= 1 and mapY > 0 and mapY <= 1 then
+                        icon:ClearAllPoints()
+                        icon:SetPoint("CENTER", worldMapAnchor, "TOPLEFT",
+                                      mapX * worldMapAnchor:GetWidth(),
+                                      -mapY * worldMapAnchor:GetHeight())
+                        icon:Show()
+                        ok = true
+                    else
+                        icon:Hide()
+                    end
+                end
+            end
+        else
+            ok = Astrolabe:PlaceIconOnWorldMap(worldMapAnchor, icon, c, z, x, y)
+        end
         -- Astrolabe returns nil-ish and hides the icon when it is not on the
         -- currently displayed map.
         if ok == nil then icon:Hide() end
