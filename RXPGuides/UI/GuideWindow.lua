@@ -184,6 +184,7 @@ function addon.SetupGuideWindow()
     addon.SetFontSafely(GuideName.text, addon.font, 11, "")
     GuideName.text:SetText(L(
                                "Welcome to RestedXP Guides\nRight click to pick a guide"))
+    if GuideName.UpdateTextLayout then GuideName:UpdateTextLayout() end
     GuideName.text:SetTextColor(unpack(addon.activeTheme.textColor))
 
     addon.SetFontSafely(Footer.text, addon.font, 9, "")
@@ -304,6 +305,7 @@ RXPFrame.OnMouseUp = function(self, button)
         C_Timer.After(0, function()
             if not (addon.currentGuide and RXPCData and
                     RXPCData.currentStep) then return end
+            if GuideName.UpdateTextLayout then GuideName:UpdateTextLayout() end
             CurrentStepFrame.UpdateText(true)
             BottomFrame.UpdateFrame(RXPFrame)
             BottomFrame:StepScroll(RXPCData.currentStep, true)
@@ -1502,13 +1504,17 @@ GuideName:SetHeight(35)
 GuideName.text = GuideName:CreateFontString(nil, "OVERLAY")
 -- GuideName.text:SetFontObject(GameFontNormalSmall)
 GuideName.text:ClearAllPoints()
--- The 42px logo extends to x=37. Keep the title wholly to its right and bound
--- it vertically so automatic wrapping at the minimum window width cannot draw
--- a third line over the guide body or the frame border.
-GuideName.text:SetPoint("TOPLEFT", GuideName, "TOPLEFT", 42, -3)
-GuideName.text:SetPoint("BOTTOMRIGHT", GuideName, "BOTTOMRIGHT", -5, 3)
+-- The 42px logo extends to x=37. Keep the complete title to its right; the
+-- frame height below grows with wrapped text instead of clipping lines.
+GuideName.text:SetPoint("LEFT", GuideName, "LEFT", 42, 0)
+GuideName.text:SetPoint("RIGHT", GuideName, "RIGHT", -5, 0)
 GuideName.text:SetJustifyH("CENTER")
 GuideName.text:SetJustifyV("MIDDLE")
+
+function GuideName:UpdateTextLayout()
+    local textHeight = self.text and self.text:GetStringHeight() or 0
+    self:SetHeight(math.max(42, math.ceil(textHeight) + 8))
+end
 
 GuideName:SetFrameLevel(6)
 
@@ -2451,6 +2457,7 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
     else
         GuideName.text:SetText(guidename:gsub("\\n","\n"))
     end
+    GuideName:UpdateTextLayout()
     guide.guideTitleFallback = (titleMeta and titleMeta.fallback) or
                                    (subgroupMeta and subgroupMeta.fallback) or nil
     guide.guideTitleMachine = (titleMeta and titleMeta.machine) or
@@ -2712,6 +2719,7 @@ function addon.RefreshGuideLanguage()
         else
             GuideName.text:SetText(guidename:gsub("\\n", "\n"))
         end
+        GuideName:UpdateTextLayout()
         guide.guideTitleFallback = (titleMeta and titleMeta.fallback) or
                                        (subgroupMeta and subgroupMeta.fallback) or nil
         guide.guideTitleMachine = (titleMeta and titleMeta.machine) or
@@ -2749,6 +2757,7 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
     if math.abs(ScrollChild:GetWidth() - contentWidth) > 0.01 then
         ScrollChild:SetWidth(contentWidth)
     end
+    if GuideName.UpdateTextLayout then GuideName:UpdateTextLayout() end
 
     if stepPos[0] and ((not self and stepn) or (self and self.step)) and IsFrameShown(self,self and self.step) then
         local stepNumber = stepn or self.step.index
@@ -3550,6 +3559,7 @@ function addon.UpdateGuideFontSize()
         (addon.settings.profile and addon.settings.profile.guideFontSize) or 9
 
     addon.SetFontSafely(GuideName.text, addon.font, size + 2, "")
+    GuideName:UpdateTextLayout()
     addon.SetFontSafely(Footer.text, addon.font, size, "")
 
     for _, stepFrame in ipairs(CurrentStepFrame.framePool or {}) do
