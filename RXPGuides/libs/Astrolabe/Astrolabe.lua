@@ -1617,10 +1617,11 @@ setmetatable(WorldMapSize, zeroData);
 for continent, zones in pairs(Astrolabe.ContinentList) do
 	local mapData = WorldMapSize[continent];
 	for index, mapName in pairs(zones) do
-		--print (index,mapName)
 		if not ( mapData.zoneData[mapName] ) then
-			--WE HAVE A PROBLEM!!!
-			ChatFrame1:AddMessage("Astrolabe is missing data for "..select(index, GetMapZones(continent))..".");
+			-- Sirus appends custom areas and instance floors to the legacy
+			-- continent lists. Stock Astrolabe has no outdoor coordinate rectangle
+			-- for those maps. Keep a non-projectable entry so they are ignored
+			-- safely; this is expected compatibility state, not a user-facing error.
 			mapData.zoneData[mapName] = zeroData;
 		end
 		mapData[index] = mapData.zoneData[mapName];
