@@ -1489,19 +1489,24 @@ function addon:QuestAutomation(event, arg1, arg2, arg3)
             end)
         end
         return
-    elseif event == "QUEST_TURNED_IN" then
-        if addon.lore then addon.lore:MarkSeen(arg1) end
+    elseif event == "QUEST_TURNED_IN" or event == "QUEST_COMPLETED" then
+        local questId = tonumber(arg1)
+        if not questId then return end
+        if C_QuestLog and C_QuestLog.MarkQuestCompleted then
+            C_QuestLog.MarkQuestCompleted(questId)
+        end
+        addon.recentTurnIn[questId] = GetTime()
+        if addon.lore then addon.lore:MarkSeen(questId) end
         -- The active element frame may receive this event first, advance the
         -- guide, and wipe questTurnIn before this coordinator runs.  The menu
         -- reservation survives that frame-order race and identifies the exact
         -- authored turn-in which was selected.
         local guideTurnIn = GetQuestAutomationElement(addon.questTurnIn,
-                                                       arg1) or
-                                GetReservedQuestInteraction("turnin", arg1)
+                                                       questId) or
+                                GetReservedQuestInteraction("turnin", questId)
         if guideTurnIn then
             questAcceptState:MarkTurnIn(GetTime())
-            CompleteConfirmedQuestElement(guideTurnIn, "QUEST_TURNED_IN",
-                                           arg1)
+            CompleteConfirmedQuestElement(guideTurnIn, event, questId)
             ClearQuestInteraction(guideTurnIn, "turnin")
             if not disabled then
                 addon.questAutoAccept = true
@@ -2142,6 +2147,9 @@ function addon:OnEnable()
     questFrame:RegisterEvent("QUEST_AUTOCOMPLETE")
     questFrame:RegisterEvent("QUEST_ACCEPTED")
     questFrame:RegisterEvent("QUEST_LOG_UPDATE")
+    if type(questFrame.RegisterCustomEvent) == "function" then
+        questFrame:RegisterCustomEvent("QUEST_COMPLETED")
+    end
 
     if C_QuestLog.RequestLoadQuestByID then
         self:RegisterEvent("QUEST_DATA_LOAD_RESULT")

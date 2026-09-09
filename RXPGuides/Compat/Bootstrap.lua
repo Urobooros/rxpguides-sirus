@@ -1638,12 +1638,31 @@ do
         return true
     end
 
+    local function markQuestCompleted(questID)
+        questID = tonumber(questID)
+        if not questID or questID <= 0 then return false end
+
+        -- Sirus confirms a successful reward submission with the custom
+        -- QUEST_COMPLETED event.  Keep that authoritative result independently
+        -- of the legacy quest-log refresh, whose event can arrive earlier.
+        logIndexByQuestID[questID] = nil
+        onQuest[questID] = nil
+        completeByQuestID[questID] = nil
+        recentlyAccepted[questID] = nil
+        completedCache[questID] = true
+        return true
+    end
+
     local questFrame = CreateFrame("Frame", "RXPCompat335QuestFrame")
     questFrame:RegisterEvent("QUEST_LOG_UPDATE")
     questFrame:RegisterEvent("QUEST_QUERY_COMPLETE")
     questFrame:RegisterEvent("QUEST_ACCEPTED")
     questFrame:RegisterEvent("QUEST_TURNED_IN")
     questFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    if type(questFrame.RegisterCustomEvent) == "function" then
+        questFrame:RegisterCustomEvent("QUEST_COMPLETED")
+        questFrame:RegisterCustomEvent("QUEST_COMPLETED_BUCKET_UPDATE")
+    end
     questFrame:SetScript("OnEvent", function(_, event, arg1, arg2)
         if event == "QUEST_LOG_UPDATE" then
             rebuildLog()
@@ -1654,15 +1673,10 @@ do
             local qid = tonumber(arg2) or
                             (index and questIDFromIndex(index))
             if qid then markQuestAccepted(qid, index) end
-        elseif event == "QUEST_TURNED_IN" then
-            local qid = tonumber(arg1)
-            if qid then
-                logIndexByQuestID[qid] = nil
-                onQuest[qid] = nil
-                completeByQuestID[qid] = nil
-                recentlyAccepted[qid] = nil
-                completedCache[qid] = true
-            end
+        elseif event == "QUEST_TURNED_IN" or event == "QUEST_COMPLETED" then
+            markQuestCompleted(arg1)
+        elseif event == "QUEST_COMPLETED_BUCKET_UPDATE" then
+            rebuildCompleted()
         elseif event == "PLAYER_ENTERING_WORLD" then
             rebuildLog()
             if _G.QueryQuestsCompleted then _G.QueryQuestsCompleted() end
@@ -1732,12 +1746,18 @@ do
     end)
     def(C_QuestLog, "IsQuestFlaggedCompleted", function(questID)
         questID = tonumber(questID)
-        return questID and legacyTrue(completedCache[questID]) or false
+        if not questID then return false end
+        if type(_G.IsQuestCompleted) == "function" and
+            _G.IsQuestCompleted(questID) then
+            completedCache[questID] = true
+        end
+        return legacyTrue(completedCache[questID])
     end)
     def(C_QuestLog, "IsQuestFlaggedCompletedOnAccount", function(questID)
         questID = tonumber(questID)
         return questID and legacyTrue(completedCache[questID]) or false
     end)
+    C_QuestLog.MarkQuestCompleted = markQuestCompleted
     def(C_QuestLog, "GetAllCompletedQuestIDs", function()
         rebuildCompleted()
         local t = {}
