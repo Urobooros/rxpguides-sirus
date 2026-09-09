@@ -1,10 +1,9 @@
 ## Interface: 30300
 ## Title: RXP Leveling
-## Notes: Purchased leveling routes adapted for private use on Sirus 3.3.5a
-## Author: The Curator
-## Version: v6.7.1-sirus.0
+## Notes: Purchased RestedXP leveling routes adapted for 3.3.5a by Poslevkusie&Accidev
+## Author: RestedXP; Poslevkusie&Accidev
+## Version: v6.7.1 Poslevkusie&Accidev
 ## Dependencies: RXPGuides
 
 GuideList_335.xml
-SurvivalGuideList_335.xml
 Talents_wotlk_335.xml

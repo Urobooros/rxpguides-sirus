@@ -22,12 +22,20 @@ nameplates.native = type(C_NamePlate) == "table" and
 if type(C_Timer) == "table" then
     local scheduler = CreateFrame("Frame", "RXPSirusTimerFrame")
     local active = {}
+    local activeCount = 0
+    local due, expired = {}, {}
     local timerMethods = {}
     timerMethods.__index = timerMethods
 
+    scheduler:Hide()
+
     function timerMethods:Cancel()
+        if active[self] then
+            activeCount = activeCount - 1
+        end
         self.cancelled = true
         active[self] = nil
+        if activeCount == 0 then scheduler:Hide() end
     end
 
     function timerMethods:IsCancelled()
@@ -44,29 +52,42 @@ if type(C_Timer) == "table" then
             iterations = iterations,
         }, timerMethods)
         active[timer] = true
+        activeCount = activeCount + 1
+        scheduler:Show()
         return timer
     end
 
     scheduler:SetScript("OnUpdate", function(_, elapsed)
-        local due, expired = {}, {}
+        local dueCount, expiredCount = 0, 0
         for timer in pairs(active) do
             timer.remaining = timer.remaining - elapsed
             if timer.remaining <= 0 then
                 if timer.iterations then
                     timer.iterations = timer.iterations - 1
                     if timer.iterations <= 0 then
-                        expired[#expired + 1] = timer
+                        expiredCount = expiredCount + 1
+                        expired[expiredCount] = timer
                     end
                 end
                 if not timer.iterations or timer.iterations > 0 then
                     timer.remaining = timer.duration
                 end
-                due[#due + 1] = timer
+                dueCount = dueCount + 1
+                due[dueCount] = timer
             end
         end
-        for i = 1, #expired do active[expired[i]] = nil end
-        for i = 1, #due do
+        for i = 1, expiredCount do
+            local timer = expired[i]
+            expired[i] = nil
+            if active[timer] then
+                active[timer] = nil
+                activeCount = activeCount - 1
+            end
+        end
+        if activeCount == 0 then scheduler:Hide() end
+        for i = 1, dueCount do
             local timer = due[i]
+            due[i] = nil
             if not timer.cancelled then timer.callback(timer) end
         end
     end)
@@ -91,6 +112,13 @@ if type(C_Timer) == "table" then
         CreateTicker(duration, function() callback() end, 1)
     end
     backend.timers.normalized = true
+end
+
+-- The original 75 ms polling cadence is unnecessarily aggressive on the
+-- 3.3.5 client. Keep controls responsive while halving the permanent core
+-- update rate; event-driven quest/nameplate handlers still run immediately.
+function addon.GetEffectiveUpdateFrequency(milliseconds)
+    return math.max(150, tonumber(milliseconds) or 150)
 end
 
 function nameplates:GetAll()

@@ -1,0 +1,16 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <!-- Official free RestedXP routes bundled with the engine. -->
+    <Script file="RestedXP Alliance 1-11 NightElf.lua"/>
+    <Script file="RestedXP Alliance 1-14 Human.lua"/>
+    <Script file="RestedXP Alliance 1-14 Dwarf-Gnome.lua"/>
+    <Script file="RestedXP Alliance 1-23 Draenei.lua"/>
+    <Script file="RestedXP Alliance 11-23.lua"/>
+    <Script file="RestedXP Alliance 23-30.lua"/>
+
+    <Script file="RestedXP Horde 1-6 Undead.lua"/>
+    <Script file="RestedXP Horde 1-10 Tauren.lua"/>
+    <Script file="RestedXP Horde 1-13 Troll-Orc.lua"/>
+    <Script file="RestedXP Horde 1-20 BloodElf.lua"/>
+    <Script file="RestedXP Horde 13-23 Barrens.lua"/>
+    <Script file="RestedXP Horde 20-30.lua"/>
+</Ui>

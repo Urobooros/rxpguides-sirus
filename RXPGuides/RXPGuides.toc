@@ -1,8 +1,8 @@
 ## Interface: 30300
 ## Title: RestedXP Guides
-## Notes: RestedXP Guides adapted for Sirus 3.3.5a (unofficial modification)
-## Author: RestedXP; Sirus adaptation contributors
-## Version: v6.7.1-sirus.0
+## Notes: RestedXP Guides adapted for 3.3.5a by Poslevkusie&Accidev
+## Author: RestedXP; Poslevkusie&Accidev
+## Version: v6.7.1 Poslevkusie&Accidev
 ## SavedVariables: RXPData, RXPDB, RXPSettings, RXP335
 ## SavedVariablesPerCharacter: RXPCData, RXPCTrackingData, RXPCComms, RXPCSettings
 ## X-Original-Source: https://github.com/RestedXP/RXPGuides
@@ -94,6 +94,9 @@ Guide\Registry.lua
 Guide\Parser.lua
 Guide\Conditions.lua
 Guide\State.lua
+
+# Official free routes distributed with the engine.
+Guides\GuideList_335.xml
 
 Features\Talents.lua
 

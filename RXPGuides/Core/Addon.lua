@@ -2241,11 +2241,6 @@ function addon:PLAYER_ENTERING_WORLD(event, isInitialLogin)
             addon.settings:CheckAddonCompatibility()
         end)
     end
-    if addon.RXPFrame:IsShown() and WOW_PROJECT_ID == WOW_PROJECT_CLASSIC and
-                UnitLevel("player") == 1 and
-                (not addon.currentGuide or addon.currentGuide.empty) then
-        addon.startHardcoreIntroUI()
-    end
     addon.targeting:Setup()
 end
 --addon:LoadGuideTable(addon.defaultGroupHC, addon.defaultGuideHC)
@@ -2479,6 +2474,8 @@ addon.updateInactiveQuest = {}
 local stepCounter = 1
 local batchSize = 5
 local updateTimer = GetTime()
+local lastBackgroundStepRefresh = 0
+local BACKGROUND_STEP_REFRESH_INTERVAL = 0.5
 --local cycleStart = GetTime()
 
 local skip = 0
@@ -2610,7 +2607,10 @@ function addon.LegacyUpdateLoop()
         end
     end
 
-    if not guideLoaded and addon.currentGuide then
+    local now = GetTime()
+    if not guideLoaded and addon.currentGuide and
+        now - lastBackgroundStepRefresh >= BACKGROUND_STEP_REFRESH_INTERVAL then
+        lastBackgroundStepRefresh = now
         event = event .. "/istep"
         local max = #addon.currentGuide.steps
         local offset = RXPCData.currentStep + 1

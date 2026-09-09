@@ -85,6 +85,7 @@ function addon.SetupArrow()
 end
 
 local ARROW_ETA_UPDATE_INTERVAL = 0.25
+local ARROW_UPDATE_INTERVAL = 1 / 30
 
 local function FormatArrowETA(seconds)
     if type(seconds) ~= "number" or seconds < 0 or seconds ~= seconds then
@@ -142,6 +143,10 @@ function addon.DrawArrow(self, elapsed)
     self = self or addon.arrowFrame
 
     if addon.settings.profile.disableArrow or not self then return end
+    self.updateElapsed = (self.updateElapsed or 0) + (tonumber(elapsed) or 0)
+    if self.updateElapsed < ARROW_UPDATE_INTERVAL then return end
+    elapsed = self.updateElapsed
+    self.updateElapsed = 0
     if af.wrongContinent then
         -- If first time setting wrong continent, notify player
         if self.text:GetText() ~= "~" then
