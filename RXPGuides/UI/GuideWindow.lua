@@ -1057,7 +1057,10 @@ function addon.SetStep(n, n2, loopback)
 
                 elementFrame.icon =
                     elementFrame:CreateFontString(nil, "OVERLAY")
-                elementFrame.icon:SetFontObject(_G.GameFontNormalSmall)
+                local actionIconSize = math.max(
+                    16, addon.settings.profile.guideFontSize + 4)
+                elementFrame.icon:SetFont(addon.font, actionIconSize, "")
+                elementFrame.actionIconSize = actionIconSize
 
                 elementFrame:SetMouseMotionEnabled(true)
                 local ht = elementFrame:CreateTexture(nil, "HIGHLIGHT")
@@ -1363,8 +1366,9 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                         elementFrame.button:SetPoint("TOPLEFT", elementFrame, 6, -1)
 
                         elementFrame.text:ClearAllPoints()
+                        local actionIconSize = elementFrame.actionIconSize or 16
                         elementFrame.text:SetPoint("TOPLEFT", elementFrame.button,
-                                                "TOPRIGHT", 11, -1)
+                                                "TOPRIGHT", actionIconSize + 2, -1)
                         elementFrame.text:SetPoint("RIGHT", stepframe, -5, 0)
 
                          -- Prevent text from overwritten with " ", could be stale text
@@ -1377,8 +1381,10 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                             element.requestFromServer = true
                         end
 
-                        h = math.ceil(elementFrame.text:GetStringHeight() *
-                                                1.1) + 1
+                        h = math.max(
+                            math.ceil(elementFrame.text:GetStringHeight() *
+                                          1.1) + 1,
+                            actionIconSize + 2)
                         -- print('sh:',h)
                         elementFrame:SetHeight(h)
                         frameHeight = frameHeight + h
@@ -3535,6 +3541,11 @@ function addon.UpdateGuideFontSize()
         for _, elementFrame in ipairs(stepFrame.elements or {}) do
             if elementFrame.text then
                 elementFrame.text:SetFont(addon.font, size + 2, "")
+            end
+            if elementFrame.icon then
+                local actionIconSize = math.max(16, size + 4)
+                elementFrame.icon:SetFont(addon.font, actionIconSize, "")
+                elementFrame.actionIconSize = actionIconSize
             end
         end
     end
