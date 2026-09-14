@@ -42,31 +42,8 @@ if not RXP335.activeTargetsDefaultExposed then
     RXP335.activeTargetsDefaultExposed = true
 end
 
--- Backfill AceGUI widget methods that the pack's (older) AceGUI-3.0 lacks but
--- RXP's leveling tracker uses: EnableResize (Frame) and SetJustifyH (Label).
--- Only adds them when missing, so newer AceGUI versions are untouched.
-do
-    local AceGUI = _G.LibStub and _G.LibStub("AceGUI-3.0", true)
-    if AceGUI and not AceGUI.__rxp335patched then
-        AceGUI.__rxp335patched = true
-        local origCreate = AceGUI.Create
-        AceGUI.Create = function(self, widgetType)
-            local widget = origCreate(self, widgetType)
-            if widget then
-                if widget.EnableResize == nil then
-                    widget.EnableResize = function() end
-                end
-                if widget.SetJustifyH == nil then
-                    widget.SetJustifyH = function(w, justify)
-                        local fs = w.label or w.text
-                        if fs and fs.SetJustifyH then fs:SetJustifyH(justify) end
-                    end
-                end
-            end
-            return widget
-        end
-    end
-end
+-- Legacy widget differences are handled at their RXP call sites. Do not
+-- replace shared AceGUI methods or add methods to other addons' pooled widgets.
 
 --=========================================================================
 -- Apply functions

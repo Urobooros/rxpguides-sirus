@@ -7,7 +7,7 @@ local LibDBIcon = LibStub("LibDBIcon-1.0")
 local LibDataBroker = LibStub("LibDataBroker-1.1")
 local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
-local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)
+local LibDD = addon.dropdown or LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)
 local EasyMenu = function(...)
     if _G.EasyMenu then
         _G.EasyMenu(...)
@@ -280,12 +280,57 @@ function addon.settings.OpenSettings(panelName)
     _G.Settings.OpenToCategory(category.ID)
 end
 
+-- Keep diagnostics in an already-loaded file: a running legacy client may
+-- keep its old TOC file list across /reload.
+-- On-demand diagnostics only: no ticker, frame update, automatic GC, or saved
+-- snapshots. Memory is the client's addon accounting, not a CPU measurement.
+function addon.GetPerformanceSnapshot()
+    local result = {guides = 0, parsed = 0, steps = 0, elements = 0, lazy = 0,
+                    rows = 0, cards = 0, objectives = 0}
+    for _, guide in pairs(addon.guides or {}) do
+        result.guides = result.guides + 1
+        if type(guide.steps) == "table" then
+            result.parsed = result.parsed + 1
+            result.steps = result.steps + #guide.steps
+            for _, step in ipairs(guide.steps) do
+                result.elements = result.elements + #(step.elements or {})
+            end
+        end
+    end
+    for _ in pairs(addon.guideCache or {}) do result.lazy = result.lazy + 1 end
+    local frame = addon.RXPFrame
+    if frame then
+        result.rows = #(frame.ScrollChild and frame.ScrollChild.framePool or {})
+        local pool = frame.CurrentStepFrame and frame.CurrentStepFrame.framePool or {}
+        result.cards = #pool
+        for _, card in ipairs(pool) do
+            result.objectives = result.objectives + #(card.elements or {})
+        end
+    end
+    if _G.UpdateAddOnMemoryUsage and _G.GetAddOnMemoryUsage then
+        _G.UpdateAddOnMemoryUsage()
+        result.memoryKB = _G.GetAddOnMemoryUsage(addonName)
+    end
+    return result
+end
+
+function addon.PrintPerformanceSnapshot()
+    local data = addon.GetPerformanceSnapshot()
+    local report = addon.comms.PrettyPrint
+    report("RXPGuides: %.2f MB (память, не CPU)", (data.memoryKB or 0) / 1024)
+    report("Гайды: %d всего, %d разобраны, %d отложены", data.guides, data.parsed, data.lazy)
+    report("В разобранных гайдах: %d шагов, %d элементов", data.steps, data.elements)
+    report("Пул окон: %d строк, %d карточек, %d строк целей", data.rows, data.cards, data.objectives)
+end
+
 function addon.settings.ChatCommand(input)
     if not input then addon.settings.OpenSettings() end
 
     input = input:trim()
     if input == "import" then
         addon.settings.OpenSettings('Import')
+    elseif input == "perf" then
+        addon.PrintPerformanceSnapshot()
     elseif input == "debug" then
         addon.settings.profile.debug = not addon.settings.profile.debug
     elseif input == "splits" then

@@ -12,7 +12,7 @@ local UnitLevel, GetRealZoneText, IsInGroup, tonumber, GetTime, GetServerTime, U
 local AceGUI = LibStub("AceGUI-3.0")
 local LibDeflate = LibStub("LibDeflate")
 local L = addon.locale.Get
-local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)
+local LibDD = addon.dropdown or LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)
 local EasyMenu = function(...)
     if _G.EasyMenu then
         _G.EasyMenu(...)
@@ -844,7 +844,13 @@ function addon.tracker:CreateGui(attachment, target)
     trackerUi.levelData = levelData
     trackerUi.playerLevel = playerLevel
     trackerUi.target:SetText(target)
-    trackerUi.target:SetJustifyH("CENTER")
+    -- Older shared AceGUI labels expose alignment only on their FontString.
+    -- Adapt this RXP widget without replacing AceGUI.Create for other addons.
+    if trackerUi.target.SetJustifyH then
+        trackerUi.target:SetJustifyH("CENTER")
+    elseif trackerUi.target.label then
+        trackerUi.target.label:SetJustifyH("CENTER")
+    end
     trackerUi.target:SetRelativeWidth(0.55)
 
     topContainer:AddChild(trackerUi.target)

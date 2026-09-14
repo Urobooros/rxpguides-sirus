@@ -577,21 +577,11 @@ def(_G, "IsPlayerSpell", function(spellID) return _G.IsSpellKnown(spellID) end)
 -- return of GetSpellInfo.
 def(_G, "GetSpellSubtext", function(spell) return (select(2, _G.GetSpellInfo(spell))) end)
 
--- Settings API (added in 10.0). Route to the classic Interface Options panel.
-if not _G.Settings then
-    _G.Settings = {
-        OpenToCategory = function(category)
-            if _G.InterfaceOptionsFrame_OpenToCategory then
-                -- Classic quirk: call twice so it actually scrolls to the panel.
-                _G.InterfaceOptionsFrame_OpenToCategory(category)
-                _G.InterfaceOptionsFrame_OpenToCategory(category)
-            end
-        end,
-        RegisterCanvasLayoutCategory = function() return nil end,
-        RegisterAddOnCategory = function() end,
-        RegisterVerticalLayoutCategory = function() return nil end,
-    }
-end
+-- Settings API isolation: do not advertise the retail API on 3.3.5. AceConfigDialog
+-- detects RegisterCanvasLayoutCategory and switches ALL addons to that API;
+-- a nil-returning stub breaks their registration at category.ID. RXP uses its
+-- own InterfaceOptions adapter in UI/Settings.lua. Leave client/other-addon
+-- Settings tables untouched.
 
 -- GetSpecialization / spec APIs (added in MoP). WotLK talents are tab-based;
 -- return nil so guarded call sites fall through.
@@ -1992,25 +1982,22 @@ do
 end
 
 --=========================================================================
--- LibDD (LibUIDropDownMenu-4.0) minimal shim over the built-in EasyMenu.
--- RXPGuides only calls LibDD:EasyMenu and creates its own menu frames.
+-- Private dropdown adapter over the built-in EasyMenu. Never publish this
+-- subset as LibUIDropDownMenu-4.0: a fake high revision suppresses the real
+-- library and makes unrelated addons receive an incomplete implementation.
 --=========================================================================
-if _G.LibStub then
-    local existing = _G.LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)
-    if not existing then
-        local lib = _G.LibStub:NewLibrary("LibUIDropDownMenu-4.0", 999)
-        if lib then
-            function lib:EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDelay)
-                if _G.EasyMenu then
-                    return _G.EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDelay)
-                end
-            end
-            function lib:Create_UIDropDownMenu(name, parent)
-                return CreateFrame("Frame", name, parent, "UIDropDownMenuTemplate")
-            end
-            function lib:UIDropDownMenu_AddButton(...) return _G.UIDropDownMenu_AddButton(...) end
-            function lib:UIDropDownMenu_CreateInfo(...) return _G.UIDropDownMenu_CreateInfo(...) end
-            function lib:CloseDropDownMenus(...) return _G.CloseDropDownMenus(...) end
+do
+    local lib = {}
+    addon.dropdown = lib
+    function lib:EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDelay)
+        if _G.EasyMenu then
+            return _G.EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDelay)
         end
     end
+    function lib:Create_UIDropDownMenu(name, parent)
+        return CreateFrame("Frame", name, parent, "UIDropDownMenuTemplate")
+    end
+    function lib:UIDropDownMenu_AddButton(...) return _G.UIDropDownMenu_AddButton(...) end
+    function lib:UIDropDownMenu_CreateInfo(...) return _G.UIDropDownMenu_CreateInfo(...) end
+    function lib:CloseDropDownMenus(...) return _G.CloseDropDownMenus(...) end
 end

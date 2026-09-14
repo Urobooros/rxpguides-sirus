@@ -726,8 +726,19 @@ local function GetActiveLocationKeys()
     return activeLocationKeys
 end
 
+-- These replacements depend only on the input and the fixed client locale.
+-- Background row refreshes used to scan the full location dictionary again
+-- for every unchanged line. Bound the memo to avoid retaining a session's
+-- entire history of generated objective counters or long guide descriptions.
+local locationTextCache, locationTextKeys = {}, {}
+local locationTextCursor = 0
+local LOCATION_TEXT_CACHE_LIMIT = 128
+
 function addon.LocalizeLegacyLocationText(text)
     if type(text) ~= "string" or not active then return text, false end
+    local cached = locationTextCache[text]
+    if cached then return cached[1], cached[2] end
+    local source = text
     local changed = false
     for _, english in ipairs(GetActiveLocationKeys()) do
         if text:find(english, 1, true) then
@@ -736,6 +747,13 @@ function addon.LocalizeLegacyLocationText(text)
             text, count = text:gsub(escaped, active[english])
             changed = changed or count > 0
         end
+    end
+    if #source <= 1024 and #text <= 2048 then
+        locationTextCursor = locationTextCursor % LOCATION_TEXT_CACHE_LIMIT + 1
+        local previous = locationTextKeys[locationTextCursor]
+        if previous then locationTextCache[previous] = nil end
+        locationTextKeys[locationTextCursor] = source
+        locationTextCache[source] = {text, changed}
     end
     return text, changed
 end

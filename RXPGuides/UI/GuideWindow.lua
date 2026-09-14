@@ -4,7 +4,7 @@ local RXPGuides = addon.RXPGuides
 local _, class = UnitClass("player")
 local _G = _G
 local fmt,tinsert = string.format, table.insert
-local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)
+local LibDD = addon.dropdown or LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)
 
 -- Alias addon.locale.Get
 local L = addon.locale.Get
@@ -566,6 +566,16 @@ local function ClearFrameData()
             frame.index = nil
             frame.element = nil
             frame.callback = nil
+            -- Clear all points from icon frame and hide all textures before hiding element
+            if frame.icon then
+                frame.icon:ClearAllPoints()
+                if frame.icon.textures then
+                    for i = 1, #frame.icon.textures do
+                        frame.icon.textures[i]:Hide()
+                    end
+                end
+                frame.icon:Hide()
+            end
             frame:Hide()
             frame:UnregisterAllEvents()
             frame:SetScript("OnUpdate", nil)
@@ -615,6 +625,34 @@ local function GetStepVisualState(step)
     return "upcoming"
 end
 
+local function ApplyBottomStepBackground(frame, step, hovered)
+    local visible = step and IsFrameShown(frame, step) and
+                        (step.level or 0) <= UnitLevel("player")
+    if hovered == nil then
+        -- Refreshes/reused rows must use actual focus, not a saved OnEnter
+        -- flag. Focus also excludes rows clipped by the scroll viewport or
+        -- covered by the step menu. This runs only on events/visual refresh.
+        hovered = frame:IsShown() and frame:IsMouseOver() and
+                      GetMouseFocus() == frame
+    end
+    local background = frame.stepVisualBackground or addon.colors.bottomFrameBG
+    if visible and hovered then
+        background = addon.colors.bottomFrameHighlight
+    end
+    local state = GetStepVisualState(step)
+    local alpha = (state == "completed" or state == "skipped") and 0.78 or 1
+    frame:SetBackdropColor(unpack(background))
+    frame:SetAlpha(not visible and 0 or (hovered and 1 or alpha))
+end
+
+local function BottomStepOnEnter(self)
+    ApplyBottomStepBackground(self, self.step, true)
+end
+
+local function BottomStepOnLeave(self)
+    ApplyBottomStepBackground(self, self.step, false)
+end
+
 local function ApplyStepVisualState(frame, step, bottom)
     if not frame then return end
     local state = GetStepVisualState(step)
@@ -628,7 +666,11 @@ local function ApplyStepVisualState(frame, step, bottom)
 
     frame.stepVisualState = state
     frame.stepVisualBackground = background
-    frame:SetBackdropColor(unpack(background))
+    if bottom then
+        ApplyBottomStepBackground(frame, step)
+    else
+        frame:SetBackdropColor(unpack(background))
+    end
     if frame.number and not bottom then
         frame.number:SetBackdropColor(unpack(background))
     end
@@ -1067,11 +1109,14 @@ function addon.SetStep(n, n2, loopback)
                 elementFrame.text:SetFont(addon.font, addon.settings.profile
                                               .guideFontSize + 2, "") -- 11
 
-                elementFrame.icon =
-                    elementFrame:CreateFontString(nil, "OVERLAY")
+                -- Texture markup in a fixed-size FontString can be truncated
+                -- to an ellipsis by the 3.3.5 text renderer. Render the icon
+                -- column as textures instead of asking text layout to fit it.
+                elementFrame.icon = CreateFrame("Frame", nil, elementFrame)
+                elementFrame.icon:EnableMouse(false)
+                elementFrame.icon.textures = {}
                 local actionIconSize = math.max(
                     16, addon.settings.profile.guideFontSize + 4)
-                elementFrame.icon:SetFont(addon.font, actionIconSize, "")
                 elementFrame.actionIconSize = actionIconSize
 
                 elementFrame:SetMouseMotionEnabled(true)
@@ -1123,6 +1168,9 @@ function addon.SetStep(n, n2, loopback)
                                                                   "rxp-checked-32"))
             end
             elementFrame.step = step
+            if elementFrame.element ~= element then
+                elementFrame.renderedText = nil
+            end
             elementFrame.element = element
             elementFrame.index = index
             element.frame = elementFrame
@@ -1182,7 +1230,18 @@ function addon.SetStep(n, n2, loopback)
 
         end
         for n = e + 1, #stepframe.elements do
-            stepframe.elements[n]:Hide()
+            local hiddenElem = stepframe.elements[n]
+            -- Clear icon frame points and hide textures before hiding element
+            if hiddenElem.icon then
+                hiddenElem.icon:ClearAllPoints()
+                if hiddenElem.icon.textures then
+                    for i = 1, #hiddenElem.icon.textures do
+                        hiddenElem.icon.textures[i]:Hide()
+                    end
+                end
+                hiddenElem.icon:Hide()
+            end
+            hiddenElem:Hide()
         end
         if step.active then
             stepframe:Show()
@@ -1314,6 +1373,69 @@ function RXPFrame.RefreshQuestState(event)
     if refreshed then addon.updateStepText = true end
 end
 
+local function GetElementPresentation(text, icon, size)
+    -- Authored >> descriptions often carry their own leading texture. Move
+    -- it into the icon column so wrapped lines share the same text indent.
+    local leading, body = text:match("^%s*(|T.-|t)%s*(.*)$")
+    if leading then
+        icon = ""
+        repeat
+            icon, text = icon .. leading, body
+            leading, body = text:match("^%s*(|T.-|t)%s*(.*)$")
+        until not leading
+    end
+    local width, height = 0, size
+    for dimensions in (icon or ""):gmatch("|T[^:|]+:([^|]*)|t") do
+        local h, w, x = dimensions:match("^([^:]*):?([^:]*):?([^:]*)")
+        h = tonumber(h) or 0
+        w = tonumber(w) or 0
+        h = h > 0 and h or size
+        w = w > 0 and w or h
+        width = width + w + math.max(0, tonumber(x) or 0)
+        height = math.max(height, h)
+    end
+    return text, icon or "", math.max(size, width), height
+end
+
+local function UpdateElementIconTextures(column, icon, size)
+    local count, offset = 0, 0
+    for payload in icon:gmatch("|T(.-)|t") do
+        local fields = {}
+        for field in (payload .. ":"):gmatch("(.-):") do
+            fields[#fields + 1] = field
+        end
+        local height = tonumber(fields[2]) or 0
+        local width = tonumber(fields[3]) or 0
+        height = height > 0 and height or size
+        width = width > 0 and width or height
+        local x = tonumber(fields[4]) or 0
+        local y = tonumber(fields[5]) or 0
+        count = count + 1
+        local texture = column.textures[count]
+        if not texture then
+            texture = column:CreateTexture(nil, "ARTWORK")
+            column.textures[count] = texture
+        end
+        texture:ClearAllPoints()
+        texture:SetPoint("TOPLEFT", column, "TOPLEFT", offset + x, y)
+        texture:SetSize(width, height)
+        texture:SetTexture(tonumber(fields[1]) or fields[1])
+        local tw, th = tonumber(fields[6]), tonumber(fields[7])
+        local left, right = tonumber(fields[8]), tonumber(fields[9])
+        local top, bottom = tonumber(fields[10]), tonumber(fields[11])
+        if tw and th and tw > 0 and th > 0 and left and right and top and bottom then
+            texture:SetTexCoord(left / tw, right / tw, top / th, bottom / th)
+        else
+            texture:SetTexCoord(0, 1, 0, 1)
+        end
+        texture:Show()
+        offset = offset + width + math.max(0, x)
+    end
+    for i = count + 1, #column.textures do
+        column.textures[i]:Hide()
+    end
+end
+
 function CurrentStepFrame.UpdateText(languageRefresh)
     if not languageRefresh then addon.updateStepText = false end
     local guide = addon.currentGuide
@@ -1324,7 +1446,7 @@ function CurrentStepFrame.UpdateText(languageRefresh)
     local c, e, h, spacing = 0, 0, 0, 0
     local anchor = 0
     -- local heightDiff = RXPFrame:GetHeight() - CurrentStepFrame:GetHeight()
-    local loopStepIndex, stepframe, elementFrame, icon
+    local loopStepIndex, stepframe, elementFrame
 
     for _, step in ipairs(activeSteps) do
 
@@ -1370,6 +1492,16 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                         elementFrame:SetAlpha(0)
                         elementFrame.button:Hide()
                         elementFrame:SetHeight(1)
+                        -- Clear and hide icon when element is not shown (level/hidewindow)
+                        if elementFrame.icon then
+                            elementFrame.icon:ClearAllPoints()
+                            if elementFrame.icon.textures then
+                                for i = 1, #elementFrame.icon.textures do
+                                    elementFrame.icon.textures[i]:Hide()
+                                end
+                            end
+                            elementFrame.icon:Hide()
+                        end
                         spacing = 1
                     elseif element.text then
                         elementFrame:SetAlpha(1)
@@ -1377,26 +1509,38 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                         elementFrame.button:ClearAllPoints()
                         elementFrame.button:SetPoint("TOPLEFT", elementFrame, 6, -1)
 
-                        elementFrame.text:ClearAllPoints()
                         local actionIconSize = elementFrame.actionIconSize or 16
-                        elementFrame.text:SetPoint("TOPLEFT", elementFrame.button,
-                                                "TOPRIGHT", actionIconSize + 2, -1)
-                        elementFrame.text:SetPoint("RIGHT", stepframe, -5, 0)
-
                          -- Prevent text from overwritten with " ", could be stale text
                         if element.text ~= ' ' then
                             local renderedText = addon.locale.GuideText(
                                 element.text, element, "text")
-                            elementFrame.text:SetText(
-                                addon.ReplaceNpcIds(renderedText, element))
+                            elementFrame.renderedText =
+                                addon.ReplaceNpcIds(renderedText, element)
                         elseif not languageRefresh then
                             element.requestFromServer = true
                         end
+                        local text, icon, iconWidth, iconHeight = GetElementPresentation(
+                            elementFrame.renderedText or "",
+                            element.icon or addon.icons[element.tag] or "",
+                            actionIconSize)
+                        elementFrame.icon:ClearAllPoints()
+                        elementFrame.icon:SetPoint("TOPLEFT", elementFrame.button,
+                                                "TOPRIGHT", 0, -1)
+                        elementFrame.icon:SetSize(iconWidth, iconHeight)
+                        UpdateElementIconTextures(elementFrame.icon, icon, actionIconSize)
+                        elementFrame.icon:Show()
+
+                        elementFrame.text:ClearAllPoints()
+                        elementFrame.text:SetPoint("TOPLEFT", elementFrame.icon,
+                                                "TOPRIGHT", 4, 0)
+                        elementFrame.text:SetPoint("RIGHT", stepframe, -5, 0)
+                        elementFrame.text:SetJustifyV("TOP")
+                        elementFrame.text:SetText(text)
 
                         h = math.max(
                             math.ceil(elementFrame.text:GetStringHeight() *
                                           1.1) + 1,
-                            actionIconSize + 2)
+                            iconHeight + 2)
                         -- print('sh:',h)
                         elementFrame:SetHeight(h)
                         frameHeight = frameHeight + h
@@ -1409,10 +1553,6 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                             elementFrame:EnableMouse(true)
                             elementFrame.button:EnableMouse(true)
                         end
-
-                        elementFrame.icon:ClearAllPoints()
-                        elementFrame.icon:SetPoint("TOPLEFT", elementFrame.button,
-                                                "TOPRIGHT", 0, -1)
 
                         if element.textOnly then
                             elementFrame.button:SetChecked(true)
@@ -1428,6 +1568,16 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                         elementFrame:SetAlpha(0)
                         elementFrame.button:Hide()
                         elementFrame:SetHeight(1)
+                        -- Clear and hide icon when element has no text
+                        if elementFrame.icon then
+                            elementFrame.icon:ClearAllPoints()
+                            if elementFrame.icon.textures then
+                                for i = 1, #elementFrame.icon.textures do
+                                    elementFrame.icon.textures[i]:Hide()
+                                end
+                            end
+                            elementFrame.icon:Hide()
+                        end
                         if not languageRefresh then element.completed = true end
                         spacing = 1
                     end
@@ -1443,14 +1593,6 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                                             "BOTTOMLEFT", 0, 0 + spacing)
                         elementFrame:SetPoint("TOPRIGHT", stepframe.elements[e - 1],
                                             "BOTTOMRIGHT", 0, 0 + spacing)
-                    end
-
-                    if element.tag and element.text then
-                        icon = element.icon or addon.icons[element.tag] or ""
-                        elementFrame.icon:SetText(icon)
-                        elementFrame.icon:Show()
-                    else
-                        elementFrame.icon:Hide()
                     end
 
                 end
@@ -2556,7 +2698,6 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
         frame.bottom = true
         frame:Show()
         frame.step = step
-        frame:SetAlpha(0.66)
         frame:ClearAllPoints()
         local anchor
         if n == 1 then
@@ -2576,18 +2717,8 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
         frame:SetBackdrop(RXPFrame.backdrop.bottom)
         ApplyStepVisualState(frame, step, true)
 
-        frame:SetScript("OnEnter", function(self)
-            self.currentAlpha = self:GetAlpha()
-            if IsFrameShown(self, self.step) then
-                self:SetAlpha(1)
-                self:SetBackdropColor(unpack(addon.colors.bottomFrameHighlight))
-            end
-        end)
-        frame:SetScript("OnLeave", function(self)
-            self:SetBackdropColor(unpack(self.stepVisualBackground or
-                                             addon.colors.bottomFrameBG))
-            self:SetAlpha(self.currentAlpha)
-        end)
+        frame:SetScript("OnEnter", BottomStepOnEnter)
+        frame:SetScript("OnLeave", BottomStepOnLeave)
         frame.timer = 0
         frame.index = n
         frame.guide = guide
@@ -2627,6 +2758,7 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
         if not frame.number then
             frame.number = CreateFrame("Frame", "$parent_number", frame,
                                        nil)
+            frame.number:EnableMouse(false)
             frame.number:SetPoint("BOTTOMRIGHT", frame)
             frame.number.text = frame.number:CreateFontString(nil, "OVERLAY")
             frame.number.text:SetFontObject(_G.GameFontNormalSmall)
@@ -2841,15 +2973,13 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
 
         if hideStep then
             fheight = 1
-            frame:SetAlpha(0)
         else
             fheight = math.ceil(frame.text:GetStringHeight() + 8)
-            frame:SetAlpha(GetStepVisualState(step) == "completed" and 0.78 or 1)
         end
-        ApplyStepVisualState(frame, step, true)
 
         local hDiff = fheight - frame:GetHeight()
         frame:SetHeight(fheight)
+        ApplyStepVisualState(frame, step, true)
 
         for n = stepNumber + 1, #stepPos do
             stepPos[n] = stepPos[n] + hDiff
@@ -2924,23 +3054,11 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
                 step.hiddentext = text
                 text = ""
             end
-            if step.completed or
-                (not step.sticky and RXPCData.currentStep > step.index) or
-                RXPCData.stepSkip[step.index] then
-                -- Keep completed rows readable enough for the green state to be
-                -- unmistakable while still de-emphasizing them.
-                frame:SetAlpha(0.78)
-            else
-                frame:SetAlpha(1)
-            end
-            ApplyStepVisualState(frame, step, true)
-
             if frame.text then
                 if hideStep then
                     --hiddenFrames = hiddenFrames + 1
                     frame.text:SetText(text)
                     fheight = 1.00
-                    frame:SetAlpha(0)
                 else
                     frame.text:SetText(text)
                     fheight = math.ceil(frame.text:GetStringHeight() + 8)
@@ -2956,6 +3074,7 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
             else
                 frame:SetHeight(fheight)
             end
+            ApplyStepVisualState(frame, step, true)
 
             totalHeight = totalHeight + fheight + 2
             stepPos[n] = totalHeight - 5
@@ -3573,7 +3692,6 @@ function addon.UpdateGuideFontSize()
             end
             if elementFrame.icon then
                 local actionIconSize = math.max(16, size + 4)
-                elementFrame.icon:SetFont(addon.font, actionIconSize, "")
                 elementFrame.actionIconSize = actionIconSize
             end
         end

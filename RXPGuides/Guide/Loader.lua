@@ -557,6 +557,22 @@ function addon.ProcessInputBuffer(workerFrame)
 end
 
 local embeddedGuidesLoaded
+local function EmbeddedGuideParser(guideData, group, key, sourceSignature)
+    return function(self)
+        local guide, parseError, metadata = addon.ParseGuide(
+            guideData.groupOrContent, guideData.text,
+            guideData.defaultFor, true, group, key)
+        if parseError or not guide then return end
+        guide.bundled = true
+        guide.sourceSignature = sourceSignature
+        if metadata and RXPCData and RXPCData.guideMetaData then
+            metadata.sourceSignature = sourceSignature
+            RXPCData.guideMetaData[key or guide.key] = metadata
+        end
+        if addon.player.faction == "Neutral" then guide.parse = self end
+        return guide
+    end
+end
 function addon.LoadEmbeddedGuides()
     if not addon.db then
         error('Initialization error, db not set')
@@ -642,24 +658,8 @@ function addon.LoadEmbeddedGuides()
                 end
                 errorMsg = not (not guide.enabledFor or applies(guide.enabledFor))
                 --print(guide,errorMsg,guide.enabledFor)
-                addon.guideCache[guide.key] = function(self)
-                    local tbl, parseError, parsedMetadata = addon.ParseGuide(
-                        guideData.groupOrContent, guideData.text,
-                        guideData.defaultFor, true, group, key)
-                    if parseError then return end
-                    if tbl then
-                        tbl.bundled = true
-                        tbl.sourceSignature = sourceSignature
-                    end
-                    if parsedMetadata and RXPCData and RXPCData.guideMetaData then
-                        parsedMetadata.sourceSignature = sourceSignature
-                        RXPCData.guideMetaData[key or guide.key] = parsedMetadata
-                    end
-                    if addon.player.faction == "Neutral" and tbl then
-                        tbl.parse = self
-                    end
-                    return tbl
-                end
+                addon.guideCache[guide.key] = EmbeddedGuideParser(
+                    guideData, group, key, sourceSignature)
             elseif enabled then
                 guide, errorMsg, metadata =
                     addon.ParseGuide(guideData.groupOrContent,
@@ -684,6 +684,17 @@ function addon.LoadEmbeddedGuides()
                         RXPCData.guideMetaData[guideKey] = nil
                     end
                     RXPCData.guideMetaData[key] = metadata
+                end
+                if enabled and guide and metadata and addon.gameVersion == 30300 and
+                   not addon.settings.profile.preLoadData then
+                    -- A cache miss still validates the whole route, but must
+                    -- not retain every parsed step for the entire session.
+                    -- Keep the same metadata + lazy parser used on warm loads;
+                    -- FetchGuide expands the route only when it is needed.
+                    metadata.lowPrio = guide.lowPrio
+                    addon.guideCache[guide.key] = EmbeddedGuideParser(
+                        guideData, group, key, sourceSignature)
+                    guide = metadata
                 end
             end
             if enabled then
