@@ -1,7 +1,7 @@
 local _,addon = ...
 
 local showAllQs
-local GetItemCount = C_Item and C_Item.GetItemCount or _G.GetItemCount
+local GetItemCount = addon.GetItemCount or (C_Item and C_Item.GetItemCount) or _G.GetItemCount
 local QUEST_LOG_SIZE = 25
 local reloadTimer = 0
 

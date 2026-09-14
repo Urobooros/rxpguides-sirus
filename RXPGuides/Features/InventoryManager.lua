@@ -17,7 +17,7 @@ local PickupContainerItem = C_Container and C_Container.PickupContainerItem or _
 local UseContainerItem = C_Container and C_Container.UseContainerItem or _G.UseContainerItem
 local GetItemSpell = C_Item and C_Item.GetItemSpell or _G.GetItemSpell
 local GetContainerItemLink = C_Container and C_Container.GetContainerItemLink or _G.GetContainerItemLink
-local GetItemCount = C_Item and C_Item.GetItemCount or _G.GetItemCount
+local GetItemCount = addon.GetItemCount or (C_Item and C_Item.GetItemCount) or _G.GetItemCount
 
 local GetCoinTextureString = C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString or _G.GetCoinTextureString
 
@@ -1301,4 +1301,3 @@ function inventoryManager.GetNetWorth()
     local inventory = ProcessJunk()
     return GetMoney() + inventory
 end
-

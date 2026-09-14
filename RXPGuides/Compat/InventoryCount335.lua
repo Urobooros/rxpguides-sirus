@@ -94,9 +94,7 @@ end
 
 addon.GetItemCount = GetItemCountIncludingKeyring
 
--- C_Item is a compatibility namespace on 3.3.5, never a native API. Publish
--- the reconciled count there so guide databases and later-loaded features use
--- the same result, while leaving the global GetItemCount untouched for other
--- addons.
-_G.C_Item = type(_G.C_Item) == "table" and _G.C_Item or {}
-_G.C_Item.GetItemCount = GetItemCountIncludingKeyring
+-- Keep this adapter private. Sirus provides C_Item and its secure /cast
+-- handler reads C_Item.GetItemInfo. Even assigning the SAME table back to
+-- _G.C_Item taints that global and can block the subsequent CastSpellByName.
+-- Consumers needing keyring reconciliation must use addon.GetItemCount.
