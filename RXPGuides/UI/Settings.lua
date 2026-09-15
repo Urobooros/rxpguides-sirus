@@ -1980,7 +1980,7 @@ function addon.settings:CreateAceOptionsPanel()
                         end
                     },
                     expansionHeader = {
-                        name = _G.EXPANSION_FILTER_TEXT,
+                        name = L(_G.EXPANSION_FILTER_TEXT or "Expansion"),
                         type = "header",
                         width = "full",
                         order = 2
@@ -3911,7 +3911,7 @@ function addon.settings:CreateAceOptionsPanel()
                         end
                     },
                     mapHeader = {
-                        name = _G.MAP_OPTIONS_TEXT,
+                        name = L(_G.MAP_OPTIONS_TEXT or "Map Options"),
                         type = "header",
                         width = "full",
                         order = 5.1
@@ -4260,7 +4260,7 @@ function addon.settings:CreateAceOptionsPanel()
     for q, a in pairs(addon.help) do
         optionsTable.args.helpPanel.args[helpBatch .. "q"] = {
             order = helpBatch + 0.1,
-            name = q,
+            name = L(q),
             type = "header",
             width = "full"
         }
@@ -4405,8 +4405,8 @@ function addon.settings:UpdateMinimapButton()
             end,
             OnTooltipShow = function(tooltip)
                 tooltip:AddLine(addon.title)
-                tooltip:AddLine("|cff909090Left Click: |cffffcc00Toggle Guide|r")
-                tooltip:AddLine("|cff909090Right Click: |cffffcc00Show Menu|r")
+                tooltip:AddLine(L("|cff909090Left Click: |cffffcc00Toggle Guide|r"))
+                tooltip:AddLine(L("|cff909090Right Click: |cffffcc00Show Menu|r"))
             end
         })
     end

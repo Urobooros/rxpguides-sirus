@@ -403,6 +403,16 @@ end
 
 function service:RegisterCatalog(code, data)
     if code ~= locale or type(data) ~= "table" then return false end
+    -- The compressed guide pack is loaded before GuideCatalogs.lua in the
+    -- addon TOC.  Keep its translations when the smaller grammar/catalog
+    -- table is registered afterwards; replacing the table here used to drop
+    -- the entire pack and left only partial semantic translations in game.
+    local previous = catalog
+    if previous then
+        data.translations = previous.translations or data.translations
+        data.revision = previous.revision or data.revision
+        data.packSource = previous.packSource or data.packSource
+    end
     catalog = data
     catalog.translations = catalog.translations or {
         reviewed = {}, machine = {}, contextualReviewed = {},
@@ -423,8 +433,10 @@ function service:RegisterExactCatalog(code, entries, source)
     }
     for english, translated in pairs(entries) do
         if type(english) == "string" and english ~= "" and
-           type(translated) == "string" and translated ~= "" and
-           not catalog.exact[english] then
+           type(translated) == "string" and translated ~= "" then
+            -- This catalog is the hand-reviewed correction layer and loads
+            -- after both compressed packs.  Its wording must replace older
+            -- reviewed or machine entries for the same source.
             catalog.exact[english] = translated
             catalog.exactSources[english] = source
             catalog.translations.reviewed[english] = {
@@ -592,8 +604,13 @@ function service:RegisterCompressedPack(code, encoded)
                 english = key
             end
             if destination and english and translated and signature then
-                destination[key] = CompactPackEntry(translated, signature,
-                                                    tokenized == "1", status)
+                -- Small reviewed catalogs are loaded before the compressed
+                -- machine pack.  Keep those corrections authoritative when
+                -- both resources contain the same English source.
+                if destination[key] == nil then
+                    destination[key] = CompactPackEntry(translated, signature,
+                                                        tokenized == "1", status)
+                end
             end
         end
     end
@@ -730,8 +747,7 @@ function service:GetMachineExplanation()
 end
 
 function service:GetStatusExplanation(status)
-    if status == "machine" then return self:GetMachineExplanation() end
-    if status == "fallback" then return self:GetFallbackExplanation() end
+    return nil
 end
 
 function service:ClearCache()
@@ -754,6 +770,30 @@ local function ReplaceCreatureNames(text)
     end
     text = text:gsub("(|cRXP_FRIENDLY_)(.-)(|r)", Replace)
     text = text:gsub("(|cRXP_ENEMY_)(.-)(|r)", Replace)
+    return text, changed
+end
+
+local function ReplaceGuideEntityNames(text)
+    local names = addon.guideEntityNames
+    if type(names) ~= "table" then return text, false end
+    local changed = false
+    text = text:gsub("(|cRXP_[A-Z]+_)(.-)(|r)",
+        function(prefix, name, suffix)
+            local translated = names[name]
+            if translated and translated ~= name then
+                changed = true
+                return prefix .. translated .. suffix
+            end
+            return prefix .. name .. suffix
+        end)
+    text = text:gsub("%[([^%]]+)%]", function(name)
+        local translated = names[name]
+        if translated and translated ~= name then
+            changed = true
+            return "[" .. translated .. "]"
+        end
+        return "[" .. name .. "]"
+    end)
     return text, changed
 end
 
@@ -829,7 +869,17 @@ local function ReplaceQuestName(text, element, localized)
     if not localized and (type(sourceName) ~= "string" or sourceName == "") then
         sourceName = service.englishNames.quests[tonumber(element.questId)]
     end
+    local questId = tonumber(element.questId or element.id)
+    local databaseNames = addon.guideQuestNames
+    local databaseName = type(databaseNames) == "table" and
+                             type(databaseNames.byId) == "table" and
+                             databaseNames.byId[questId]
     local replacement = localized and element.title or sourceName
+    if localized and type(databaseName) == "string" and databaseName ~= "" and
+       (type(replacement) ~= "string" or replacement == "" or
+        replacement == sourceName or replacement:find("[A-Za-z]")) then
+        replacement = databaseName
+    end
     if localized and element.tag == "complete" and addon.GetQuestName then
         replacement = addon.GetQuestName(tonumber(element.questId)) or replacement
     end
@@ -953,6 +1003,7 @@ local function ValueLooksReviewed(value)
     -- an unreviewed English explanation in the same line.
     if value:find("|cRXP_[A-Z]+_", 1) then
         local remainder = value:gsub("|cRXP_[A-Z]+_.-|r", "")
+        remainder = remainder:gsub("или", ""):gsub("и", "")
         remainder = StripMarkup(remainder):gsub("[%s%p%d]+", "")
         if remainder == "" then return true end
         return false
@@ -985,8 +1036,15 @@ local function ValueLooksReviewed(value)
 end
 
 local function LocalizeSemanticValue(value, element)
-    if type(value) ~= "string" or type(element) ~= "table" then
-        return LocalizeLocation(value), false
+    if type(value) ~= "string" then return value, false end
+    value = value:gsub(",%s+[Aa][Nn][Dd]%s+", " и ")
+    value = value:gsub("%s+[Aa][Nn][Dd]%s+", " и ")
+    value = value:gsub("%s+[Oo][Rr]%s+", " или ")
+    value = value:gsub("^[Tt][Hh][Ee]%s+(|cRXP_)", "%1")
+    value = value:gsub("%s+[Tt][Hh][Ee]%s+(|cRXP_)", " %1")
+    if type(element) ~= "table" then
+        local located = LocalizeLocation(value)
+        return located, located ~= value
     end
     local tag = element.tag
     local changed = false
@@ -996,6 +1054,12 @@ local function LocalizeSemanticValue(value, element)
         if (type(localized) ~= "string" or localized == "") and
            id and type(addon.GetQuestName) == "function" then
             localized = addon.GetQuestName(id)
+        end
+        local databaseNames = addon.guideQuestNames
+        if (type(localized) ~= "string" or localized == "" or
+            localized:find("[A-Za-z]")) and type(databaseNames) == "table" and
+           type(databaseNames.byId) == "table" then
+            localized = databaseNames.byId[id] or localized
         end
         local authored = type(element.sourceText) == "string" and
                              StripMarkup(element.sourceText) or ""
@@ -1364,6 +1428,7 @@ function service:Render(text, element, field, options)
         output = ReplaceQuestName(output, element, true)
         local creatureChanged
         output, creatureChanged = ReplaceCreatureNames(output)
+        output = ReplaceGuideEntityNames(output)
         local itemChanged
         output, itemChanged = ReplaceItemName(output, element)
         local spellChanged

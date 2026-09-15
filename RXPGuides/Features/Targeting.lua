@@ -1298,7 +1298,7 @@ function addon.targeting:CreateTargetFrame()
                    (addon.settings.profile.enableTips and
                        addon.settings.profile.showDangerousUnitscan and
                        next(dangerousTargets) ~= nil and
-                       proxmityPolling.match)
+                       proxmityPolling.match), true
     end
 
     self:RenderTargetFrameBackground()

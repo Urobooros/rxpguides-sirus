@@ -62,7 +62,9 @@ function addon.GetDungeonName(instance)
     local tag = dungeonNames[upper] and upper or aliases[upper]
     local name = tag and dungeonNames[tag]
     if not name then return end
-    return L(name), tag
+    local localized = addon.LocalizeLegacyLocationName and
+                          addon.LocalizeLegacyLocationName(name)
+    return localized or L(name), tag
 end
 
 local fields = {
@@ -128,4 +130,3 @@ for faction, dungeons in pairs(encoded) do
         addon.dungeonStats[faction][tag] = scoreData
     end
 end
-

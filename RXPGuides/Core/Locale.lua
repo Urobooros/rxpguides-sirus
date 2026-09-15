@@ -132,30 +132,8 @@ end
 -- Compact controls keep their labels clean.  Translation provenance is
 -- exposed on hover instead, and the hook is installed only once per frame.
 function addon.locale.AttachStatusTooltip(frame, renderedText, metadata)
-    if not frame or type(frame.HookScript) ~= "function" then
-        return renderedText
-    end
-    metadata = metadata or addon.locale.GetMetadataForText(renderedText)
-    frame.rxpLocaleMetadata = metadata
-    if frame.rxpLocaleTooltipHooked then return renderedText end
-    frame.rxpLocaleTooltipHooked = true
-    frame:HookScript("OnEnter", function(self)
-        local current = self.rxpLocaleMetadata
-        local localization = addon.guideLocalization
-        local explanation = current and localization and
-                                localization.GetStatusExplanation and
-                                localization:GetStatusExplanation(current.status)
-        if not explanation or explanation == "" or not GameTooltip then return end
-        if not GameTooltip.IsOwned or not GameTooltip:IsOwned(self) then
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        end
-        GameTooltip:AddLine(explanation, 0.65, 0.78, 1, true)
-        GameTooltip:Show()
-    end)
-    frame:HookScript("OnLeave", function(self)
-        if GameTooltip and (not GameTooltip.IsOwned or
-           GameTooltip:IsOwned(self)) then GameTooltip:Hide() end
-    end)
+    -- Translation provenance is an internal maintenance detail.  Do not add
+    -- "machine translated" / "not reviewed" lines to player-facing tooltips.
     return renderedText
 end
 
@@ -187,19 +165,16 @@ end
 -- for every supported locale. Translate exact phrases first, then replace the
 -- names inside the guide's semantic colour spans without changing directives
 -- or the maintained route data.
-function addon.locale.GuideText(text)
-    text = addon.locale.Get(text)
-    if type(text) ~= "string" or addon.locale.IsEnglish or
-        type(addon.GetCreatureName) ~= "function" then
-        return text
+function addon.locale.GuideText(text, element, field)
+    -- Guide prose has its own exact/contextual translation pack.  Keep the
+    -- legacy accessor as the single call site used by GuideWindow and Map, but
+    -- forward the element context instead of treating guide prose as a UI key.
+    -- Entity names are localized by Render after the sentence is translated.
+    local localization = addon.guideLocalization
+    if localization and localization.Render then
+        return (localization:Render(text, element, field))
     end
-
-    local function ReplaceName(prefix, name, suffix)
-        return prefix .. (addon.GetCreatureName(name) or name) .. suffix
-    end
-    text = text:gsub("(|cRXP_FRIENDLY_)(.-)(|r)", ReplaceName)
-    text = text:gsub("(|cRXP_ENEMY_)(.-)(|r)", ReplaceName)
-    return text
+    return addon.locale.Get(text)
 end
 
 function addon.locale.QuestAction(action, questName, sourceText, sourceQuestName)

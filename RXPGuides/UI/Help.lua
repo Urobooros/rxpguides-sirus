@@ -30,6 +30,36 @@ H["What are command the line options?"] = [[
 |cff909090/rxp help|r - This output
 ]]
 
+if GetLocale() == "ruRU" then
+    H["I'm missing a lot of exp, why?"] = [[
+Убивайте противников по пути между заданиями, а не только переходите от одной цели к другой.
+
+Маршрут рассчитан на скорость, поэтому в нём меньше заданий. Опыт за противников по пути восполняет эту разницу.
+]]
+
+    H["Why is my guide missing levels?"] = [[
+Диапазоны уровней в руководствах рассчитаны на стандартную скорость получения опыта. При ставках опыта 20% или 50% не ориентируйтесь строго на указанные уровни.
+
+Продолжайте следовать руководству настолько точно, насколько возможно.
+]]
+
+    H["Why is my guide skipping lots of steps or zones?"] = [[
+Руководство пропускает неэффективные области, если у персонажа нет нужных цепочек заданий или его уровень выше предусмотренного маршрутом.
+]]
+
+    H["What are command the line options?"] = [[
+|cff909090/rxp|r — открыть основные настройки аддона
+|cff909090/rxp import|r — открыть импорт руководств
+|cff909090/rxp debug|r — включить отладочные сообщения
+|cff909090/rxp splits|r — включить или выключить отсечки уровней
+|cff909090/rxp split|r — восстановить пропущенную автоматическую отсечку из /played
+|cff909090/rxp show||hide||toggle|r — показать, скрыть или переключить все включённые окна
+|cff909090/rxp bug||feedback|r — открыть форму обратной связи
+|cff909090/rxp browse|r — остановить или возобновить автоматическое продвижение по руководству
+|cff909090/rxp help|r — показать эту справку
+]]
+end
+
 addon.help = H
 
 local C = {}
@@ -46,5 +76,19 @@ C["Narcissus"] = {
     ["Reason"] = "can replace map and unit-frame layers used by navigation markers.",
     ["Recommendation"] = "If markers are hidden, test once with its map and unit-frame modules disabled."
 }
+
+if GetLocale() == "ruRU" then
+    C["TomTom"] = {
+        ["Reason"] = "имеет известные конфликты со стрелкой маршрута.",
+        ["Recommendation"] = "Отключите его, если возникают проблемы с навигацией."
+    }
+    C["SilverDragon"] = C["TomTom"]
+    C["TotemTimers"] = C["TomTom"]
+    C["Leatrix Maps"] = C["TomTom"]
+    C["Narcissus"] = {
+        ["Reason"] = "может заменять слои карты и рамок персонажей, используемые навигационными метками.",
+        ["Recommendation"] = "Если метки скрыты, проверьте работу с отключёнными модулями карты и рамок персонажей."
+    }
+end
 
 addon.compatibility = C

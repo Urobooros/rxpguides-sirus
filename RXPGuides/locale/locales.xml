@@ -4,4 +4,7 @@
     <Script file="LevelSplits.lua"/>
     <Script file="Backport.lua"/>
     <Script file="NPCnames.lua"/>
+    <Script file="NPCnamesUsed.ruRU.lua"/>
+    <Script file="GuideEntityNames.ruRU.lua"/>
+    <Script file="GuideQuestNames.ruRU.lua"/>
 </Ui>

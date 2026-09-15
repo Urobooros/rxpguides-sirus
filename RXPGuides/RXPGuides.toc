@@ -21,6 +21,8 @@ locale\locales.xml
 Core\Locale.lua
 Core\XP.lua
 Guide\Localization.lua
+locale\GuideCorrections.ruRU.lua
+locale\GuideSupplement.ruRU.lua
 locale\GuidePack.ruRU.lua
 locale\GuideCatalogs.lua
 Core\Services.lua
