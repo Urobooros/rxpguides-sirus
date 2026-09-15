@@ -984,6 +984,7 @@ function addon.SetElementComplete(self, disable, skipIfInactive)
     if not element then return end
     local active = element.step.active
     local wasCompleted = element.completed
+    local wasSkipped = element.skip
     if skipIfInactive and not active then
         return
     end
@@ -994,8 +995,10 @@ function addon.SetElementComplete(self, disable, skipIfInactive)
     if not element.manualSkip then element.autoSkip = true end
     element.skip = true
     if addon.elementState then addon.elementState:Sync(element) end
-    addon.updateSteps = true
-    addon.UpdateMap()
+    if not wasCompleted or not wasSkipped then
+        addon.updateSteps = true
+        addon.UpdateMap()
+    end
     if refreshObjectiveTargets then refreshObjectiveTargets(element) end
     if not wasCompleted and active and
         GetTime() - addon.lastStepUpdate > 1 then
@@ -2206,11 +2209,9 @@ local function DetectFlying(self,mode)
     if type(self) == "table" and self.element and self.element.step.active then
         local element = self.element
         local canPlayerFly = addon.CanPlayerFly(element.zone)
-        if not element.skip and canPlayerFly then
-            element.skip = mode
-            addon.UpdateMap()
-        elseif element.skip and not canPlayerFly then
-            element.skip = not mode
+        local skip = canPlayerFly and mode or (not canPlayerFly and not mode)
+        if (not not element.skip) ~= (not not skip) then
+            element.skip = skip
             addon.UpdateMap()
         end
         if element.skip and not element.textOnly then

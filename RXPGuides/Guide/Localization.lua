@@ -44,13 +44,26 @@ local function MergeStatus(left, right)
     return statusRank[left] >= statusRank[right] and left or right
 end
 
+local sourceHashes, sourceHashOrder, sourceHashCursor = {}, {}, 0
 local function HashSource(value)
     local hash = 5381
     value = tostring(value or "")
+    local cached = sourceHashes[value]
+    if cached then return cached end
     for index = 1, #value do
         hash = (hash * 33 + value:byte(index)) % 4294967296
     end
-    return string.format("%08x", hash)
+    local result = string.format("%08x", hash)
+    -- Pure source fingerprints are independent of locale, live counters and
+    -- catalog revisions. Bound both entry count and retained string length.
+    if #value <= 2048 then
+        sourceHashCursor = sourceHashCursor % 512 + 1
+        local previous = sourceHashOrder[sourceHashCursor]
+        if previous then sourceHashes[previous] = nil end
+        sourceHashOrder[sourceHashCursor] = value
+        sourceHashes[value] = result
+    end
+    return result
 end
 
 service.HashSource = HashSource
@@ -625,6 +638,30 @@ function service:BuildContextKey(element, field, source)
     return ContextKey(element, field, source)
 end
 
+-- Tokenized translations are pure functions of source and translated template.
+-- Keep only the last 256 short results; live entity replacement happens later.
+local materializedEntries, materializedOrder, materializedCursor = {}, {}, 0
+local function MaterializeTranslation(source, template)
+    local cached = materializedEntries[source]
+    if cached and cached.template == template then return cached.output end
+    local _, tokens, signature = Tokenize(source)
+    local names = {}
+    for name in template:gmatch("{([%a_]+)}") do names[#names + 1] = name end
+    table.sort(names)
+    if table.concat(names, "\031") ~= signature then return end
+    local output = Materialize(template, tokens)
+    if #source <= 2048 and #template <= 2048 and #output <= 4096 then
+        if not cached then
+            materializedCursor = materializedCursor % 256 + 1
+            local previous = materializedOrder[materializedCursor]
+            if previous then materializedEntries[previous] = nil end
+            materializedOrder[materializedCursor] = source
+        end
+        materializedEntries[source] = {template = template, output = output}
+    end
+    return output
+end
+
 local function LookupTranslation(source, element, field, wantedStatus)
     local translations = catalog and catalog.translations
     if not translations or type(source) ~= "string" then return end
@@ -642,14 +679,9 @@ local function LookupTranslation(source, element, field, wantedStatus)
     end
     if not entry or entry.sourceSignature ~= HashSource(source) then return end
     if entry.tokenized then
-        local _, tokens, signature = Tokenize(source)
-        local names = {}
-        for name in entry.text:gmatch("{([%a_]+)}") do
-            names[#names + 1] = name
-        end
-        table.sort(names)
-        if table.concat(names, "\031") ~= signature then return end
-        return Materialize(entry.text, tokens), entry
+        local output = MaterializeTranslation(source, entry.text)
+        if output then return output, entry end
+        return
     end
     return entry.text, entry
 end

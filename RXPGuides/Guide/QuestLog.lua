@@ -119,11 +119,9 @@ function addon.UpdateQuestButton(index)
             end
         end
 
-        -- Only evaluates true on first load
-        -- addon.orphanedList is updated when QuestLogFrame opens/closes
-        if not addon.orphanedList then
-            addon.GetOrphanedQuests()
-        end
+        -- Do not scan the entire leveling chain merely to decorate a quest
+        -- log button. That eagerly parses every future chapter on Sirus.
+        -- Use an existing orphan report; explicit cleanup computes it below.
 
         -- If showButton, then it's a pickUp or turnIn, without the table lookup cost
         if not showButton and addon.orphanedList and addon.orphanedList[questID] then

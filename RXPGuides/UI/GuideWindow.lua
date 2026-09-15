@@ -71,7 +71,7 @@ if not ScrollFrame.ScrollBar then
     end
 end
 local CurrentStepFrame = CreateFrame("Frame", nil, RXPFrame)
-local ScrollChild = CreateFrame("Frame", "$parent_steps", BottomFrame,
+local ScrollChild = CreateFrame("Frame", "$parent_steps", ScrollFrame,
                                 BackdropTemplate)
 local MenuFrame = CreateFrame("Frame", "RXPG_MenuFrame", UIParent,
                               "UIDropDownMenuTemplate")
@@ -326,12 +326,14 @@ local refreshScrollRange
 
 local lastScrollValue
 local function GetStepScrollValue(n)
-    if n == 1 or not stepPos[n] then return 0 end
-    local total = tonumber(stepPos[0]) or 0
-    local height = ScrollChild.f1 and ScrollChild.f1:GetHeight() or 0
-    if total <= 0 or height <= 0 then return 0 end
-    local value = stepPos[n] / total * height - 2
-    local maximum = math.max(0, height - BottomFrame:GetHeight() + 10)
+    local row = ScrollChild.framePool and ScrollChild.framePool[n]
+    local top = ScrollChild:GetTop()
+    local rowTop = row and row:GetTop()
+    if not top or not rowTop then return 0 end
+    -- stepPos[n] records the BOTTOM of the row. Scrolling to it hides the
+    -- selected step. Align the actual row top within the scroll viewport.
+    local value = top - rowTop - 3
+    local maximum = math.max(0, ScrollChild:GetHeight() - ScrollFrame:GetHeight())
     return math.max(0, math.min(value, maximum))
 end
 
@@ -598,7 +600,7 @@ RXPFrame.activeSteps = activeSteps
 -- completed sequential steps from currentStep without replacing the selected
 -- theme's row backgrounds.
 local stepVisuals = {
-    current = {},
+    current = {listBackground = {0.12, 0.28, 0.38, 0.85}},
     completed = {
         text = {0.62, 0.62, 0.62},
     },
@@ -615,13 +617,13 @@ local function GetStepVisualState(step)
     local skipped = RXPCData and RXPCData.stepSkip and index and
                         RXPCData.stepSkip[index]
 
+    if index and currentStep and index == currentStep then return "current" end
     if skipped then return "skipped" end
     if step.completed then return "completed" end
     if step.sticky and step.active then return "sticky" end
     if index and currentStep and index < currentStep and not step.sticky then
         return "completed"
     end
-    if index and currentStep and index == currentStep then return "current" end
     return "upcoming"
 end
 
@@ -659,7 +661,8 @@ local function ApplyStepVisualState(frame, step, bottom)
     local visuals = addon.accessibility and
                         addon.accessibility:GetStepVisuals() or stepVisuals
     local visual = visuals[state]
-    local background = visual and visual.background or
+    local background = (bottom and visual and visual.listBackground) or
+                           (visual and visual.background) or
                            (bottom and addon.colors.bottomFrameBG or
                                addon.colors.background)
     local textColor = visual and visual.text or addon.activeTheme.textColor
@@ -1894,6 +1897,9 @@ end)]]
 
 ScrollFrame:SetPoint("TOPLEFT", BottomFrame, 5, -5)
 ScrollFrame:SetPoint("BOTTOMRIGHT", BottomFrame, -20, 7)
+-- Native ScrollFrame clipping on 3.3.5 requires the content hierarchy to live
+-- under the scroll frame. Newer Sirus builds may expose explicit clipping too.
+if ScrollFrame.SetClipsChildren then ScrollFrame:SetClipsChildren(true) end
 ScrollFrame.ScrollBar:SetPoint("TOPLEFT", ScrollFrame, "TOPRIGHT", 0, -18)
 
 function RXPFrame.UpdateScrollBar()
@@ -1926,13 +1932,11 @@ refreshScrollRange = function(self, value)
     if updatingScrollRange or not self then return end
 
     local childHeight = FiniteNumber(ScrollChild:GetHeight(), 0)
-    local frameHeight = FiniteNumber(BottomFrame:GetHeight(), 0)
-    local scroll = math.floor(childHeight + 10) - frameHeight
+    local frameHeight = FiniteNumber(ScrollFrame:GetHeight(), 0)
+    local scroll = childHeight - frameHeight
     local currentStep = FiniteNumber(RXPCData.currentStep, 1)
-    local index = currentStep > 1 and
-                      FiniteNumber(stepPos[currentStep - 1], nil)
-    local zero = addon.settings.profile.hideCompletedSteps and index and
-                     index + currentStep or 0
+    local zero = addon.settings.profile.hideCompletedSteps and
+                     GetStepScrollValue(currentStep) or 0
 
     zero = math.max(0, FiniteNumber(zero, 0))
     scroll = math.max(zero, FiniteNumber(scroll, zero))
@@ -2816,6 +2820,10 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
     addon.SetStep(RXPCData.currentStep)
     BottomFrame.hiddenFrames = 0
     BottomFrame.UpdateFrame()
+    -- Loading initially gives the scroll child a placeholder height of 200.
+    -- Restore the position only after the rows and scroll range are measured.
+    addon.scheduledTasks[BottomFrame.StepScroll] = nil
+    BottomFrame:StepScroll(RXPCData.currentStep, true)
     addon.tickTimer = 0
     addon:QueueMessage("RXP_GUIDE_LOADED",guide)
     if addon.guideState and addon.guideState.RecordLoaded then
@@ -2879,6 +2887,54 @@ function addon.RefreshGuideLanguage()
     end
 end
 
+-- A row's last presentation inputs, not a cache of quest state. Directive
+-- callbacks still run first; unchanged rows skip translation and text layout.
+local listPresentationRevision = 0
+local listPresentationEvents = CreateFrame("Frame")
+for _, event in ipairs({"QUEST_LOG_UPDATE", "GET_ITEM_INFO_RECEIVED",
+    "SPELLS_CHANGED", "UPDATE_FACTION", "ZONE_CHANGED", "PLAYER_LEVEL_UP"}) do
+    listPresentationEvents:RegisterEvent(event)
+end
+listPresentationEvents:SetScript("OnEvent", function()
+    listPresentationRevision = listPresentationRevision + 1
+end)
+local function BottomRowContentChanged(frame, step, force)
+    local profile = addon.settings.profile
+    local mode = addon.guideLocalization:GetMode()
+    local snapshot = frame.listPresentation
+    local changed = force or not snapshot or snapshot.step ~= step or
+        snapshot.revision ~= listPresentationRevision or snapshot.mode ~= mode or
+        snapshot.width ~= ScrollChild:GetWidth() or snapshot.font ~= addon.font or
+        snapshot.size ~= profile.guideFontSize or snapshot.level ~= UnitLevel("player") or
+        snapshot.active ~= step.active or snapshot.stepLevel ~= step.level or
+        snapshot.hidden ~= not IsFrameShown(frame, step)
+    if not snapshot or snapshot.step ~= step then
+        snapshot = {elements = {}}
+        frame.listPresentation = snapshot
+    end
+    snapshot.step, snapshot.revision, snapshot.mode = step, listPresentationRevision, mode
+    snapshot.width, snapshot.font, snapshot.size = ScrollChild:GetWidth(), addon.font, profile.guideFontSize
+    snapshot.level, snapshot.hidden = UnitLevel("player"), not IsFrameShown(frame, step)
+    snapshot.active, snapshot.stepLevel = step.active, step.level
+    for i, element in ipairs(step.elements or {}) do
+        local previous = snapshot.elements[i]
+        if not previous then previous = {}; snapshot.elements[i] = previous; changed = true end
+        -- Compare all inputs, including source fields used by localization.
+        -- Translation status is output and must not invalidate its own row.
+        for key, value in pairs(element) do
+            if key ~= "guideTranslationFallback" and key ~= "guideTranslationMachine" then
+                if previous[key] ~= value then changed = true; previous[key] = value end
+            end
+        end
+        for key in pairs(previous) do
+            if element[key] == nil then previous[key] = nil; changed = true end
+        end
+    end
+    local count = #(step.elements or {})
+    for i = #snapshot.elements, count + 1, -1 do snapshot.elements[i] = nil; changed = true end
+    return changed
+end
+
 function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
     local level = UnitLevel("player")
 
@@ -2930,6 +2986,14 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
                 addon.Call(element.tag,addon.functions[element.tag],element,"WindowUpdate")
             end
 
+        end
+
+        if not BottomRowContentChanged(frame, step, languageRefresh) then
+            ApplyStepVisualState(frame, step, true)
+            return
+        end
+
+        for _, element in ipairs(frame.step.elements or {}) do
             rawtext = element.tooltipText
 
             if type(element.text) ~= "string" then
@@ -2965,7 +3029,7 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
             step.text = text
         end
 
-        if frame.text then
+        if frame.text and frame.text:GetText() ~= text then
             frame.text:SetText(text)
         end
         frame.guideTranslationFallback = translationFallback or nil
@@ -2978,14 +3042,15 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
         end
 
         local hDiff = fheight - frame:GetHeight()
-        frame:SetHeight(fheight)
+        if hDiff ~= 0 then frame:SetHeight(fheight) end
         ApplyStepVisualState(frame, step, true)
 
-        for n = stepNumber + 1, #stepPos do
-            stepPos[n] = stepPos[n] + hDiff
+        if hDiff ~= 0 then
+            for n = stepNumber + 1, #stepPos do
+                stepPos[n] = stepPos[n] + hDiff
+            end
+            stepPos[0] = stepPos[0] + hDiff
         end
-
-        stepPos[0] = stepPos[0] + hDiff
 
     else
         addon.updateBottomFrame = false
@@ -3000,6 +3065,8 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
             --frame.step = addon.currentGuide.steps[BottomFrame.stepList[n]]
             frame.step = addon.currentGuide.steps[n]
             local step = frame.step
+            -- Full layout passes cover theme, font and guide changes.
+            frame.listPresentation = nil
             local hideStep = step.level > level or not IsFrameShown(frame,step)
             local fheight
             for _, element in ipairs(frame.step.elements or {}) do

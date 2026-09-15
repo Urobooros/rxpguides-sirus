@@ -323,12 +323,151 @@ function addon.PrintPerformanceSnapshot()
     report("Пул окон: %d строк, %d карточек, %d строк целей", data.rows, data.cards, data.objectives)
 end
 
+-- Opt-in session capture. Kept in this existing TOC file for legacy /reload.
+do
+    local capture = {active = false}
+    addon.performanceCapture = capture
+    local frame, report, hooks
+    local function memory()
+        if UpdateAddOnMemoryUsage then UpdateAddOnMemoryUsage() end
+        return GetAddOnMemoryUsage and GetAddOnMemoryUsage(addonName) or 0
+    end
+    function capture:Record(label, started, failed)
+        if not self.active then return end
+        local elapsed = debugprofilestop() - started
+        if elapsed < 0 then report.timerResets = report.timerResets + 1; return end
+        local entry = report.operations[label]
+        if not entry then
+            if report.operationCount >= 160 then label = "other" end
+            entry = report.operations[label]
+            if not entry then
+                entry = {calls = 0, totalMS = 0, maxMS = 0, errors = 0, over10MS = 0}
+                report.operations[label] = entry
+                report.operationCount = report.operationCount + 1
+            end
+        end
+        entry.calls = entry.calls + 1
+        entry.totalMS = entry.totalMS + elapsed
+        entry.maxMS = math.max(entry.maxMS, elapsed)
+        entry.errors = entry.errors + (failed and 1 or 0)
+        if elapsed >= 10 then entry.over10MS = entry.over10MS + 1 end
+        if elapsed >= 10 and #report.slowCalls < 120 then
+            report.slowCalls[#report.slowCalls + 1] = {
+                at = GetTime() - report.started, operation = label, ms = elapsed,
+                step = RXPCData.currentStep, combat = InCombatLockdown() and true or false,
+            }
+        end
+    end
+    local function finish(label, started, ...)
+        capture:Record(label, started)
+        return ...
+    end
+    local function wrap(owner, key, label)
+        if not owner or type(owner[key]) ~= "function" then return end
+        local original = owner[key]
+        local wrapper = function(...)
+            if not capture.active then return original(...) end
+            local operation = label
+            if label == "UpdateMap" then
+                operation = (...) and "map.Rebuild" or "map.Request"
+            end
+            return finish(operation, debugprofilestop(), original(...))
+        end
+        hooks[#hooks + 1] = {owner, key, original, wrapper}
+        owner[key] = wrapper
+    end
+    function capture:Stop(reason)
+        if not self.active then
+            addon.comms.PrettyPrint("Сбор диагностики не запущен. /rxp perf start")
+            return
+        end
+        self.active = false
+        frame:SetScript("OnUpdate", nil)
+        frame:UnregisterAllEvents()
+        frame:Hide()
+        for _, hook in ipairs(hooks) do
+            if hook[1][hook[2]] == hook[4] then hook[1][hook[2]] = hook[3] end
+        end
+        hooks = nil
+        report.duration = GetTime() - report.started
+        report.stopReason = reason or "manual"
+        report.endMemoryKB = memory()
+        report.finished = date("%Y-%m-%d %H:%M:%S")
+        report.finishedSnapshot = addon.GetPerformanceSnapshot()
+        RXPData = RXPData or {}
+        RXPData.performanceReport = report
+        addon.comms.PrettyPrint("Диагностика остановлена: %.1f сек., %d задержек кадра >100 мс. Отчёт сохранён в RXPData.performanceReport. Сделайте /reload для записи на диск.", report.duration, report.frameHitches)
+    end
+    function capture:Start()
+        if self.active then
+            addon.comms.PrettyPrint("Диагностика уже идёт. Для остановки: /rxp perf stop")
+            return
+        end
+        if not debugprofilestop then
+            addon.comms.PrettyPrint("Клиент не поддерживает таймер диагностики.")
+            return
+        end
+        report = {version = 1, date = date("%Y-%m-%d %H:%M:%S"),
+            guide = addon.currentGuide and addon.currentGuide.name,
+            startStep = RXPCData.currentStep, operations = {}, operationCount = 0,
+            slowCalls = {}, samples = {}, hitches = {}, frameHitches = 0,
+            maxFrameMS = 0, timerResets = 0, addons = {},
+            note = "Inclusive timings overlap; frame hitches are client-wide, not proof of RXP CPU. Memory sampling every 5s adds diagnostic overhead. First 120 slow calls/hitches retained."}
+        for i = 1, GetNumAddOns() do
+            if IsAddOnLoaded(i) then report.addons[#report.addons + 1] = GetAddOnInfo(i) end
+        end
+        report.startSnapshot = addon.GetPerformanceSnapshot()
+        report.startMemoryKB = memory()
+        report.started = GetTime()
+        hooks = {}
+        for _, key in ipairs({"RenderFrame", "SetStep", "LoadGuide", "ReloadGuide",
+            "UpdateMap", "UpdateItemFrame", "UpdateScheduledTasks", "LegacyUpdateLoop",
+            "FetchGuide", "GetExpectedQuestLog", "GetOrphanedQuests"}) do
+            wrap(addon, key, key)
+        end
+        local window = addon.RXPFrame
+        wrap(window and window.BottomFrame, "UpdateFrame", "list.UpdateFrame")
+        wrap(window and window.CurrentStepFrame, "UpdateText", "current.UpdateText")
+        wrap(addon.guideLocalization, "Render", "localization.Render")
+        frame = frame or CreateFrame("Frame")
+        local nextSample = report.started + 5
+        self.active = true
+        frame:SetScript("OnUpdate", function(_, elapsed)
+            local now = GetTime()
+            local ms = elapsed * 1000
+            report.maxFrameMS = math.max(report.maxFrameMS, ms)
+            if ms >= 100 then
+                report.frameHitches = report.frameHitches + 1
+                if #report.hitches < 120 then
+                    report.hitches[#report.hitches + 1] = {at = now - report.started,
+                        ms = ms, step = RXPCData.currentStep, combat = InCombatLockdown() and true or false}
+                end
+            end
+            if now - report.started >= 600 then self:Stop("limit-10-minutes"); return end
+            if now >= nextSample then
+                nextSample = now + 5
+                report.samples[#report.samples + 1] = {at = now - report.started,
+                    memoryKB = memory(), step = RXPCData.currentStep,
+                    guide = addon.currentGuide and addon.currentGuide.name}
+            end
+        end)
+        frame:SetScript("OnEvent", function() self:Stop("logout") end)
+        frame:RegisterEvent("PLAYER_LOGOUT")
+        frame:Show()
+        addon.comms.PrettyPrint("Диагностика включена на срок до 10 минут. Играйте как обычно; после подвисаний: /rxp perf stop")
+    end
+end
+
 function addon.settings.ChatCommand(input)
     if not input then addon.settings.OpenSettings() end
 
     input = input:trim()
     if input == "import" then
         addon.settings.OpenSettings('Import')
+    elseif input == "perf start" then
+        addon.performanceCapture:Start()
+    elseif input == "perf stop" then
+        addon.performanceCapture:Stop()
     elseif input == "perf" then
         addon.PrintPerformanceSnapshot()
     elseif input == "debug" then

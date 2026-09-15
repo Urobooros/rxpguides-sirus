@@ -191,7 +191,10 @@ function addon.Call(label,func,...)
     --if true then return true end
     label = label or ""
     addon.lastCall = label
+    local diagnostic = addon.performanceCapture
+    local started = diagnostic and diagnostic.active and debugprofilestop()
     local pass, r1, r2, r3, r4 = pcall(func,...)
+    if started then diagnostic:Record("directive:" .. tostring(label), started, not pass) end
     if not pass then
         local msg = r1
         addon.errors[label] = addon.errors[label] or {}
@@ -2563,10 +2566,10 @@ function addon.LegacyUpdateLoop()
                     if not updateText and steps[n].active then
                         updateText = true
                     end
+                    -- Consume this row independently of the global dirty flag.
+                    -- Its callbacks may queue it again while rebuilding.
+                    addon.stepUpdateList[n] = nil
                     addon.RXPFrame.BottomFrame.UpdateFrame(nil, n)
-                    if not addon.updateStepText then
-                        addon.stepUpdateList[n] = nil
-                    end
                 end
             end
 

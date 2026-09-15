@@ -39,6 +39,15 @@ local function check(frame, color, alpha)
     assert(frame.alpha == alpha, "wrong alpha: " .. tostring(frame.alpha))
 end
 local a, b = row(2), row(3)
+local selected = row(1)
+refresh(selected, selected.step, true)
+check(selected, {0.12, 0.28, 0.38}, 1)
+enter(selected); check(selected, highlight, 1)
+leave(selected); check(selected, {0.12, 0.28, 0.38}, 1)
+refresh(selected, selected.step, false); check(selected, normal, 1)
+env.RXPCData.currentStep = 2
+refresh(selected, selected.step, true); check(selected, normal, 0.78)
+env.RXPCData.currentStep = 1
 refresh(a, a.step, true)
 check(a, normal, 1)
 focus, a.over = a, true
@@ -93,3 +102,22 @@ refresh(a, a.step, true); check(a, current, 1)
 a.shown = true
 refresh(a, a.step, false); check(a, current, 1)
 print("PASS: hover refresh, transitions, completion, recycle, theme, clipping, hidden rows, active cards")
+
+-- Scroll to the row top, not its bottom, and clamp to the viewport range.
+env.ScrollChild = {
+    GetTop = function() return 1000 end,
+    GetHeight = function() return 1200 end,
+    framePool = {
+        [31] = {GetTop = function() return 497 end},
+        [99] = {GetTop = function() return -103 end},
+    },
+}
+env.ScrollFrame = {GetHeight = function() return 300 end}
+local scrollChunk = assert(loadstring(section("local function GetStepScrollValue", "function BottomFrame:StepScroll") .. "\nreturn GetStepScrollValue"))
+setfenv(scrollChunk, env)
+local scrollValue = scrollChunk()
+assert(scrollValue(31) == 500)
+assert(scrollValue(99) == 900)
+assert(scrollValue(100) == 0)
+assert(source:find('"$parent_steps", ScrollFrame,', 1, true))
+print("PASS: current step persists; scroll aligns row top and respects viewport range")
