@@ -351,6 +351,9 @@ function addon.settings:OpenStandaloneOptions(appName, section)
 
     local window = AceConfigDialog.OpenFrames[appName]
     SkinWindow(window, appName)
+    if appName == addon.title .. "/Import" and self.textboxHook then
+        self.textboxHook()
+    end
 end
 
 function addon.settings:OpenModernSettings(section)

@@ -1274,8 +1274,12 @@ function addon.settings:CreateImportOptionsPanel()
 
     self.textboxHook = textboxHook
 
-    -- Hook embedded settings
-    self.gui.import.obj.frame:HookScript("OnShow", textboxHook)
+    -- The retail build embeds this page in Interface Options. Sirus opens the
+    -- same AceConfig table in the standalone window, where the widget does not
+    -- exist until that window has been built.
+    if self.gui.import and self.gui.import.obj and self.gui.import.obj.frame then
+        self.gui.import.obj.frame:HookScript("OnShow", textboxHook)
+    end
 end
 
 function addon.settings:CreateAceOptionsPanel()
