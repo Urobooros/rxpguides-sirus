@@ -3750,12 +3750,13 @@ function addon.UpdateGuideFontSize()
 
     for _, stepFrame in ipairs(CurrentStepFrame.framePool or {}) do
         if stepFrame.number and stepFrame.number.text then
-            stepFrame.number.text:SetFont(addon.font, size, "")
+            addon.SetFontSafely(stepFrame.number.text, addon.font, size, "")
             stepFrame.number:SetHeight(math.max(17, size + 8))
         end
         for _, elementFrame in ipairs(stepFrame.elements or {}) do
             if elementFrame.text then
-                elementFrame.text:SetFont(addon.font, size + 2, "")
+                addon.SetFontSafely(elementFrame.text, addon.font, size + 2,
+                                    "")
             end
             if elementFrame.icon then
                 local actionIconSize = math.max(16, size + 4)
@@ -3766,11 +3767,14 @@ function addon.UpdateGuideFontSize()
 
     for _, frame in ipairs(ScrollChild.framePool or {}) do
         if frame.number and frame.number.text then
-            frame.number.text:SetFont(addon.font, math.max(1, size - 1), "")
+            addon.SetFontSafely(frame.number.text, addon.font,
+                                math.max(1, size - 1), "")
             frame.number:SetSize(frame.number.text:GetStringWidth() + 2,
                                  math.max(10, size + 2))
         end
-        if frame.text then frame.text:SetFont(addon.font, size, "") end
+        if frame.text then
+            addon.SetFontSafely(frame.text, addon.font, size, "")
+        end
     end
 
     if addon.currentGuide then

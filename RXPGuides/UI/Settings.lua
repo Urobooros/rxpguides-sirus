@@ -7,6 +7,7 @@ local LibDBIcon = LibStub("LibDBIcon-1.0")
 local LibDataBroker = LibStub("LibDataBroker-1.1")
 local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+local SharedMedia = LibStub("LibSharedMedia-3.0", true)
 local LibDD = addon.dropdown or LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)
 local EasyMenu = function(...)
     if _G.EasyMenu then
@@ -55,25 +56,12 @@ local updateFrequencyTimer
 -- Alias addon.locale.Get
 local L = addon.locale.Get
 
--- Some 3.3.5 private-server UI packs (or addons loaded before RXP) install an
--- incomplete retail-style Settings global. Newer AceConfigDialog revisions
--- then select their retail registration branch, even though the stub returns
--- no category, and fail while indexing category.ID. Force AceConfig's proven
--- InterfaceOptions fallback for this synchronous registration call. This also
--- makes load order irrelevant when another addon publishes a newer AceConfig.
+-- Sirus uses the standalone settings window. Never add RestedXP pages to the
+-- stock Interface Options list; old Ace3 revisions can also associate those
+-- categories with another addon's frame when several Ace3 copies are loaded.
 local function AddToBlizzardOptions(appName, name, parent, ...)
-    if addon.gameVersion ~= 30300 then
-        return AceConfigDialog:AddToBlizOptions(appName, name, parent, ...)
-    end
-
-    local clientSettings = rawget(_G, "Settings")
-    _G.Settings = nil
-    local ok, panel, categoryID = pcall(AceConfigDialog.AddToBlizOptions,
-                                        AceConfigDialog, appName, name, parent,
-                                        ...)
-    _G.Settings = clientSettings
-    if not ok then error(panel, 2) end
-    return panel, categoryID
+    if addon.gameVersion == 30300 then return nil end
+    return AceConfigDialog:AddToBlizOptions(appName, name, parent, ...)
 end
 
 addon.settings = addon:NewModule("Settings", "AceConsole-3.0")
@@ -111,15 +99,15 @@ local legacyTargetSoundMap = {
 }
 
 local legacyTargetSoundValues = {
-    none = "none",
-    MapPing = "Map Ping",
-    WarDrums = "War Drums",
-    RaidWarning = "Raid Warning",
-    AuctionWindowOpen = "Auction Window Open",
-    ReadyCheck = _G.QUEUED_STATUS_READY_CHECK_IN_PROGRESS,
-    PVPFlagTaken = "PVP Flag Taken",
-    PVPFlagCaptured = "PVP Flag Captured",
-    PVPWarning = "PVP Warning",
+    none = "Без звука",
+    MapPing = "Сигнал карты",
+    WarDrums = "Боевые барабаны",
+    RaidWarning = "Предупреждение рейда",
+    AuctionWindowOpen = "Открытие аукциона",
+    ReadyCheck = "Проверка готовности",
+    PVPFlagTaken = "Флаг захвачен",
+    PVPFlagCaptured = "Флаг доставлен",
+    PVPWarning = "Предупреждение поля боя",
 }
 
 function addon.settings:NormalizeTargetingSound(sound)
@@ -155,7 +143,6 @@ end
 -- when another addon loaded a newer AceConfig first. Normalize the complete
 -- tree at the integration boundary instead of maintaining a separate legacy
 -- copy of every option.
-local localizedAceConfigOptions = setmetatable({}, {__mode = "k"})
 local function NormalizeLegacyAceConfigOptions(option)
     if addon.gameVersion ~= 30300 or type(option) ~= "table" then return end
 
@@ -168,32 +155,6 @@ local function NormalizeLegacyAceConfigOptions(option)
             option[key] = nil
         end
     end
-    if not localizedAceConfigOptions[option] and
-        addon.locale.GetMetadataForText then
-        local metadata = type(option.name) == "string" and
-                             addon.locale.GetMetadataForText(option.name) or nil
-        if (not metadata or not metadata.machine) and
-           type(option.desc) == "string" then
-            metadata = addon.locale.GetMetadataForText(option.desc)
-        end
-        if metadata and metadata.machine and addon.guideLocalization then
-            local notice = addon.guideLocalization:GetMachineExplanation()
-            local description = option.desc
-            if type(description) == "string" then
-                option.desc = description .. "\n\n|cff70a0ff" .. notice .. "|r"
-            elseif type(description) == "function" then
-                option.desc = function(...)
-                    local value = description(...)
-                    return tostring(value or "") .. "\n\n|cff70a0ff" ..
-                               notice .. "|r"
-                end
-            else
-                option.desc = "|cff70a0ff" .. notice .. "|r"
-            end
-            localizedAceConfigOptions[option] = "machine"
-        end
-    end
-
     if type(option.width) == "number" then
         if option.width <= 0.75 then
             option.width = "half"
@@ -235,9 +196,19 @@ function addon.settings.RegisterOptionsPanel(panelName, panel)
 end
 
 function addon.settings.OpenSettings(panelName)
-    -- Interface 30300 always uses the stock Interface Options frame. Partial
-    -- Settings backports supplied by private-server UI packs must not route us
-    -- into AceConfig's retail category API after legacy registration.
+    -- Interface 30300 uses the standalone window exclusively.
+    if addon.gameVersion == 30300 and
+        addon.settings.OpenStandaloneOptions then
+        local appName = addon.title
+        if panelName == "3.3.5a" or panelName == "Compat335" then
+            appName = addon.title .. "/Compat335"
+        elseif type(panelName) == "string" and panelName ~= "" then
+            appName = addon.title .. "/" .. panelName
+        end
+        addon.settings:OpenStandaloneOptions(appName)
+        return
+    end
+
     if addon.gameVersion == 30300 or
         not (_G.Settings and _G.Settings.GetCategory) then
         local panel = panelName and addon.settings.gui.panels[panelName]
@@ -459,11 +430,20 @@ do
 end
 
 function addon.settings.ChatCommand(input)
-    if not input then addon.settings.OpenSettings() end
-
-    input = input:trim()
+    input = tostring(input or ""):trim():lower():gsub("%s+", " ")
+    if input == "" then
+        addon.settings.OpenSettings()
+        return
+    end
     if input == "import" then
         addon.settings.OpenSettings('Import')
+    elseif input == "settings check" or input == "config check" or
+           input == "check" then
+        if _G.SlashCmdList and _G.SlashCmdList.RXPGUIDESCHECK then
+            _G.SlashCmdList.RXPGUIDESCHECK()
+        elseif addon.settings.ValidateModernSettings then
+            addon.settings:ValidateModernSettings()
+        end
     elseif input == "perf start" then
         addon.performanceCapture:Start()
     elseif input == "perf stop" then
@@ -540,6 +520,7 @@ local settingsDBDefaults = {
         -- Sliders
         arrowScale = 1,
         arrowText = 9,
+        arrowColor = {1, 1, 1, 1},
         windowScale = 1,
         numMapPins = 7,
         worldMapPinScale = 1,
@@ -665,6 +646,9 @@ function addon.settings:InitializeSettings()
     self:RegisterChatCommand("rxp", self.ChatCommand)
     self:RegisterChatCommand("rxpg", self.ChatCommand)
     self:RegisterChatCommand("rxpguides", self.ChatCommand)
+    if self.RegisterModernSettingsCommands then
+        self:RegisterModernSettingsCommands()
+    end
 end
 
 function addon.settings:MigrateLegacySettings()
@@ -1187,23 +1171,29 @@ function addon.settings:CreateImportOptionsPanel()
         }
     }
 
-    AceConfig:RegisterOptionsTable(addon.RXPOptions.name .. "/Import",
+    AceConfig:RegisterOptionsTable(addon.title .. "/Import",
                                    importOptionsTable)
 
-    self.gui.import = self.RegisterOptionsPanel(
-                          "Import", self.AddToBlizzardOptions(
-                              addon.RXPOptions.name .. "/Import", L("Import"),
-                              addon.RXPOptions.name))
+    if addon.gameVersion == 30300 then
+        self.gui.import = nil
+    else
+        self.gui.import = self.RegisterOptionsPanel(
+                              "Import", self.AddToBlizzardOptions(
+                                  addon.title .. "/Import", L("Import"),
+                                  addon.title))
+    end
 
     -- Ace3 ConfigDialog doesn't support embedding icons in header
     -- Directly references Ace3 built frame object
 
-    local iconFrameParent = self.gui.import.obj.frame
-    iconFrameParent.icon = iconFrameParent:CreateTexture()
-    -- Theme load order, leave default settings branding unthemed
-    iconFrameParent.icon:SetTexture("Interface/AddOns/" .. addonName ..
-                                        "/Textures/rxp_logo-64")
-    iconFrameParent.icon:SetPoint("TOPRIGHT", -5, -5)
+    if self.gui.import and self.gui.import.obj then
+        local iconFrameParent = self.gui.import.obj.frame
+        iconFrameParent.icon = iconFrameParent:CreateTexture()
+        -- Theme load order, leave default settings branding unthemed
+        iconFrameParent.icon:SetTexture("Interface/AddOns/" .. addonName ..
+                                            "/Textures/rxp_logo-64")
+        iconFrameParent.icon:SetPoint("TOPRIGHT", -5, -5)
+    end
 
     if notOnline() then
         self:UpdateImportStatusHistory(L(
@@ -1324,21 +1314,115 @@ function addon.settings:CreateAceOptionsPanel()
         return features
     end
 
-    local optionsWidth = 1.08
+    -- Russian labels need two readable columns instead of three clipped ones.
+    local optionsWidth = 1.5
     local settingsCache = {invertedOrphans = {}}
+
+    local function GetSharedMediaValues(mediaType)
+        SharedMedia = SharedMedia or LibStub("LibSharedMedia-3.0", true)
+        local values = {["Стандартный"] = "Стандартный"}
+        if SharedMedia and SharedMedia.HashTable then
+            for name in pairs(SharedMedia:HashTable(mediaType) or {}) do
+                values[name] = name
+            end
+        end
+
+        return values
+    end
+
+    local function FindSharedMediaName(mediaType, path)
+        SharedMedia = SharedMedia or LibStub("LibSharedMedia-3.0", true)
+        if SharedMedia and SharedMedia.HashTable then
+            for name, mediaPath in pairs(SharedMedia:HashTable(mediaType) or {}) do
+                if mediaPath == path then return name end
+            end
+        end
+        return "Стандартный"
+    end
+
+    local function FetchSharedMedia(mediaType, name, fallback)
+        SharedMedia = SharedMedia or LibStub("LibSharedMedia-3.0", true)
+        if SharedMedia and SharedMedia.Fetch and name ~= "Стандартный" then
+            local ok, path = pcall(SharedMedia.Fetch, SharedMedia, mediaType,
+                                   name, true)
+            if ok and type(path) == "string" and path ~= "" then return path end
+        end
+        return fallback
+    end
+
+    local function GetSharedMediaStatus()
+        SharedMedia = SharedMedia or LibStub("LibSharedMedia-3.0", true)
+        if not SharedMedia or not SharedMedia.HashTable then
+            return "|cff8f9baaSharedMedia не обнаружен. Доступны стандартные ресурсы игры.|r"
+        end
+
+        local fonts, textures = 0, 0
+        for _ in pairs(SharedMedia:HashTable("font") or {}) do
+            fonts = fonts + 1
+        end
+        for _ in pairs(SharedMedia:HashTable("statusbar") or {}) do
+            textures = textures + 1
+        end
+        return fmt("|cff27d6a1SharedMedia подключён: шрифтов — %d, текстур — %d.|r",
+                   fonts, textures)
+    end
+
+    local function RefreshVisibleThemeFonts()
+        if addon.UpdateGuideFontSize then
+            addon.UpdateGuideFontSize()
+        end
+        if addon.arrowFrame and addon.arrowFrame.text then
+            addon.SetFontSafely(addon.arrowFrame.text, addon.font,
+                self.profile.arrowText or 9, "OUTLINE")
+            addon.arrowFrame.text:SetTextColor(
+                unpack(addon.activeTheme.textColor))
+        end
+    end
+
+    local function ApplyCustomTheme(changedKey)
+        -- A manual visual adjustment must become visible immediately.  Older
+        -- behavior edited the saved custom theme while another preset stayed
+        -- active, so a working control looked as if it did nothing.
+        if self.profile.activeTheme ~= "Custom" and changedKey and
+           changedKey ~= "*" and addon.activeTheme then
+            local changedValue = self.profile.customTheme[changedKey]
+            local custom = CopyTable(addon.activeTheme)
+            custom.name = "Custom"
+            custom.author = _G.UnitName("player")
+            custom.applicable = true
+            custom[changedKey] = type(changedValue) == "table" and
+                                     CopyTable(changedValue) or changedValue
+            self.profile.customTheme = custom
+        end
+        self.profile.activeTheme = "Custom"
+        addon:RegisterTheme(self.profile.customTheme)
+        addon.RenderFrame('themeReload')
+        RefreshVisibleThemeFonts()
+        AceConfigRegistry:NotifyChange(addon.title)
+        if self.RefreshModernSettingsSkin then
+            self:RefreshModernSettingsSkin()
+        end
+    end
+
+    local function ApplyGuideTextColors()
+        self:LoadTextColors()
+        addon.RenderFrame()
+        addon.UpdateMap()
+    end
 
     local optionsTable = {
         type = "group",
         name = fmt("%s - %s", addon.title, addon.versionText),
         get = GetProfileOption,
         set = SetProfileOption,
-        childGroups = "tab",
+        childGroups = addon.gameVersion == 30300 and "tree" or "tab",
         args = {
             discordButton = {
                 order = 1.0,
                 name = L("Join Discord"), -- TODO locale
                 type = "execute",
                 width = "normal",
+                hidden = true,
                 func = function()
                     addon.url = "https://discord.gg/restedxp"
                     _G.StaticPopup_Show("RXP_Link")
@@ -1350,12 +1434,13 @@ function addon.settings:CreateAceOptionsPanel()
                 name = L("Open Feedback Form"),
                 type = "execute",
                 width = "normal",
+                hidden = true,
                 func = addon.comms.OpenBugReport
             },
             generalSettings = {
                 type = "group",
                 name = _G.GENERAL,
-                order = 2,
+                order = 1,
                 args = {
                     showEnabled = {
                         name = L("Show all Enabled Frames"),
@@ -1866,7 +1951,7 @@ function addon.settings:CreateAceOptionsPanel()
                 order = 3,
                 args = {
                     experienceHeader = {
-                        name = _G.POWER_TYPE_EXPERIENCE,
+                        name = "Опыт",
                         type = "header",
                         width = "full",
                         order = 1.0
@@ -2192,7 +2277,7 @@ function addon.settings:CreateAceOptionsPanel()
 
                             for _, d in ipairs(settingsCache.invertedOrphans) do
                                 result =
-                                    fmt("%s\n%s (level %d)", result,
+                                    fmt("%s\n%s (уровень %d)", result,
                                         d.questLogTitleText, d.level)
                             end
 
@@ -2212,7 +2297,7 @@ function addon.settings:CreateAceOptionsPanel()
                             local invertedOrphans = addon.GetOrphanedQuests()
                             for _, d in ipairs(invertedOrphans) do
                                 result =
-                                    fmt("%s\n%s (level %d)", result,
+                                    fmt("%s\n%s (уровень %d)", result,
                                         d.questLogTitleText, d.level)
                             end
 
@@ -2406,46 +2491,8 @@ function addon.settings:CreateAceOptionsPanel()
                         end,
                         hidden = not unitscanEnabled
                     },
-                    hideActiveTargetsBackground = {
-                        name = L("Hide Targets Background"),
-                        desc = L("Make background transparent"),
-                        type = "toggle",
-                        width = optionsWidth,
-                        order = 2.5,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            addon.targeting:RenderTargetFrameBackground()
-                        end,
-                        disabled = function()
-                            return not self.profile.enableTargetAutomation
-                        end
-                    },
-                    activeTargetScale = {
-                        name = L("Active Targets Scale"), -- TODO locale
-                        desc = L("Scale of the Active Targets frame"),
-                        type = "range",
-                        width = optionsWidth,
-                        order = 2.51,
-                        min = 0.8,
-                        max = 3,
-                        step = 0.05,
-                        isPercent = true,
-                        set = function(info, value)
-                            SetProfileOption(info, value)
-                            addon.targeting.activeTargetFrame:SetScale(value)
-                        end
-                    },
-                    resetTargetPosition = {
-                        name = L("Reset Window Position"), -- TODO locale
-                        order = 2.52,
-                        type = "execute",
-                        width = optionsWidth,
-                        func = function()
-                            addon.ResetTargetPosition()
-                        end
-                    },
                     alertHeader = {
-                        name = _G.COMMUNITIES_NOTIFICATION_SETTINGS,
+                        name = "Настройки уведомлений",
                         type = "header",
                         width = "full",
                         order = 3
@@ -2530,7 +2577,7 @@ function addon.settings:CreateAceOptionsPanel()
                         end
                     },
                     testSoundOnFind = {
-                        name = _G.EVENTTRACE_BUTTON_PLAY,
+                        name = "Воспроизвести",
                         order = 3.5,
                         type = 'execute',
                         disabled = function()
@@ -2728,7 +2775,7 @@ function addon.settings:CreateAceOptionsPanel()
             communications = {
                 type = "group",
                 name = L("Communications"),
-                order = 6,
+                order = 7,
                 args = {
                     checkVersions = {
                         name = L("Enable Addon Version Checks"),
@@ -2818,7 +2865,7 @@ function addon.settings:CreateAceOptionsPanel()
             tipsPanel = {
                 type = "group",
                 name = L("Tips"), -- TODO locale
-                order = 7,
+                order = 6,
                 args = {
                     enableTips = {
                         name = L("Enable Tips"), -- TODO locale
@@ -3304,7 +3351,7 @@ function addon.settings:CreateAceOptionsPanel()
             lookAndFeel = {
                 type = "group",
                 name = L("Look and Feel"), -- TODO
-                order = 10,
+                order = 2,
                 args = {
                     activeTheme = {
                         name = L("Choose Theme"), -- TODO locale
@@ -3322,10 +3369,12 @@ function addon.settings:CreateAceOptionsPanel()
                                 value = "Default"
                             end
                             SetProfileOption(info, value)
-                            if self.profile.enableThemeLiveReload then
-                                addon.RenderFrame('themeReload')
-                            end
+                            addon.RenderFrame('themeReload')
+                            RefreshVisibleThemeFonts()
                             AceConfigRegistry:NotifyChange(addon.title)
+                            if self.RefreshModernSettingsSkin then
+                                self:RefreshModernSettingsSkin()
+                            end
                         end,
                         values = function()
                             return addon:GetThemeOptions()
@@ -3334,6 +3383,18 @@ function addon.settings:CreateAceOptionsPanel()
                             -- Disable selector if GA/Hardcore as they're special and branded
                             return RXPCData.GA or self.profile.hardcore
                         end]]
+                    },
+                    customAppearanceHeader = {
+                        name = "Индивидуальное оформление",
+                        type = "header",
+                        width = "full",
+                        order = 1.15
+                    },
+                    sharedMediaStatus = {
+                        name = GetSharedMediaStatus,
+                        type = "description",
+                        width = "full",
+                        order = 1.16
                     },
                     customThemeBackground = {
                         name = _G.BACKGROUND,
@@ -3349,14 +3410,8 @@ function addon.settings:CreateAceOptionsPanel()
                             self.profile.customTheme.background = {
                                 r, g, b, a or 1
                             }
-                            addon:RegisterTheme(self.profile.customTheme)
-                            if self.profile.enableThemeLiveReload then
-                                addon.RenderFrame('themeReload')
-                            end
+                            ApplyCustomTheme("background")
                         end,
-                        hidden = function()
-                            return self.profile.activeTheme ~= 'Custom'
-                        end
                     },
                     customThemeBottomFrameBG = {
                         name = L("Step List Background"), -- TODO locale
@@ -3373,14 +3428,8 @@ function addon.settings:CreateAceOptionsPanel()
                             self.profile.customTheme.bottomFrameBG = {
                                 r, g, b, a or 1
                             }
-                            addon:RegisterTheme(self.profile.customTheme)
-                            if self.profile.enableThemeLiveReload then
-                                addon.RenderFrame('themeReload')
-                            end
+                            ApplyCustomTheme("bottomFrameBG")
                         end,
-                        hidden = function()
-                            return self.profile.activeTheme ~= 'Custom'
-                        end
                     },
                     customThemeBottomFrameHighlight = {
                         name = L("Step Highlight"), -- TODO locale
@@ -3398,14 +3447,8 @@ function addon.settings:CreateAceOptionsPanel()
                             self.profile.customTheme.bottomFrameHighlight = {
                                 r, g, b, a or 1
                             }
-                            addon:RegisterTheme(self.profile.customTheme)
-                            if self.profile.enableThemeLiveReload then
-                                addon.RenderFrame('themeReload')
-                            end
+                            ApplyCustomTheme("bottomFrameHighlight")
                         end,
-                        hidden = function()
-                            return self.profile.activeTheme ~= 'Custom'
-                        end
                     },
                     customThemeMapPins = {
                         name = L("Map Pins"), -- TODO locale
@@ -3419,14 +3462,8 @@ function addon.settings:CreateAceOptionsPanel()
                         end,
                         set = function(_, r, g, b, a)
                             self.profile.customTheme.mapPins = {r, g, b, a or 1}
-                            addon:RegisterTheme(self.profile.customTheme)
-                            if self.profile.enableThemeLiveReload then
-                                addon.RenderFrame('themeReload')
-                            end
+                            ApplyCustomTheme("mapPins")
                         end,
-                        hidden = function()
-                            return self.profile.activeTheme ~= 'Custom'
-                        end
                     },
                     customThemeTooltip = {
                         name = L("Tooltip"), -- TODO locale
@@ -3444,59 +3481,58 @@ function addon.settings:CreateAceOptionsPanel()
                             value = value:gsub("^#", ""):upper()
                             self.profile.customTheme.tooltip =
                                 fmt('|cFF%s', value)
-                            addon:RegisterTheme(self.profile.customTheme)
-                            if self.profile.enableThemeLiveReload then
-                                addon.RenderFrame('themeReload')
-                            end
-                            AceConfigRegistry:NotifyChange(addon.title)
+                            ApplyCustomTheme("tooltip")
                         end,
                         validate = function(_, value)
                             if value and value:match("^#?%x%x%x%x%x%x$") then
                                 return true
                             end
-                            return "Enter a six-digit RGB hex color (for example CE7BFF)"
+                            return "Введите цвет RGB из шести символов, например CE7BFF"
                         end,
-                        hidden = function()
-                            return self.profile.activeTheme ~= 'Custom'
-                        end
                     },
                     customThemeFont = {
-                        name = L("Font"), -- TODO locale
-                        desc = L("Font Path"),
-                        type = "input",
+                        name = "Шрифт",
+                        desc = "Шрифты из SharedMedia появляются в этом списке автоматически.",
+                        type = "select",
                         width = optionsWidth,
                         order = 1.7,
+                        values = function()
+                            return GetSharedMediaValues("font")
+                        end,
                         get = function()
-                            return self.profile.customTheme.font
+                            return FindSharedMediaName("font",
+                                self.profile.customTheme.font)
                         end,
-                        validate = function(_, fontPath)
-                            local fontString = addon.RXPFrame.GuideName.text
-                            local currentPath, currentSize, currentFlags =
-                                fontString:GetFont()
-                            local isValid =
-                                fontString:SetFont(fontPath, currentSize or 9,
-                                                   currentFlags or "")
-                            if currentPath then
-                                fontString:SetFont(currentPath,
-                                                   currentSize or 9,
-                                                   currentFlags or "")
-                            end
-
-                            return isValid
+                        set = function(_, name)
+                            self.profile.customTheme.font = FetchSharedMedia(
+                                "font", name, addon.customThemeBase.font)
+                            ApplyCustomTheme("font")
                         end,
-                        set = function(_, value)
-                            self.profile.customTheme.font = value
-                            -- TODO replace \ with \\
-
-                            addon:RegisterTheme(self.profile.customTheme)
-
-                            if self.profile.enableThemeLiveReload then
-                                addon.RenderFrame('themeReload')
-                            end
+                    },
+                    customThemeTexture = {
+                        name = "Текстура панелей",
+                        desc = "Текстуры из SharedMedia появляются в этом списке автоматически.",
+                        type = "select",
+                        width = optionsWidth,
+                        order = 1.75,
+                        values = function()
+                            return GetSharedMediaValues("statusbar")
                         end,
-                        hidden = function()
-                            return self.profile.activeTheme ~= 'Custom'
-                        end
+                        get = function()
+                            local textures = self.profile.customTheme.bgTextures
+                            return FindSharedMediaName("statusbar",
+                                textures and textures.edge)
+                        end,
+                        set = function(_, name)
+                            local path = FetchSharedMedia("statusbar", name,
+                                "Interface\\BUTTONS\\WHITE8X8")
+                            self.profile.customTheme.bgTextures =
+                                self.profile.customTheme.bgTextures or {}
+                            self.profile.customTheme.bgTextures.edge = path
+                            self.profile.customTheme.bgTextures.bottom = path
+                            self.profile.customTheme.bgTextures.guideName = path
+                            ApplyCustomTheme("bgTextures")
+                        end,
                     },
                     customThemeTextColor = {
                         name = L("Text Color"), -- TODO locale
@@ -3511,22 +3547,16 @@ function addon.settings:CreateAceOptionsPanel()
                             self.profile.customTheme.textColor = {
                                 r, g, b, a or 1
                             }
-                            addon:RegisterTheme(self.profile.customTheme)
-                            if self.profile.enableThemeLiveReload then
-                                addon.RenderFrame('themeReload')
-                            end
+                            ApplyCustomTheme("textColor")
                         end,
-                        hidden = function()
-                            return self.profile.activeTheme ~= 'Custom'
-                        end
                     },
                     customThemeApply = {
                         name = _G.APPLY,
                         type = 'execute',
                         width = optionsWidth,
                         order = 1.9,
-                        confirm = requiresReload,
-                        func = function() _G.ReloadUI() end
+                        func = function() ApplyCustomTheme("*") end,
+                        hidden = true
                     },
                     customThemeReset = {
                         name = _G.RESET,
@@ -3536,26 +3566,20 @@ function addon.settings:CreateAceOptionsPanel()
                         func = function()
                             self.profile.customTheme =
                                 CopyTable(addon.customThemeBase)
-                            addon:RegisterTheme(self.profile.customTheme)
-                            if self.profile.enableThemeLiveReload then
-                                addon.RenderFrame('themeReload')
-                            end
-                            AceConfigRegistry:NotifyChange(addon.title)
+                            ApplyCustomTheme("*")
                         end,
-                        hidden = function()
-                            return self.profile.activeTheme ~= 'Custom'
-                        end
                     },
                     enableThemeLiveReload = {
                         name = L("Preview Changes"),
                         desc = L("Preview theme changes"),
                         type = "toggle",
+                        hidden = true,
                         width = optionsWidth,
                         order = 1.92
                     },
                     previewFramePositions = {
-                        name = fmt("%s Frame Positions", _G.PREVIEW),
-                        desc = fmt("%s Frame Positions", _G.PREVIEW),
+                        name = "Показать расположение окон",
+                        desc = "Показать и настроить расположение окон аддона",
                         type = 'execute',
                         width = optionsWidth,
                         order = 1.93,
@@ -3567,7 +3591,7 @@ function addon.settings:CreateAceOptionsPanel()
                         end
                     },
                     textColorsHeader = {
-                        name = _G.LOCALE_TEXT_LABEL,
+                        name = "Цвета текста",
                         type = "header",
                         width = "full",
                         order = 2.0
@@ -3584,6 +3608,7 @@ function addon.settings:CreateAceOptionsPanel()
                         set = function(_, r, g, b, a)
                             self.profile.textEnemyColor =
                                 self:RGBToString(r, g, b, a)
+                            ApplyGuideTextColors()
                         end
                     },
                     textFriendlyColor = {
@@ -3600,6 +3625,7 @@ function addon.settings:CreateAceOptionsPanel()
                                                                               g,
                                                                               b,
                                                                               a)
+                            ApplyGuideTextColors()
                         end
                     },
                     textLootColor = {
@@ -3614,6 +3640,7 @@ function addon.settings:CreateAceOptionsPanel()
                         set = function(_, r, g, b, a)
                             self.profile.textLootColor =
                                 self:RGBToString(r, g, b, a)
+                            ApplyGuideTextColors()
                         end
                     },
                     textWarnColor = {
@@ -3628,6 +3655,7 @@ function addon.settings:CreateAceOptionsPanel()
                         set = function(_, r, g, b, a)
                             self.profile.textWarnColor =
                                 self:RGBToString(r, g, b, a)
+                            ApplyGuideTextColors()
                         end
                     },
                     textPickColor = {
@@ -3642,6 +3670,7 @@ function addon.settings:CreateAceOptionsPanel()
                         set = function(_, r, g, b, a)
                             self.profile.textPickColor =
                                 self:RGBToString(r, g, b, a)
+                            ApplyGuideTextColors()
                         end
                     },
                     textBuyColor = {
@@ -3656,6 +3685,7 @@ function addon.settings:CreateAceOptionsPanel()
                         set = function(_, r, g, b, a)
                             self.profile.textBuyColor =
                                 self:RGBToString(r, g, b, a)
+                            ApplyGuideTextColors()
                         end
                     },
                     customTextColorApply = {
@@ -3663,6 +3693,7 @@ function addon.settings:CreateAceOptionsPanel()
                         type = 'execute',
                         width = optionsWidth,
                         order = 2.9,
+                        hidden = true,
                         confirm = requiresReload,
                         func = function() _G.ReloadUI() end -- TODO easier redraw?
                     },
@@ -3854,8 +3885,26 @@ function addon.settings:CreateAceOptionsPanel()
                         step = 1,
                         set = function(info, value)
                             SetProfileOption(info, value)
-                            addon.arrowFrame.text:SetFont(addon.font, value,
-                                                          "OUTLINE")
+                            addon.SetFontSafely(addon.arrowFrame.text,
+                                                addon.font, value, "OUTLINE")
+                        end
+                    },
+                    arrowColor = {
+                        name = "Цвет стрелки",
+                        desc = "Изменяет цвет стрелки путевой точки",
+                        type = "color",
+                        width = optionsWidth,
+                        order = 3.935,
+                        hasAlpha = true,
+                        get = function()
+                            return unpack(self.profile.arrowColor or
+                                              {1, 1, 1, 1})
+                        end,
+                        set = function(_, r, g, b, a)
+                            self.profile.arrowColor = {r, g, b, a or 1}
+                            if addon.arrowFrame and addon.arrowFrame.UpdateVisuals then
+                                addon.arrowFrame:UpdateVisuals()
+                            end
                         end
                     },
                     resetArrowPosition = {
@@ -3865,6 +3914,55 @@ function addon.settings:CreateAceOptionsPanel()
                         width = optionsWidth,
                         func = function()
                             addon.ResetArrowPosition()
+                        end
+                    },
+                    activeTargetsVisualHeader = {
+                        name = "Активные цели",
+                        type = "header",
+                        width = "full",
+                        order = 3.95
+                    },
+                    hideActiveTargetsBackground = {
+                        name = "Скрыть фон активных целей",
+                        desc = "Делает фон окна активных целей прозрачным",
+                        type = "toggle",
+                        width = optionsWidth,
+                        order = 3.96,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            addon.targeting:RenderTargetFrameBackground()
+                        end,
+                        disabled = function()
+                            return not self.profile.enableTargetAutomation
+                        end
+                    },
+                    activeTargetScale = {
+                        name = "Масштаб активных целей",
+                        desc = "Изменяет размер окна активных целей",
+                        type = "range",
+                        width = optionsWidth,
+                        order = 3.97,
+                        min = 0.8,
+                        max = 3,
+                        step = 0.05,
+                        isPercent = true,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            if addon.targeting.activeTargetFrame then
+                                addon.targeting.activeTargetFrame:SetScale(value)
+                            end
+                        end,
+                        disabled = function()
+                            return not self.profile.enableTargetAutomation
+                        end
+                    },
+                    resetTargetPosition = {
+                        name = "Сбросить положение активных целей",
+                        order = 3.98,
+                        type = "execute",
+                        width = optionsWidth,
+                        func = function()
+                            addon.ResetTargetPosition()
                         end
                     },
                     activeItemsHeader = {
@@ -4028,7 +4126,7 @@ function addon.settings:CreateAceOptionsPanel()
             advancedSettings = {
                 type = "group",
                 name = L("Advanced Settings"),
-                order = 20,
+                order = 8,
                 args = {
                     enableBetaFeatures = {
                         name = L("Enable Beta Features"),
@@ -4255,6 +4353,25 @@ function addon.settings:CreateAceOptionsPanel()
         }
     }
 
+    optionsTable.args.helpPanel.args.discordButton = {
+        order = 0.1,
+        name = "Присоединиться к Discord",
+        type = "execute",
+        width = "normal",
+        func = function()
+            addon.url = "https://discord.gg/restedxp"
+            _G.StaticPopup_Show("RXP_Link")
+            addon.url = nil
+        end
+    }
+    optionsTable.args.helpPanel.args.feedbackButton = {
+        order = 0.2,
+        name = "Сообщить о проблеме",
+        type = "execute",
+        width = "normal",
+        func = addon.comms.OpenBugReport
+    }
+
     -- Build FAQ items
     local helpBatch = 2
     for q, a in pairs(addon.help) do
@@ -4295,6 +4412,60 @@ function addon.settings:CreateAceOptionsPanel()
         helpBatch = helpBatch + 1
     end
 
+    -- Turn the former single, very long appearance page into focused sections
+    -- in the navigation tree.  The option objects themselves are moved rather
+    -- than copied, so their existing get/set callbacks and profile keys remain
+    -- unchanged.
+    local appearance = optionsTable.args.lookAndFeel.args
+    local function AddAppearanceSection(key, name, order, optionKeys)
+        local section = {
+            type = "group",
+            name = name,
+            order = order,
+            args = {}
+        }
+        for _, optionKey in ipairs(optionKeys) do
+            if appearance[optionKey] then
+                section.args[optionKey] = appearance[optionKey]
+                appearance[optionKey] = nil
+            end
+        end
+        appearance[key] = section
+    end
+
+    AddAppearanceSection("themeAppearance", "Тема, шрифт и цвета", 1, {
+        "activeTheme", "customAppearanceHeader", "sharedMediaStatus",
+        "customThemeBackground", "customThemeBottomFrameBG",
+        "customThemeBottomFrameHighlight", "customThemeMapPins",
+        "customThemeTooltip", "customThemeFont", "customThemeTexture",
+        "customThemeTextColor", "customThemeApply", "customThemeReset",
+        "enableThemeLiveReload", "textColorsHeader", "textEnemyColor",
+        "textFriendlyColor", "textLootColor", "textWarnColor",
+        "textPickColor", "textBuyColor", "customTextColorApply",
+        "customTextColorReset", "disableColorText"
+    })
+    AddAppearanceSection("guideWindowAppearance", "Окно руководства", 2, {
+        "previewFramePositions", "guideWindowHeader", "windowScale",
+        "guideFontSize", "guideScrollSteps", "guideLanguage",
+        "anchorOrientation", "showStepList", "hideCompletedSteps",
+        "showUnusedGuides"
+    })
+    AddAppearanceSection("arrowAppearance", "Стрелка путевой точки", 3, {
+        "arrowHeader", "arrowScale", "arrowText", "arrowColor",
+        "resetArrowPosition"
+    })
+    AddAppearanceSection("activeFramesAppearance",
+                         "Активные цели и предметы", 4, {
+        "activeTargetsVisualHeader", "hideActiveTargetsBackground",
+        "activeTargetScale", "resetTargetPosition", "activeItemsHeader",
+        "activeItemsScale", "activeItemHideBG", "resetItemPosition"
+    })
+    AddAppearanceSection("mapAppearance", "Карта и отметки", 5, {
+        "mapHeader", "hideMiniMapPins", "mapCircle", "numMapPins",
+        "worldMapPinScale", "vendorTreasurePinScale",
+        "distanceBetweenPins", "worldMapPinBackgroundOpacity"
+    })
+
     addon.settings.routingOptions = {}
     for entry in pairs(optionsTable.args.guideRoutingSettings.args) do
         table.insert(addon.settings.routingOptions, entry)
@@ -4302,10 +4473,15 @@ function addon.settings:CreateAceOptionsPanel()
 
     NormalizeLegacyAceConfigOptions(optionsTable)
     AceConfig:RegisterOptionsTable(addon.title, optionsTable)
+    self.optionsTable = optionsTable
 
     optionsTable.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(
                                      settingsDB)
-    optionsTable.args.profiles.order = 20
+    optionsTable.args.profiles.order = 10
+    if optionsTable.args.profiles.args.delete then
+        optionsTable.args.profiles.args.delete.desc =
+            "Удаляет неиспользуемый профиль из базы аддона и очищает файл сохранённых настроек."
+    end
 
     -- Add in reload prompt to Ace default pane
     optionsTable.args.profiles.args["reloadUI"] = {
@@ -4354,18 +4530,20 @@ function addon.settings:CreateAceOptionsPanel()
     -- that late subtree as well before AceConfigDialog validates it on open.
     NormalizeLegacyAceConfigOptions(optionsTable.args.profiles)
 
-    addon.RXPOptions = self.AddToBlizzardOptions(addon.title)
+    if addon.gameVersion == 30300 then
+        -- Keep the identifier expected by import and compatibility code without
+        -- adding RestedXP to Blizzard's Interface Options list.
+        addon.RXPOptions = {name = addon.title}
+    else
+        addon.RXPOptions = self.AddToBlizzardOptions(addon.title)
 
-    -- Ace3 ConfigDialog doesn't support embedding icons in header
-    -- Directly references Ace3 built frame object
-    -- Hackery ahead
-
-    local f = addon.RXPOptions.obj.frame
-    f.icon = f:CreateTexture()
-    -- Theme load order, leave default settings branding unthemed
-    f.icon:SetTexture("Interface/AddOns/" .. addonName ..
-                          "/Textures/rxp_logo-64")
-    f.icon:SetPoint("TOPRIGHT", -5, -5)
+        -- Ace3 ConfigDialog doesn't support embedding icons in header.
+        local f = addon.RXPOptions.obj.frame
+        f.icon = f:CreateTexture()
+        f.icon:SetTexture("Interface/AddOns/" .. addonName ..
+                              "/Textures/rxp_logo-64")
+        f.icon:SetPoint("TOPRIGHT", -5, -5)
+    end
 
 end
 

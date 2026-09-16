@@ -170,20 +170,21 @@ end)
 local function BuildOptions()
     return {
         type = "group",
-        name = L("3.3.5a"),
+        name = "Совместимость Sirus",
+        order = 8.5,
         args = {
             header = {
                 type = "description",
                 order = 0,
                 fontSize = "medium",
-                name = L("Compatibility and quality-of-life options for the 3.3.5a (Wrath) backport.") .. "\n",
+                name = "Параметры совместимости и удобства для клиента Sirus 3.3.5a.\n",
             },
             hideTargetingFrame = {
                 type = "toggle",
                 order = 1,
                 width = "full",
-                name = L("Hide the Active Targets frame"),
-                desc = L("Hides the working Active Targets window if you prefer to use only the targeting macro and nameplate markers."),
+                name = "Скрыть окно активных целей",
+                desc = "Скрывает окно активных целей, оставляя макрос наведения и отметки на индикаторах здоровья.",
                 get = function() return RXP335.hideTargetingFrame end,
                 set = function(_, v) RXP335.hideTargetingFrame = v; ApplyTargetingFrame() end,
             },
@@ -191,8 +192,8 @@ local function BuildOptions()
                 type = "toggle",
                 order = 2,
                 width = "full",
-                name = L("Readable waypoint pins"),
-                desc = L("Draws a solid dark background behind waypoint pin numbers so they are readable. Takes effect after a /reload."),
+                name = "Контрастные отметки маршрута",
+                desc = "Добавляет тёмный фон под номерами отметок маршрута. Изменение применяется после команды /reload.",
                 get = function() return RXP335.pinBackground end,
                 set = function(_, v) RXP335.pinBackground = v end,
             },
@@ -200,22 +201,22 @@ local function BuildOptions()
                 type = "toggle",
                 order = 3,
                 width = "full",
-                name = L("Use a plain navigation arrow"),
-                desc = L("Replaces the RXP navigation arrow texture (which can render with white edge artifacts on 3.3.5a) with a plain Blizzard arrow."),
+                name = "Использовать стандартную стрелку",
+                desc = "Заменяет стрелку RestedXP стандартной стрелкой игры без белых краёв.",
                 get = function() return RXP335.plainArrow end,
                 set = function(_, v) RXP335.plainArrow = v; ApplyArrow() end,
             },
             repairHeader = {
                 type = "header",
                 order = 4,
-                name = L("Automatic repairs"),
+                name = "Автоматический ремонт",
             },
             autoRepairPersonal = {
                 type = "toggle",
                 order = 5,
                 width = "full",
-                name = L("Automatically repair using my money"),
-                desc = L("Repairs all damaged equipment when you open a repair merchant. If guild repair is also enabled, your money is used only for costs the guild repair did not cover."),
+                name = "Ремонтировать за мои деньги",
+                desc = "Ремонтирует снаряжение при открытии окна торговца. Если включён ремонт за счёт гильдии, личные деньги оплачивают только остаток.",
                 get = function() return RXP335.autoRepairPersonal end,
                 set = function(_, v)
                     RXP335.autoRepairPersonal = v
@@ -226,8 +227,8 @@ local function BuildOptions()
                 type = "toggle",
                 order = 6,
                 width = "full",
-                name = L("Automatically repair using guild money"),
-                desc = L("Attempts to repair from the guild bank when you have permission. This option never spends your own money unless the personal-money option is also enabled."),
+                name = "Ремонтировать за счёт гильдии",
+                desc = "Использует средства гильдии при наличии разрешения. Личные деньги расходуются только при включённом ремонте за свои деньги.",
                 get = function() return RXP335.autoRepairGuild end,
                 set = function(_, v)
                     RXP335.autoRepairGuild = v
@@ -237,7 +238,7 @@ local function BuildOptions()
             reloadNote = {
                 type = "description",
                 order = 10,
-                name = "\n|cff909090" .. L("Tip: after toggling 'Readable waypoint pins', use /reload for it to take effect.") .. "|r",
+                name = "\n|cff909090После изменения контрастности отметок выполните /reload.|r",
             },
         },
     }
@@ -248,21 +249,21 @@ end
 --=========================================================================
 local function Register()
     if not (addon.RXPOptions and addon.RXPOptions.name and addon.settings and
-        addon.settings.AddToBlizzardOptions and
-        addon.settings.RegisterOptionsPanel and _G.LibStub) then
+        _G.LibStub) then
         return false
     end
     local AceConfig = _G.LibStub("AceConfig-3.0", true)
-    local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0", true)
-    if not (AceConfig and AceConfigDialog) then return false end
+    if not AceConfig then return false end
 
     local key = addon.RXPOptions.name .. "/Compat335"
-    AceConfig:RegisterOptionsTable(key, BuildOptions())
-    addon.settings.gui.compat335 = addon.settings.RegisterOptionsPanel(
-                                       "3.3.5a",
-                                       addon.settings.AddToBlizzardOptions(
-                                           key, "3.3.5a",
-                                           addon.RXPOptions.name))
+    local options = BuildOptions()
+    AceConfig:RegisterOptionsTable(key, options)
+    addon.settings.gui.compat335 = nil
+    if addon.settings.optionsTable and addon.settings.optionsTable.args then
+        addon.settings.optionsTable.args.compat335 = options
+        local registry = _G.LibStub("AceConfigRegistry-3.0", true)
+        if registry then registry:NotifyChange(addon.RXPOptions.name) end
+    end
     ApplyAll()
     return true
 end

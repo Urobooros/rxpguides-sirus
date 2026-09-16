@@ -29,6 +29,10 @@ local function SetArrowTexture(texture)
     end
     texture:SetTexture(path)
     texture:SetTexCoord(0, 1, 0, 1)
+    local color = addon.settings and addon.settings.profile and
+                      addon.settings.profile.arrowColor or {1, 1, 1, 1}
+    texture:SetVertexColor(color[1] or 1, color[2] or 1, color[3] or 1,
+                           color[4] or 1)
 end
 
 function addon.arrowFrame:UpdateVisuals()
@@ -77,7 +81,8 @@ af:SetScript("OnMouseUp", function(self, button)
 end)
 
 function addon.SetupArrow()
-    af.text:SetFont(addon.font, 9,"OUTLINE")
+    addon.SetFontSafely(af.text, addon.font,
+                        addon.settings.profile.arrowText or 9, "OUTLINE")
     SetArrowTexture(af.texture)
     af.text:SetTextColor(unpack(addon.activeTheme.textColor))
 
@@ -308,16 +313,6 @@ local function PinOnEnter(self)
             _G.GameTooltip:AddLine(addon.ReplaceNpcIds(debug .. renderedText))
             lines = lines + 1
         end
-    end
-
-    if translationFallback and addon.guideLocalization then
-        _G.GameTooltip:AddLine(
-            addon.guideLocalization:GetFallbackExplanation(),
-            0.65, 0.65, 0.65, true)
-    elseif translationMachine and addon.guideLocalization then
-        _G.GameTooltip:AddLine(
-            addon.guideLocalization:GetMachineExplanation(),
-            0.45, 0.65, 1, true)
     end
 
     _G.GameTooltip:SetShown(lines > 0)

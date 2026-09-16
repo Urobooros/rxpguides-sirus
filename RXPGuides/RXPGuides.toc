@@ -37,6 +37,7 @@ Core\Addon.lua
 UI\GuideWindow.lua
 UI\Help.lua
 UI\Settings.lua
+UI\ModernSettings.lua
 
 # DB loaded directly with BACKSLASHES (3.3.5a's TOC parser does not reliably
 # accept forward slashes, and it resolves nested-XML <Script> paths relative to
@@ -102,5 +103,5 @@ Guides\GuideList_335.xml
 
 Features\Talents.lua
 
-# 3.3.5a backport cosmetics sub-panel (Interface -> AddOns -> RestedXP Guides -> 3.3.5a)
+# Sirus compatibility options shown inside the standalone RestedXP window.
 Compat\Options.lua
