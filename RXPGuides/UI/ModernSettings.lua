@@ -198,6 +198,13 @@ local function SkinWidget(widget)
                 local region = name and _G[name .. suffix]
                 if region then region:SetTexture(nil) end
             end
+            dropdown:ClearAllPoints()
+            if widget.label and widget.label:IsShown() then
+                dropdown:SetPoint("TOPLEFT", widget.frame, "TOPLEFT", 0, -18)
+            else
+                dropdown:SetPoint("TOPLEFT", widget.frame, "TOPLEFT", 0, 0)
+            end
+            dropdown:SetPoint("BOTTOMRIGHT", widget.frame, "BOTTOMRIGHT", 0, 0)
             SetBackdrop(dropdown, colors.sidebar, colors.border)
         end
         if widget.label then
@@ -205,8 +212,38 @@ local function SkinWidget(widget)
             SkinFont(widget.label)
         end
         if widget.text then
+            widget.text:ClearAllPoints()
+            widget.text:SetPoint("LEFT", dropdown, "LEFT", 10, 1)
+            widget.text:SetPoint("RIGHT", dropdown, "RIGHT", -34, 1)
+            widget.text:SetJustifyH("LEFT")
             widget.text:SetTextColor(unpack(colors.text))
             SkinFont(widget.text)
+        end
+        if widget.button and dropdown then
+            widget.button:ClearAllPoints()
+            widget.button:SetPoint("TOPRIGHT", dropdown, "TOPRIGHT", -2, -2)
+            widget.button:SetPoint("BOTTOMRIGHT", dropdown, "BOTTOMRIGHT", -2, 2)
+            widget.button:SetWidth(26)
+        end
+        if widget.pullout and widget.pullout.frame then
+            RemoveDialogTextures(widget.pullout.frame)
+            SetBackdrop(widget.pullout.frame, colors.sidebar, colors.border)
+            for _, item in widget.pullout:IterateItems() do
+                if item.text then
+                    item.text:SetTextColor(unpack(colors.text))
+                    SkinFont(item.text)
+                end
+                if item.highlight then
+                    item.highlight:SetTexture(WHITE)
+                    item.highlight:SetBlendMode("BLEND")
+                    item.highlight:SetVertexColor(0.15, 0.72, 0.58, 0.24)
+                end
+                if item.check then
+                    item.check:SetTexture(WHITE)
+                    item.check:SetVertexColor(unpack(colors.accent))
+                    item.check:SetSize(8, 8)
+                end
+            end
         end
     elseif widget.type == "Slider" then
         if widget.slider then

@@ -4506,10 +4506,11 @@ function addon.settings:CreateAceOptionsPanel()
     -- Add in reload prompt to Ace default pane
     optionsTable.args.profiles.args["reloadUI"] = {
         order = 0,
-        name = L("Reload guides and UI"),
+        name = "Перезагрузить интерфейс",
         type = 'execute',
+        width = "double",
         func = function() _G.ReloadUI() end,
-        disabled = function()
+        hidden = function()
             return loadedProfileKey == settingsDB.keys.profile and not settingsDB.isResetting
         end
     }
