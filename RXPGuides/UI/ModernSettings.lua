@@ -195,7 +195,11 @@ local function SkinWidget(widget)
             local name = dropdown:GetName()
             for _, suffix in ipairs({"Left", "Middle", "Right"}) do
                 local region = name and _G[name .. suffix]
-                if region then region:SetTexture(nil) end
+                if region then
+                    region:SetTexture(nil)
+                    region:SetAlpha(0)
+                    region:Hide()
+                end
             end
             dropdown:ClearAllPoints()
             if widget.label and widget.label:IsShown() then
@@ -205,6 +209,14 @@ local function SkinWidget(widget)
             end
             dropdown:SetPoint("BOTTOMRIGHT", widget.frame, "BOTTOMRIGHT", 0, 0)
             SetBackdrop(dropdown, colors.sidebar, colors.border)
+            if not widget._rxpDropdownFill then
+                local fill = dropdown:CreateTexture(nil, "BACKGROUND")
+                fill:SetTexture(WHITE)
+                fill:SetPoint("TOPLEFT", dropdown, "TOPLEFT", 1, -1)
+                fill:SetPoint("BOTTOMRIGHT", dropdown, "BOTTOMRIGHT", -1, 1)
+                widget._rxpDropdownFill = fill
+            end
+            widget._rxpDropdownFill:SetVertexColor(unpack(colors.sidebar))
         end
         if widget.label then
             widget.label:SetTextColor(unpack(colors.muted))
