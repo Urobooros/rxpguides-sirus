@@ -163,6 +163,9 @@ local function SkinWidget(widget)
     elseif widget.type == "InlineGroup" or
            widget.type == "DropdownGroup" then
         SetBackdrop(widget.border, colors.panel, colors.border)
+        if widget.type == "DropdownGroup" then
+            SkinWidget(widget.dropdown)
+        end
     elseif widget.type == "Button" then
         SkinButton(widget.frame)
     elseif widget.type == "CheckBox" then
@@ -189,8 +192,24 @@ local function SkinWidget(widget)
             widget.text:SetTextColor(unpack(colors.text))
             SkinFont(widget.text)
         end
-    elseif widget.type == "Dropdown" then
+    elseif widget.type == "Dropdown" or widget.type == "Dropdown-ElvUI" or
+           widget.type == "LQDropdown" then
         local dropdown = widget.dropdown
+        -- ElvUI's Ace3 skin adds a child backdrop inset by +15/-21 and
+        -- reparents both the selected text and button to it. Removing the
+        -- Blizzard Left/Middle/Right textures does not remove that backdrop.
+        -- Move the controls out before hiding it, otherwise they disappear too.
+        if dropdown then
+            if widget.text then widget.text:SetParent(dropdown) end
+            if widget.button then
+                widget.button:SetParent(dropdown)
+                widget.button:SetBackdrop(nil)
+                if widget.button.backdrop then
+                    widget.button.backdrop:Hide()
+                end
+            end
+            if dropdown.backdrop then dropdown.backdrop:Hide() end
+        end
         if dropdown and dropdown.GetName then
             local name = dropdown:GetName()
             for _, suffix in ipairs({"Left", "Middle", "Right"}) do
@@ -219,6 +238,12 @@ local function SkinWidget(widget)
             widget._rxpDropdownFill:SetVertexColor(unpack(colors.sidebar))
         end
         if widget.label then
+            widget.label:SetParent(widget.frame)
+            widget.label:ClearAllPoints()
+            widget.label:SetPoint("TOPLEFT", widget.frame, "TOPLEFT", 0, 0)
+            widget.label:SetPoint("TOPRIGHT", widget.frame, "TOPRIGHT", 0, 0)
+            widget.label:SetHeight(18)
+            widget.label:SetJustifyH("LEFT")
             widget.label:SetTextColor(unpack(colors.muted))
             SkinFont(widget.label)
         end
@@ -444,6 +469,15 @@ end
 function addon.settings:RefreshModernSettingsSkin()
     SkinWindow(AceConfigDialog.OpenFrames[addon.title], addon.title)
 end
+
+-- NotifyChange rebuilds the page through AceConfigDialog:Open without going
+-- through OpenStandaloneOptions. Restyle newly acquired controls as well.
+hooksecurefunc(AceConfigDialog, "Open", function(_, appName)
+    if appName == addon.title or appName == addon.title .. "/Import" or
+       appName == addon.title .. "/Compat335" then
+        SkinWindow(AceConfigDialog.OpenFrames[appName], appName)
+    end
+end)
 
 function addon.settings:OpenStandaloneOptions(appName, section)
     appName = appName or addon.title
