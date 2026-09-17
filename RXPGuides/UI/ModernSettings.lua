@@ -112,8 +112,7 @@ local function SkinWidget(widget)
                                     widget:GetUserDataTable()
             local currentOption = currentUser and currentUser.option
             if currentOption and currentOption.desc == nil and
-               _G.GameTooltip and _G.GameTooltip.IsOwned and
-               _G.GameTooltip:IsOwned(widget.frame) then
+               _G.GameTooltip then
                 _G.GameTooltip:Hide()
             end
         end
@@ -220,10 +219,43 @@ local function SkinWidget(widget)
             SkinFont(widget.text)
         end
         if widget.button and dropdown then
+            if widget.button.SetNormalTexture then
+                widget.button:SetNormalTexture(nil)
+                widget.button:SetPushedTexture(nil)
+                widget.button:SetHighlightTexture(nil)
+                widget.button:SetDisabledTexture(nil)
+            end
             widget.button:ClearAllPoints()
-            widget.button:SetPoint("TOPRIGHT", dropdown, "TOPRIGHT", -2, -2)
-            widget.button:SetPoint("BOTTOMRIGHT", dropdown, "BOTTOMRIGHT", -2, 2)
-            widget.button:SetWidth(26)
+            widget.button:SetAllPoints(dropdown)
+            if not widget._rxpArrow then
+                local arrow = CreateFrame("Frame", nil, dropdown)
+                arrow:SetSize(14, 10)
+                arrow:SetPoint("RIGHT", dropdown, "RIGHT", -7, 0)
+                arrow.lines = {}
+                for row = 1, 4 do
+                    local line = arrow:CreateTexture(nil, "OVERLAY")
+                    line:SetTexture(WHITE)
+                    line:SetSize(10 - (row - 1) * 2, 2)
+                    line:SetPoint("TOP", arrow, "TOP", 0, -(row - 1) * 2)
+                    arrow.lines[row] = line
+                end
+                widget._rxpArrow = arrow
+            end
+            local arrowColor = widget.disabled and
+                                   {0.45, 0.49, 0.54, 1} or
+                                   {0.95, 0.78, 0.05, 1}
+            for _, line in ipairs(widget._rxpArrow.lines) do
+                line:SetVertexColor(unpack(arrowColor))
+            end
+            if not widget._rxpModernDropdownHover then
+                widget.button:HookScript("OnEnter", function()
+                    dropdown:SetBackdropBorderColor(unpack(colors.accent))
+                end)
+                widget.button:HookScript("OnLeave", function()
+                    dropdown:SetBackdropBorderColor(unpack(colors.border))
+                end)
+                widget._rxpModernDropdownHover = true
+            end
         end
         if widget.pullout and widget.pullout.frame then
             RemoveDialogTextures(widget.pullout.frame)
