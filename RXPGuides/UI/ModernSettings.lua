@@ -13,10 +13,12 @@ local colors = {
     window = {0.035, 0.043, 0.055, 0.98},
     panel = {0.055, 0.067, 0.082, 0.98},
     sidebar = {0.025, 0.031, 0.041, 0.98},
+    button = {0.075, 0.095, 0.12, 1},
+    buttonHover = {0.10, 0.14, 0.17, 1},
     border = {0.16, 0.20, 0.25, 1},
     accent = {0.15, 0.72, 0.58, 1},
     text = {0.92, 0.95, 0.98, 1},
-    muted = {0.58, 0.64, 0.71, 1}
+    muted = {0.68, 0.73, 0.79, 1}
 }
 
 local function SetBackdrop(frame, background, border)
@@ -62,7 +64,15 @@ local function SkinButton(frame)
     if frame.SetPushedTexture then frame:SetPushedTexture(nil) end
     if frame.SetHighlightTexture then frame:SetHighlightTexture(nil) end
     if frame.SetDisabledTexture then frame:SetDisabledTexture(nil) end
-    SetBackdrop(frame, colors.panel, colors.border)
+    SetBackdrop(frame, colors.button, colors.accent)
+    if not frame._rxpModernFill then
+        local fill = frame:CreateTexture(nil, "BACKGROUND")
+        fill:SetTexture(WHITE)
+        fill:SetPoint("TOPLEFT", 2, -2)
+        fill:SetPoint("BOTTOMRIGHT", -2, 2)
+        fill:SetVertexColor(unpack(colors.button))
+        frame._rxpModernFill = fill
+    end
     local text = frame.GetFontString and frame:GetFontString()
     if text then
         text:SetTextColor(unpack(colors.text))
@@ -73,16 +83,42 @@ local function SkinButton(frame)
     local oldLeave = frame:GetScript("OnLeave")
     frame:SetScript("OnEnter", function(self)
         self:SetBackdropBorderColor(unpack(colors.accent))
+        self:SetBackdropColor(unpack(colors.buttonHover))
+        self._rxpModernFill:SetVertexColor(unpack(colors.buttonHover))
         if oldEnter then oldEnter(self) end
     end)
     frame:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(unpack(colors.border))
+        self:SetBackdropBorderColor(unpack(colors.accent))
+        self:SetBackdropColor(unpack(colors.button))
+        self._rxpModernFill:SetVertexColor(unpack(colors.button))
         if oldLeave then oldLeave(self) end
     end)
 end
 
 local function SkinWidget(widget)
     if not widget then return end
+
+    -- Legacy AceConfig shows a tooltip containing only the option name even
+    -- when an option has no description. At the top of the page that tooltip
+    -- covers the window title and merely duplicates the visible label.
+    local user = widget.GetUserDataTable and widget:GetUserDataTable()
+    local option = user and user.option
+    if option and option.desc == nil and widget.events and
+       widget.events.OnEnter and not widget._rxpNoEmptyTooltip then
+        local originalEnter = widget.events.OnEnter
+        widget.events.OnEnter = function(...)
+            originalEnter(...)
+            local currentUser = widget.GetUserDataTable and
+                                    widget:GetUserDataTable()
+            local currentOption = currentUser and currentUser.option
+            if currentOption and currentOption.desc == nil and
+               _G.GameTooltip and _G.GameTooltip.IsOwned and
+               _G.GameTooltip:IsOwned(widget.frame) then
+                _G.GameTooltip:Hide()
+            end
+        end
+        widget._rxpNoEmptyTooltip = true
+    end
 
     if widget.type == "TreeGroup" then
         widget:SetTreeWidth(245, true)

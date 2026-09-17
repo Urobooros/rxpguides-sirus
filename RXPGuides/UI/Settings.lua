@@ -2508,10 +2508,6 @@ function addon.settings:CreateAceOptionsPanel()
                         type = "toggle",
                         width = optionsWidth,
                         order = 3.1,
-                        disabled = function()
-                            return not self.profile.enableTargetAutomation or
-                                       not self.profile.showTargetingOnProximity
-                        end
                     },
                     enableTargetingFlash = {
                         name = _G.SHOW_FULLSCREEN_STATUS_TEXT,
@@ -2526,15 +2522,10 @@ function addon.settings:CreateAceOptionsPanel()
                                 addon.tips.DisableDangerWarning then
                                 addon.tips:DisableDangerWarning()
                             end
-                        end,
-                        disabled = function()
-                            return not self.profile.enableTips or
-                                       not self.profile.enableTargetAutomation or
-                                       not self.profile.showTargetingOnProximity
                         end
                     },
                     soundOnFind = {
-                        name = L("Play Sound"), -- TODO locale
+                        name = "Звук уведомления",
                         desc = L("Sends sound on enemy target found"),
                         type = "select",
                         width = optionsWidth,
@@ -2556,10 +2547,6 @@ function addon.settings:CreateAceOptionsPanel()
                                 [9375] = "PVP Warning",
                                 [180461] = "Fel Reaver"
                             }
-                        end,
-                        disabled = function()
-                            return not self.profile.enableTargetAutomation or
-                                       not self.profile.showTargetingOnProximity
                         end
                     },
                     soundOnFindChannel = {
@@ -3182,14 +3169,19 @@ function addon.settings:CreateAceOptionsPanel()
                         end
                     },
                     itemUpgradeSpec = {
-                        name = _G.TALENTS,
-                        -- desc = L("Choose active theme"),
+                        name = "Набор характеристик",
                         type = "select",
                         width = optionsWidth,
                         order = 5.2,
                         get = function()
-                            return self.profile.itemUpgradeSpec or
-                                       addon.player.localeClass
+                            local values = addon.itemUpgrades:GetSpecWeights()
+                            if not values or not next(values) then
+                                return "unavailable"
+                            end
+                            local selected = self.profile.itemUpgradeSpec or
+                                                 addon.player.localeClass
+                            return values[selected] and selected or
+                                       next(values)
                         end,
                         set = function(info, value)
                             SetProfileOption(info, value)
@@ -3197,16 +3189,17 @@ function addon.settings:CreateAceOptionsPanel()
                             addon.itemUpgrades:Setup()
                         end,
                         values = function()
-                            return addon.itemUpgrades:GetSpecWeights() or {}
+                            local values = addon.itemUpgrades:GetSpecWeights()
+                            if not values or not next(values) then
+                                return {unavailable = "Нет доступных наборов"}
+                            end
+                            return values
                         end,
                         hidden = function()
                             return not addon.itemUpgrades
                         end,
                         disabled = function()
-                            return not (self.profile.enableTips and
-                                       self.profile.enableItemUpgrades) or
-                                       addon.itemUpgrades:GetSpecWeights() ==
-                                       nil
+                            return addon.itemUpgrades:GetSpecWeights() == nil
                         end
                     },
                     enableTotalEP = {
@@ -3276,7 +3269,7 @@ function addon.settings:CreateAceOptionsPanel()
                         name = L("Show upgrade details on hover"),
                         desc = L("Shows an expanded EP breakdown while you hold the selected key over an equippable item. Upgrade prompts also provide a hoverable item icon when supported by the client."),
                         type = "toggle",
-                        width = optionsWidth * 1.5,
+                        width = "full",
                         order = 5.65,
                         hidden = function()
                             return not addon.itemUpgrades
@@ -3297,7 +3290,7 @@ function addon.settings:CreateAceOptionsPanel()
                         name = L("Upgrade detail modifier"),
                         desc = L("Hold this key while an item tooltip is visible to show its detailed EP calculation."),
                         type = "select",
-                        width = optionsWidth * 0.75,
+                        width = optionsWidth,
                         order = 5.66,
                         values = {
                             [1] = "CTRL",
@@ -3359,7 +3352,6 @@ function addon.settings:CreateAceOptionsPanel()
                 args = {
                     activeTheme = {
                         name = L("Choose Theme"), -- TODO locale
-                        desc = L("Choose active theme"),
                         type = "select",
                         width = optionsWidth,
                         order = 1.1,
@@ -3806,7 +3798,7 @@ function addon.settings:CreateAceOptionsPanel()
                         end,
                     },
                     anchorOrientation = {
-                        name = L("Current step frame anchor"),
+                        name = "Направление списка шагов",
                         desc = L(
                             "Sets the current step frame to grow from bottom to top or top to bottom"),
                         type = "select",
@@ -4482,9 +4474,33 @@ function addon.settings:CreateAceOptionsPanel()
     optionsTable.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(
                                      settingsDB)
     optionsTable.args.profiles.order = 10
-    if optionsTable.args.profiles.args.delete then
-        optionsTable.args.profiles.args.delete.desc =
-            "Удаляет неиспользуемый профиль из базы аддона и очищает файл сохранённых настроек."
+    local profileArgs = optionsTable.args.profiles.args
+    if profileArgs then
+        profileArgs.desc.name =
+            "Для каждого персонажа можно использовать отдельный профиль настроек."
+        profileArgs.desc.width = "full"
+        profileArgs.descreset.name =
+            "Сбрасывает текущий профиль до стандартных настроек."
+        profileArgs.descreset.width = "full"
+        profileArgs.current.width = "double"
+        profileArgs.choosedesc.name =
+            "Создайте новый профиль или выберите один из существующих."
+        profileArgs.choosedesc.width = "full"
+        profileArgs.new.width = "double"
+        profileArgs.choose.width = "double"
+        profileArgs.copydesc.name =
+            "Скопировать настройки выбранного профиля в текущий."
+        profileArgs.copydesc.width = "full"
+        profileArgs.copydesc.hidden = "HasNoProfiles"
+        profileArgs.copyfrom.width = "double"
+        profileArgs.copyfrom.hidden = "HasNoProfiles"
+        profileArgs.deldesc.name =
+            "Удалить неиспользуемый профиль из базы аддона и файла сохранённых настроек."
+        profileArgs.deldesc.width = "full"
+        profileArgs.deldesc.hidden = "HasNoProfiles"
+        profileArgs.delete.width = "double"
+        profileArgs.delete.desc = "Удаляет выбранный неиспользуемый профиль."
+        profileArgs.delete.hidden = "HasNoProfiles"
     end
 
     -- Add in reload prompt to Ace default pane
