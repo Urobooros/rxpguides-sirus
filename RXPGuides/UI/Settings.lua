@@ -4564,6 +4564,9 @@ function addon.settings:CreateAceOptionsPanel()
     -- than copied, so their existing get/set callbacks and profile keys remain
     -- unchanged.
     local appearance = optionsTable.args.lookAndFeel.args
+    -- Keep the preview action on the main Appearance page so it is available
+    -- without opening one of the component-specific subsections.
+    appearance.previewFramePositions.order = 0.1
     local function AddAppearanceSection(key, name, order, optionKeys)
         local section = {
             type = "group",
@@ -4603,7 +4606,7 @@ function addon.settings:CreateAceOptionsPanel()
     })
     AddAppearanceSection("activeFramesAppearance",
                          "Активные цели и предметы", 4, {
-        "previewFramePositions", "activeTargetsVisualHeader",
+        "activeTargetsVisualHeader",
         "hideActiveTargetsBackground",
         "activeTargetScale", "resetTargetPosition", "activeItemsHeader",
         "activeItemsScale", "activeItemHideBG", "resetItemPosition"

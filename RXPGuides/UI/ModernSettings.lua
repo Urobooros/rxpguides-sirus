@@ -57,8 +57,7 @@ local function SkinFont(fontString, size)
 end
 
 local function SkinButton(frame)
-    if not frame or frame._rxpModern then return end
-    frame._rxpModern = true
+    if not frame then return end
     RemoveDialogTextures(frame)
     if frame.SetNormalTexture then frame:SetNormalTexture(nil) end
     if frame.SetPushedTexture then frame:SetPushedTexture(nil) end
@@ -79,20 +78,25 @@ local function SkinButton(frame)
         SkinFont(text)
     end
 
-    local oldEnter = frame:GetScript("OnEnter")
-    local oldLeave = frame:GetScript("OnLeave")
-    frame:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(unpack(colors.accent))
-        self:SetBackdropColor(unpack(colors.buttonHover))
-        self._rxpModernFill:SetVertexColor(unpack(colors.buttonHover))
-        if oldEnter then oldEnter(self) end
-    end)
-    frame:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(unpack(colors.accent))
-        self:SetBackdropColor(unpack(colors.button))
-        self._rxpModernFill:SetVertexColor(unpack(colors.button))
-        if oldLeave then oldLeave(self) end
-    end)
+    -- AceGUI recycles button frames and resets their visual state on acquire.
+    -- Reapply the skin every time, but install the script wrappers only once.
+    if not frame._rxpModern then
+        frame._rxpModern = true
+        local oldEnter = frame:GetScript("OnEnter")
+        local oldLeave = frame:GetScript("OnLeave")
+        frame:SetScript("OnEnter", function(self)
+            self:SetBackdropBorderColor(unpack(colors.accent))
+            self:SetBackdropColor(unpack(colors.buttonHover))
+            self._rxpModernFill:SetVertexColor(unpack(colors.buttonHover))
+            if oldEnter then oldEnter(self) end
+        end)
+        frame:SetScript("OnLeave", function(self)
+            self:SetBackdropBorderColor(unpack(colors.accent))
+            self:SetBackdropColor(unpack(colors.button))
+            self._rxpModernFill:SetVertexColor(unpack(colors.button))
+            if oldLeave then oldLeave(self) end
+        end)
+    end
 end
 
 local function SkinWidget(widget)
