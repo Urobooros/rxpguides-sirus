@@ -228,24 +228,17 @@ local function SkinWidget(widget)
             widget.button:ClearAllPoints()
             widget.button:SetAllPoints(dropdown)
             if not widget._rxpArrow then
-                local arrow = CreateFrame("Frame", nil, dropdown)
-                arrow:SetSize(14, 10)
+                local arrow = dropdown:CreateTexture(nil, "OVERLAY")
+                arrow:SetTexture(
+                    "Interface\\AddOns\\RXPGuides\\Textures\\dropdown-arrow")
+                arrow:SetSize(14, 14)
                 arrow:SetPoint("RIGHT", dropdown, "RIGHT", -7, 0)
-                arrow.lines = {}
-                for row = 1, 4 do
-                    local line = arrow:CreateTexture(nil, "OVERLAY")
-                    line:SetTexture(WHITE)
-                    line:SetSize(10 - (row - 1) * 2, 2)
-                    line:SetPoint("TOP", arrow, "TOP", 0, -(row - 1) * 2)
-                    arrow.lines[row] = line
-                end
                 widget._rxpArrow = arrow
             end
-            local arrowColor = widget.disabled and
-                                   {0.45, 0.49, 0.54, 1} or
-                                   {0.95, 0.78, 0.05, 1}
-            for _, line in ipairs(widget._rxpArrow.lines) do
-                line:SetVertexColor(unpack(arrowColor))
+            if widget.disabled then
+                widget._rxpArrow:SetVertexColor(0.45, 0.49, 0.54, 1)
+            else
+                widget._rxpArrow:SetVertexColor(0.95, 0.78, 0.05, 1)
             end
             if not widget._rxpModernDropdownHover then
                 widget.button:HookScript("OnEnter", function()
