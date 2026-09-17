@@ -2030,6 +2030,7 @@ function addon:OnInitialize()
     addon.RenderFrame()
     addon.SetupArrow()
     addon:CreateActiveItemFrame()
+    if addon.SetupCastBar then addon.SetupCastBar() end
     -- Existing setup methods now run through a deterministic lifecycle graph.
     -- The safe-mode supervisor remains the failure boundary for optional code.
     RegisterRuntimeSubsystems()
@@ -2047,8 +2048,8 @@ function addon:OnInitialize()
     addon.RXPFrame:SetScale(addon.settings.profile.windowScale)
     addon.arrowFrame:SetSize(32 * addon.settings.profile.arrowScale,
                              32 * addon.settings.profile.arrowScale)
-    addon.arrowFrame.text:SetFont(addon.font,
-                                  addon.settings.profile.arrowText, "OUTLINE")
+    addon.SetFontSafely(addon.arrowFrame.text, addon.font,
+                        addon.settings.profile.arrowText, "OUTLINE")
     addon.activeItemFrame:SetScale(addon.settings.profile.activeItemsScale)
 end
 

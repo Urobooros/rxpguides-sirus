@@ -249,9 +249,10 @@ local function SkinWidget(widget)
         end
         if widget.text then
             widget.text:ClearAllPoints()
-            widget.text:SetPoint("LEFT", dropdown, "LEFT", 10, 1)
-            widget.text:SetPoint("RIGHT", dropdown, "RIGHT", -34, 1)
+            widget.text:SetPoint("TOPLEFT", dropdown, "TOPLEFT", 9, -2)
+            widget.text:SetPoint("BOTTOMRIGHT", dropdown, "BOTTOMRIGHT", -30, 2)
             widget.text:SetJustifyH("LEFT")
+            widget.text:SetJustifyV("MIDDLE")
             widget.text:SetTextColor(unpack(colors.text))
             SkinFont(widget.text)
         end

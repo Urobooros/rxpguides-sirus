@@ -211,13 +211,13 @@ local function UpdateIconFrameVisuals(self,updateFrame)
     self:ClearBackdrop()
     if not addon.settings.profile.activeItemHideBG then
         self:SetBackdrop(addon.RXPFrame.backdrop.edge)
-        local r, g, b = unpack(addon.colors.background)
-        self:SetBackdropColor(r, g, b, 0.4)
+        local r, g, b, a = unpack(addon.colors.background)
+        self:SetBackdropColor(r, g, b, a or 1)
     end
     self.title:ClearBackdrop()
     self.title:SetBackdrop(addon.RXPFrame.backdrop.edge)
     self.title:SetBackdropColor(unpack(addon.colors.background))
-    self.title.text:SetFont(addon.font, 9, "")
+    addon.SetFontSafely(self.title.text, addon.font, 9, "")
     self.title.text:SetTextColor(unpack(addon.activeTheme.textColor))
     self.title:SetSize(self.title.text:GetStringWidth() + 14, 19)
     if updateFrame and self.UpdateFrame then
@@ -247,6 +247,7 @@ function addon.CreateActiveItemFrame(self, anchor, enableText)
 
     addon.enabledFrames["activeItemFrame"] = f
     f.IsFeatureEnabled = function()
+        if addon.settings.framePreviewActive then return true, true end
         local shown = not addon.settings.profile.disableItemWindow and next(GetActiveItemList()) ~= nil
         return shown,true
     end
@@ -277,7 +278,7 @@ function addon.CreateActiveItemFrame(self, anchor, enableText)
         f.title.text:SetJustifyH("CENTER")
         f.title.text:SetJustifyV("MIDDLE")
         f.title.text:SetTextColor(unpack(addon.activeTheme.textColor))
-        f.title.text:SetFont(addon.font, 9, "")
+        addon.SetFontSafely(f.title.text, addon.font, 9, "")
         f.title.text:SetText(L"Active Items")
         f.title:EnableMouse(true)
         f.title:SetScript("OnMouseDown", f.onMouseDown)

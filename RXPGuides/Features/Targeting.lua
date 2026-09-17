@@ -1258,7 +1258,7 @@ local function UpdateIconFrameVisuals(self, updateFrame)
     self.title:ClearBackdrop()
     self.title:SetBackdrop(addon.RXPFrame.backdrop.edge)
     self.title:SetBackdropColor(unpack(addon.colors.background))
-    self.title.text:SetFont(addon.font, 9, "")
+    addon.SetFontSafely(self.title.text, addon.font, 9, "")
     self.title.text:SetTextColor(unpack(addon.activeTheme.textColor))
     self.title:SetSize(self.title.text:GetStringWidth() + 14, 19)
 end
@@ -1278,6 +1278,7 @@ function addon.targeting:CreateTargetFrame()
 
     addon.enabledFrames["activeTargetFrame"] = f
     f.IsFeatureEnabled = function()
+        if addon.settings.framePreviewActive then return true, true end
         -- The 3.3.5 world map is a fullscreen panel rather than the modern
         -- movable map canvas. Keep secure target buttons out of that panel and
         -- restore them from the current target lists when the map closes.
@@ -1332,7 +1333,7 @@ function addon.targeting:CreateTargetFrame()
     f.title.text:SetJustifyH("CENTER")
     f.title.text:SetJustifyV("MIDDLE")
     f.title.text:SetTextColor(unpack(addon.activeTheme.textColor))
-    f.title.text:SetFont(addon.font, 9, "")
+    addon.SetFontSafely(f.title.text, addon.font, 9, "")
     f.title.text:SetText(L "Active Targets")
 
     f.title:SetSize(f.title.text:GetStringWidth() + 14, 19)

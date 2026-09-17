@@ -37,6 +37,11 @@ end
 
 function addon.arrowFrame:UpdateVisuals()
     SetArrowTexture(self.texture)
+    addon.SetFontSafely(self.text, addon.font,
+                        addon.settings.profile.arrowText or 9, "OUTLINE")
+    local color = addon.activeTheme and addon.activeTheme.textColor or
+                      {1, 1, 1, 1}
+    self.text:SetTextColor(unpack(color))
 end
 
 local function IsInInstance()

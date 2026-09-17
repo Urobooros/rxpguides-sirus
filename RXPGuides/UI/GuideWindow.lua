@@ -107,6 +107,21 @@ function RXPFrame:UpdateVisuals()
     GuideName.icon:SetTexture(addon.GetTexture("rxp_logo-64"))
     GuideName.classIcon:SetTexture(addon.GetTexture(class))
     Footer.cog:SetNormalTexture(addon.GetTexture("rxp_cog-32"))
+    local textColor = addon.activeTheme and addon.activeTheme.textColor or
+                          {1, 1, 1, 1}
+    GuideName.text:SetTextColor(unpack(textColor))
+    Footer.text:SetTextColor(unpack(textColor))
+    for _, stepFrame in ipairs(CurrentStepFrame.framePool or {}) do
+        if stepFrame.number and stepFrame.number.text then
+            stepFrame.number.text:SetTextColor(unpack(textColor))
+        end
+    end
+    for _, stepFrame in ipairs(ScrollChild.framePool or {}) do
+        if stepFrame.number and stepFrame.number.text then
+            stepFrame.number.text:SetTextColor(unpack(textColor))
+        end
+    end
+    if addon.UpdateGuideFontSize then addon.UpdateGuideFontSize() end
     RXPFrame.UpdateScrollBar()
 end
 
@@ -2425,6 +2440,13 @@ end
 
 function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
     addon.loadNextStep = false
+
+    if addon.settings and addon.settings.framePreviewActive and
+       type(guide) == "table" and
+       guide.name ~= fmt("%s Frame Positions", _G.PREVIEW) then
+        addon.settings.framePreviewActive = nil
+        if addon.castBar then addon.castBar:HidePreview() end
+    end
 
     local savedStep = OnLoad and RXPCData and RXPCData.currentStep
     local savedStepId = OnLoad and RXPCData and RXPCData.currentStepId

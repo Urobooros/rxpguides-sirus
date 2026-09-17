@@ -535,6 +535,14 @@ local settingsDBDefaults = {
         guideScrollSteps = 1,
         guideLanguage = "localized",
         activeItemsScale = 1,
+        enableCastBar = false,
+        castBarAnchor = "guide",
+        castBarWidth = 220,
+        castBarHeight = 20,
+        castBarFontSize = 10,
+        castBarShowIcon = true,
+        castBarBackgroundOpacity = 0.85,
+        castBarUseThemeColor = true,
         maxSoulShards = 100,
 
         showEnabled = true,
@@ -3393,8 +3401,8 @@ function addon.settings:CreateAceOptionsPanel()
                         order = 1.16
                     },
                     customThemeBackground = {
-                        name = _G.BACKGROUND,
-                        desc = L("Set primary background"),
+                        name = "Фон окон",
+                        desc = "Применяется к окну руководства, активным целям, активным предметам и полосе применения.",
                         type = "color",
                         width = optionsWidth,
                         order = 1.2,
@@ -3488,7 +3496,7 @@ function addon.settings:CreateAceOptionsPanel()
                     },
                     customThemeFont = {
                         name = "Шрифт",
-                        desc = "Шрифты из SharedMedia появляются в этом списке автоматически.",
+                        desc = "Применяется к руководству, стрелке, активным окнам и полосе применения. Шрифты SharedMedia появляются здесь автоматически.",
                         type = "select",
                         width = optionsWidth,
                         order = 1.7,
@@ -3506,8 +3514,8 @@ function addon.settings:CreateAceOptionsPanel()
                         end,
                     },
                     customThemeTexture = {
-                        name = "Текстура панелей",
-                        desc = "Текстуры из SharedMedia появляются в этом списке автоматически.",
+                        name = "Текстура панелей и полосы",
+                        desc = "Применяется к панелям руководства, активным окнам и заполнению полосы применения.",
                         type = "select",
                         width = optionsWidth,
                         order = 1.75,
@@ -3531,8 +3539,8 @@ function addon.settings:CreateAceOptionsPanel()
                         end,
                     },
                     customThemeTextColor = {
-                        name = L("Text Color"), -- TODO locale
-                        desc = L("Requires Reload to take effect"),
+                        name = "Основной цвет текста",
+                        desc = "Применяется к заголовкам, стрелке, активным окнам и полосе применения.",
                         type = "color",
                         width = optionsWidth,
                         order = 1.8,
@@ -3574,14 +3582,12 @@ function addon.settings:CreateAceOptionsPanel()
                         order = 1.92
                     },
                     previewFramePositions = {
-                        name = "Показать расположение окон",
-                        desc = "Показать и настроить расположение окон аддона",
+                        name = "Показать окна для настройки",
+                        desc = "Показывает стрелку, активные цели, активные предметы и полосу применения. Окна можно перетащить по экрану.",
                         type = 'execute',
-                        width = optionsWidth,
+                        width = "double",
                         order = 1.93,
-                        confirm = function()
-                            return L("This action will reload your current guide when toggled off.\nAre you sure?")
-                        end,
+                        disabled = function() return InCombatLockdown() end,
                         func = function()
                             addon.settings:EnableFramePreviews()
                         end
@@ -4002,6 +4008,151 @@ function addon.settings:CreateAceOptionsPanel()
                         width = optionsWidth,
                         func = function()
                             addon.ResetItemPosition()
+                        end
+                    },
+                    castBarHeader = {
+                        name = "Полоса применения",
+                        type = "header",
+                        width = "full",
+                        order = 4.3
+                    },
+                    enableCastBar = {
+                        name = "Включить полосу применения",
+                        desc = "Показывает применение и поддержание заклинаний персонажа",
+                        type = "toggle",
+                        width = optionsWidth,
+                        order = 4.31,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            if addon.castBar then addon.castBar:RefreshCast() end
+                        end
+                    },
+                    previewCastBar = {
+                        name = "Показать полосу",
+                        desc = "Показывает полосу без необходимости применять заклинание",
+                        type = "execute",
+                        width = optionsWidth,
+                        order = 4.32,
+                        func = function()
+                            if addon.castBar then addon.castBar:ShowPreview() end
+                        end
+                    },
+                    castBarAnchor = {
+                        name = "Расположение полосы",
+                        desc = "Прикрепляет полосу к окну руководства или позволяет свободно перемещать её по экрану",
+                        type = "select",
+                        values = {
+                            guide = "Под окном руководства",
+                            screen = "Свободно на экране"
+                        },
+                        width = optionsWidth,
+                        order = 4.33,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            if addon.castBar then addon.castBar:ApplyAnchor() end
+                        end
+                    },
+                    castBarWidth = {
+                        name = "Ширина полосы",
+                        type = "range",
+                        min = 140,
+                        max = 420,
+                        step = 5,
+                        width = optionsWidth,
+                        order = 4.34,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            if addon.castBar then addon.castBar:UpdateLayout() end
+                        end
+                    },
+                    castBarHeight = {
+                        name = "Высота полосы",
+                        type = "range",
+                        min = 14,
+                        max = 40,
+                        step = 1,
+                        width = optionsWidth,
+                        order = 4.35,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            if addon.castBar then addon.castBar:UpdateLayout() end
+                        end
+                    },
+                    castBarFontSize = {
+                        name = "Размер текста полосы",
+                        type = "range",
+                        min = 8,
+                        max = 18,
+                        step = 1,
+                        width = optionsWidth,
+                        order = 4.36,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            if addon.castBar then addon.castBar:UpdateVisuals() end
+                        end
+                    },
+                    castBarShowIcon = {
+                        name = "Показывать значок заклинания",
+                        type = "toggle",
+                        width = optionsWidth,
+                        order = 4.37,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            if addon.castBar then addon.castBar:UpdateLayout() end
+                        end
+                    },
+                    castBarBackgroundOpacity = {
+                        name = "Прозрачность фона полосы",
+                        type = "range",
+                        min = 0,
+                        max = 1,
+                        step = 0.05,
+                        isPercent = true,
+                        width = optionsWidth,
+                        order = 4.38,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            if addon.castBar then addon.castBar:UpdateVisuals() end
+                        end
+                    },
+                    castBarColor = {
+                        name = "Цвет заполнения полосы",
+                        type = "color",
+                        hasAlpha = false,
+                        width = optionsWidth,
+                        order = 4.39,
+                        get = function()
+                            return unpack(self.profile.castBarColor or
+                                              {0.15, 0.72, 0.58, 1})
+                        end,
+                        disabled = function()
+                            return self.profile.castBarUseThemeColor
+                        end,
+                        set = function(_, r, g, b)
+                            self.profile.castBarColor = {r, g, b, 1}
+                            if addon.castBar then addon.castBar:UpdateVisuals() end
+                        end
+                    },
+                    castBarUseThemeColor = {
+                        name = "Использовать цвет темы",
+                        desc = "Берёт цвет заполнения из выбранной темы оформления",
+                        type = "toggle",
+                        width = optionsWidth,
+                        order = 4.395,
+                        set = function(info, value)
+                            SetProfileOption(info, value)
+                            if addon.castBar then addon.castBar:UpdateVisuals() end
+                        end
+                    },
+                    resetCastBarPosition = {
+                        name = "Сбросить положение полосы",
+                        type = "execute",
+                        width = optionsWidth,
+                        order = 4.4,
+                        func = function()
+                            if addon.ResetCastBarPosition then
+                                addon.ResetCastBarPosition()
+                            end
                         end
                     },
                     mapHeader = {
@@ -4441,7 +4592,7 @@ function addon.settings:CreateAceOptionsPanel()
         "customTextColorReset", "disableColorText"
     })
     AddAppearanceSection("guideWindowAppearance", "Окно руководства", 2, {
-        "previewFramePositions", "guideWindowHeader", "windowScale",
+        "guideWindowHeader", "windowScale",
         "guideFontSize", "guideScrollSteps", "guideLanguage",
         "anchorOrientation", "showStepList", "hideCompletedSteps",
         "showUnusedGuides"
@@ -4452,11 +4603,19 @@ function addon.settings:CreateAceOptionsPanel()
     })
     AddAppearanceSection("activeFramesAppearance",
                          "Активные цели и предметы", 4, {
-        "activeTargetsVisualHeader", "hideActiveTargetsBackground",
+        "previewFramePositions", "activeTargetsVisualHeader",
+        "hideActiveTargetsBackground",
         "activeTargetScale", "resetTargetPosition", "activeItemsHeader",
         "activeItemsScale", "activeItemHideBG", "resetItemPosition"
     })
-    AddAppearanceSection("mapAppearance", "Карта и отметки", 5, {
+    AddAppearanceSection("castBarAppearance", "Полоса применения", 5, {
+        "castBarHeader", "enableCastBar", "previewCastBar",
+        "castBarAnchor", "castBarWidth", "castBarHeight",
+        "castBarFontSize", "castBarShowIcon",
+        "castBarBackgroundOpacity", "castBarUseThemeColor", "castBarColor",
+        "resetCastBarPosition"
+    })
+    AddAppearanceSection("mapAppearance", "Карта и отметки", 6, {
         "mapHeader", "hideMiniMapPins", "mapCircle", "numMapPins",
         "worldMapPinScale", "vendorTreasurePinScale",
         "distanceBetweenPins", "worldMapPinBackgroundOpacity"
@@ -4476,31 +4635,57 @@ function addon.settings:CreateAceOptionsPanel()
     optionsTable.args.profiles.order = 10
     local profileArgs = optionsTable.args.profiles.args
     if profileArgs then
+        local function DisplayProfileName(name)
+            if name == "Main" then return "Основной" end
+            if name == "Default" then return "По умолчанию" end
+            return name
+        end
+        local function ProfileValues(info)
+            local values = info.handler:ListProfiles(info)
+            local localized = {}
+            for key, name in pairs(values) do
+                localized[key] = DisplayProfileName(name)
+            end
+            return localized
+        end
         profileArgs.desc.name =
             "Для каждого персонажа можно использовать отдельный профиль настроек."
         profileArgs.desc.width = "full"
         profileArgs.descreset.name =
             "Сбрасывает текущий профиль до стандартных настроек."
         profileArgs.descreset.width = "full"
+        profileArgs.reset.name = "Сбросить текущий профиль"
         profileArgs.current.width = "double"
+        profileArgs.current.name = function(info)
+            return "Текущий профиль: |cfffcdc00" ..
+                       DisplayProfileName(info.handler:GetCurrentProfile()) ..
+                       "|r"
+        end
         profileArgs.choosedesc.name =
             "Создайте новый профиль или выберите один из существующих."
         profileArgs.choosedesc.width = "full"
+        profileArgs.new.name = "Новый профиль"
         profileArgs.new.width = "double"
+        profileArgs.choose.name = "Активный профиль"
+        profileArgs.choose.values = ProfileValues
         profileArgs.choose.width = "double"
         profileArgs.copydesc.name =
-            "Скопировать настройки выбранного профиля в текущий."
+            "Скопировать настройки другого профиля в текущий. Если других профилей нет, список будет недоступен."
         profileArgs.copydesc.width = "full"
-        profileArgs.copydesc.hidden = "HasNoProfiles"
+        profileArgs.copydesc.hidden = nil
+        profileArgs.copyfrom.name = "Скопировать из профиля"
+        profileArgs.copyfrom.values = ProfileValues
         profileArgs.copyfrom.width = "double"
-        profileArgs.copyfrom.hidden = "HasNoProfiles"
+        profileArgs.copyfrom.hidden = nil
         profileArgs.deldesc.name =
-            "Удалить неиспользуемый профиль из базы аддона и файла сохранённых настроек."
+            "Удалить неиспользуемый профиль. Активный профиль удалить нельзя."
         profileArgs.deldesc.width = "full"
-        profileArgs.deldesc.hidden = "HasNoProfiles"
+        profileArgs.deldesc.hidden = nil
+        profileArgs.delete.name = "Удалить профиль"
+        profileArgs.delete.values = ProfileValues
         profileArgs.delete.width = "double"
         profileArgs.delete.desc = "Удаляет выбранный неиспользуемый профиль."
-        profileArgs.delete.hidden = "HasNoProfiles"
+        profileArgs.delete.hidden = nil
     end
 
     -- Add in reload prompt to Ace default pane
@@ -4516,7 +4701,7 @@ function addon.settings:CreateAceOptionsPanel()
     }
 
     optionsTable.args.profiles.args.defaultProfileHeader = {
-        name = "",
+        name = "Стандартные настройки",
         type = "header",
         width = "full",
         order = 900
@@ -4524,9 +4709,9 @@ function addon.settings:CreateAceOptionsPanel()
 
     optionsTable.args.profiles.args["setDefaultProfile"] = {
         order = 910,
-        name = L("Set current profile as default"),
+        name = "Сохранить текущие настройки как стандартные",
         type = 'execute',
-        width = 1.5,
+        width = "double",
         func = function()
             addon.settings.defaultProfileKey = settingsDB:GetCurrentProfile()
             local function copy(t)
@@ -4544,6 +4729,22 @@ function addon.settings:CreateAceOptionsPanel()
         end,
         disabled = function()
             return addon.settings.defaultProfileKey == settingsDB:GetCurrentProfile()
+        end
+    }
+
+    optionsTable.args.profiles.args["clearDefaultProfile"] = {
+        order = 920,
+        name = "Вернуть стандартные настройки аддона",
+        desc = "Удаляет сохранённый пользовательский шаблон. Текущий профиль не изменяется.",
+        type = "execute",
+        width = "double",
+        disabled = function()
+            return type(RXPData.defaultProfile) ~= "table"
+        end,
+        func = function()
+            RXPData.defaultProfile = false
+            addon.settings.defaultProfileKey = false
+            AceConfigRegistry:NotifyChange(addon.title)
         end
     }
 
@@ -4881,6 +5082,7 @@ function addon.settings:ResetProfile()
         RXPFrame = {{"LEFT",nil,"LEFT",0,35}},
         activeItemFrame = {{"CENTER","UIParent","CENTER",0,0}},
         activeTargetFrame = {{"CENTER","UIParent","CENTER",0,-50}},
+        castBar = {{"CENTER","UIParent","CENTER",0,-180}},
         tipsFrame = {{"CENTER","UIParent","CENTER",0,-145}}
     }
     settingsDBDefaults.profile.frameSizes = {}
@@ -5272,6 +5474,9 @@ end
 
 function addon.settings:EnableFramePreviews()
 
+    if addon.castBar then addon.castBar:ShowPreview() end
+    self.framePreviewActive = true
+
     local currentGuide = addon.currentGuide
 
     -- Prevent overwriting actual guide if activating multiple times
@@ -5314,6 +5519,13 @@ step
 
     local loadPreviewGuide = function ()
         addon:LoadGuide(guideToLoad)
+        for _, frameName in ipairs({"activeItemFrame", "activeTargetFrame"}) do
+            local frame = addon.enabledFrames[frameName]
+            if frame then
+                if frame.UpdateVisuals then frame:UpdateVisuals(true) end
+                frame:Show()
+            end
+        end
     end
 
     addon:ScheduleTask(loadPreviewGuide)
@@ -5389,6 +5601,10 @@ function addon.settings:LoadFramePositions()
     end
 
     addon.settings:LoadScales()
+    if addon.castBar then
+        addon.castBar:UpdateLayout()
+        addon.castBar:ApplyAnchor()
+    end
 end
 
 function addon.settings:LoadScales()

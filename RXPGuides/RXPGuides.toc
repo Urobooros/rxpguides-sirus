@@ -65,6 +65,7 @@ DB\wotlk\statWeights_335.lua
 Features\HearthstoneBatching.lua
 Guide\QuestLog.lua
 UI\ActiveItemFrame.lua
+UI\CastBar.lua
 Features\LevelingTracker.lua
 Features\FlightTimers.lua
 Features\Targeting.lua
