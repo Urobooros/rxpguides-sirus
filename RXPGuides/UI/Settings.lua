@@ -3582,14 +3582,19 @@ function addon.settings:CreateAceOptionsPanel()
                         order = 1.92
                     },
                     previewFramePositions = {
-                        name = "Показать окна для настройки",
+                        name = function()
+                            return self.framePreviewActive and
+                                       "Скрыть окна настройки" or
+                                       "Показать окна для настройки"
+                        end,
                         desc = "Показывает стрелку, активные цели, активные предметы и полосу применения. Окна можно перетащить по экрану.",
                         type = 'execute',
                         width = "double",
                         order = 1.93,
                         disabled = function() return InCombatLockdown() end,
                         func = function()
-                            addon.settings:EnableFramePreviews()
+                            addon.settings:ToggleFramePreviews()
+                            AceConfigRegistry:NotifyChange(addon.title)
                         end
                     },
                     textColorsHeader = {
@@ -5475,6 +5480,48 @@ function addon.settings:SetupMapButton()
 
 end
 
+function addon.settings:DisableFramePreviews()
+    if not self.framePreviewActive then return end
+
+    local returnGuide = self.framePreviewReturnGuide
+    local returnState = self.framePreviewReturnState
+    self.framePreviewActive = nil
+    self.framePreviewReturnGuide = nil
+    self.framePreviewReturnState = nil
+
+    if addon.castBar then addon.castBar:HidePreview() end
+
+    local restoreGuide = function()
+        if returnState and RXPCData then
+            RXPCData.currentStep = returnState.currentStep
+            RXPCData.currentStepId = returnState.currentStepId
+            RXPCData.stepSkip = returnState.stepSkip
+            RXPCData.completedWaypoints = returnState.completedWaypoints
+        end
+        if returnGuide then addon:LoadGuide(returnGuide, true) end
+
+        for _, frameName in ipairs({"activeItemFrame", "activeTargetFrame"}) do
+            local frame = addon.enabledFrames[frameName]
+            if frame then
+                local shown, isSecure = frame.IsFeatureEnabled()
+                if not (isSecure and InCombatLockdown()) then
+                    frame:SetShown(shown and self.profile.showEnabled)
+                end
+            end
+        end
+    end
+
+    addon:ScheduleTask(restoreGuide)
+end
+
+function addon.settings:ToggleFramePreviews()
+    if self.framePreviewActive then
+        self:DisableFramePreviews()
+    else
+        self:EnableFramePreviews()
+    end
+end
+
 function addon.settings:EnableFramePreviews()
 
     if addon.castBar then addon.castBar:ShowPreview() end
@@ -5485,6 +5532,18 @@ function addon.settings:EnableFramePreviews()
     -- Prevent overwriting actual guide if activating multiple times
     if currentGuide.name == fmt("%s Frame Positions", _G.PREVIEW) then
         return
+    end
+
+    self.framePreviewReturnGuide =
+        addon.GetGuideTable(currentGuide.group, currentGuide.name) or
+            currentGuide
+    if RXPCData then
+        self.framePreviewReturnState = {
+            currentStep = RXPCData.currentStep,
+            currentStepId = RXPCData.currentStepId,
+            stepSkip = CopyTable(RXPCData.stepSkip or {}),
+            completedWaypoints = CopyTable(RXPCData.completedWaypoints or {})
+        }
     end
 
     local nextLine = nil

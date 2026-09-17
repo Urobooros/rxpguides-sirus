@@ -2445,6 +2445,8 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
        type(guide) == "table" and
        guide.name ~= fmt("%s Frame Positions", _G.PREVIEW) then
         addon.settings.framePreviewActive = nil
+        addon.settings.framePreviewReturnGuide = nil
+        addon.settings.framePreviewReturnState = nil
         if addon.castBar then addon.castBar:HidePreview() end
     end
 
