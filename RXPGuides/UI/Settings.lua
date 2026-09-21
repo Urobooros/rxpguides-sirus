@@ -535,7 +535,7 @@ local settingsDBDefaults = {
         guideScrollSteps = 1,
         guideLanguage = "localized",
         activeItemsScale = 1,
-        enableCastBar = false,
+        enableCastBar = true,
         castBarAnchor = "guide",
         castBarWidth = 220,
         castBarHeight = 20,
@@ -1584,9 +1584,7 @@ function addon.settings:CreateAceOptionsPanel()
                         hidden = not addon.FPDB,
                         set = function(info, value)
                             SetProfileOption(info, value)
-                            if not value then
-                                addon.HideTimers()
-                            end
+                            if addon.RefreshFlightTimer then addon:RefreshFlightTimer() end
                         end
                     },
                     groupMode = {
@@ -3515,7 +3513,7 @@ function addon.settings:CreateAceOptionsPanel()
                     },
                     customThemeTexture = {
                         name = "Текстура панелей и полосы",
-                        desc = "Применяется к панелям руководства, активным окнам и заполнению полосы применения.",
+                        desc = "Применяется к панелям руководства, активным окнам и заполнению полос таймеров.",
                         type = "select",
                         width = optionsWidth,
                         order = 1.75,
@@ -3587,7 +3585,7 @@ function addon.settings:CreateAceOptionsPanel()
                                        "Скрыть окна настройки" or
                                        "Показать окна для настройки"
                         end,
-                        desc = "Показывает стрелку, активные цели, активные предметы и полосу применения. Окна можно перетащить по экрану.",
+                        desc = "Показывает стрелку, активные цели, активные предметы и полосу таймеров. Окна можно перетащить по экрану.",
                         type = 'execute',
                         width = "double",
                         order = 1.93,
@@ -4016,30 +4014,39 @@ function addon.settings:CreateAceOptionsPanel()
                         end
                     },
                     castBarHeader = {
-                        name = "Полоса применения",
+                        name = "Таймеры событий и полётов",
                         type = "header",
                         width = "full",
                         order = 4.3
                     },
                     enableCastBar = {
-                        name = "Включить полосу применения",
-                        desc = "Показывает применение и поддержание заклинаний персонажа",
+                        name = "Включить полосы таймеров",
+                        desc = "Показывает таймеры событий руководства и оставшееся время полёта на такси",
                         type = "toggle",
                         width = optionsWidth,
                         order = 4.31,
                         set = function(info, value)
                             SetProfileOption(info, value)
-                            if addon.castBar then addon.castBar:RefreshCast() end
+                            if addon.castBar then addon.castBar:UpdateLayout() end
                         end
                     },
                     previewCastBar = {
-                        name = "Показать полосу",
-                        desc = "Показывает полосу без необходимости применять заклинание",
+                        name = function()
+                            return addon.castBar and addon.castBar.previewing and
+                                "Скрыть пример таймера" or "Показать пример таймера"
+                        end,
+                        desc = "Включает или выключает тестовый таймер для настройки оформления",
                         type = "execute",
                         width = optionsWidth,
                         order = 4.32,
                         func = function()
-                            if addon.castBar then addon.castBar:ShowPreview() end
+                            if addon.castBar then
+                                if addon.castBar.previewing then
+                                    addon.castBar:HidePreview()
+                                else
+                                    addon.castBar:ShowPreview()
+                                end
+                            end
                         end
                     },
                     castBarAnchor = {
@@ -4097,7 +4104,7 @@ function addon.settings:CreateAceOptionsPanel()
                         end
                     },
                     castBarShowIcon = {
-                        name = "Показывать значок заклинания",
+                        name = "Показывать значок таймера",
                         type = "toggle",
                         width = optionsWidth,
                         order = 4.37,
@@ -4616,7 +4623,7 @@ function addon.settings:CreateAceOptionsPanel()
         "activeTargetScale", "resetTargetPosition", "activeItemsHeader",
         "activeItemsScale", "activeItemHideBG", "resetItemPosition"
     })
-    AddAppearanceSection("castBarAppearance", "Полоса применения", 5, {
+    AddAppearanceSection("castBarAppearance", "Таймеры событий и полётов", 5, {
         "castBarHeader", "enableCastBar", "previewCastBar",
         "castBarAnchor", "castBarWidth", "castBarHeight",
         "castBarFontSize", "castBarShowIcon",
