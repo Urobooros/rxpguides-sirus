@@ -63,40 +63,61 @@ local function SkinButton(frame)
     if frame.SetPushedTexture then frame:SetPushedTexture(nil) end
     if frame.SetHighlightTexture then frame:SetHighlightTexture(nil) end
     if frame.SetDisabledTexture then frame:SetDisabledTexture(nil) end
-    SetBackdrop(frame, colors.button, colors.accent)
-    if not frame._rxpModernFill then
-        local fill = frame:CreateTexture(nil, "BACKGROUND")
-        fill:SetTexture(WHITE)
-        fill:SetPoint("TOPLEFT", 2, -2)
-        fill:SetPoint("BOTTOMRIGHT", -2, 2)
-        fill:SetVertexColor(unpack(colors.button))
-        frame._rxpModernFill = fill
+    -- ElvUI's Ace3_RefreshButton strips all textures on the button itself
+    -- on show and SetButtonState. Keep our artwork on a mouse-transparent
+    -- child so those hooks cannot erase the fill and border again.
+    if not frame._rxpModernSurface then
+        local surface = CreateFrame("Frame", nil, frame)
+        surface:SetAllPoints(frame)
+        surface:EnableMouse(false)
+        frame._rxpModernSurface = surface
     end
+    local surface = frame._rxpModernSurface
+    surface:SetFrameLevel(frame:GetFrameLevel() + 1)
+    SetBackdrop(surface, colors.button, colors.accent)
+    surface:Show()
     local text = frame.GetFontString and frame:GetFontString()
     if text then
-        text:SetTextColor(unpack(colors.text))
+        text:SetParent(surface)
+        text:SetDrawLayer("OVERLAY")
         SkinFont(text)
     end
 
-    -- AceGUI recycles button frames and resets their visual state on acquire.
-    -- Reapply the skin every time, but install the script wrappers only once.
-    if not frame._rxpModern then
-        frame._rxpModern = true
-        local oldEnter = frame:GetScript("OnEnter")
-        local oldLeave = frame:GetScript("OnLeave")
-        frame:SetScript("OnEnter", function(self)
-            self:SetBackdropBorderColor(unpack(colors.accent))
-            self:SetBackdropColor(unpack(colors.buttonHover))
-            self._rxpModernFill:SetVertexColor(unpack(colors.buttonHover))
-            if oldEnter then oldEnter(self) end
-        end)
-        frame:SetScript("OnLeave", function(self)
-            self:SetBackdropBorderColor(unpack(colors.accent))
-            self:SetBackdropColor(unpack(colors.button))
-            self._rxpModernFill:SetVertexColor(unpack(colors.button))
-            if oldLeave then oldLeave(self) end
-        end)
+    local function UpdateButtonAppearance(self)
+        local enabled = not self.IsEnabled or
+                            (self:IsEnabled() and self:IsEnabled() ~= 0)
+        local hovered = enabled and self._rxpModernHovered
+        local panel = self._rxpModernSurface
+        panel:SetBackdropColor(unpack(hovered and colors.buttonHover or
+                                      colors.button))
+        panel:SetBackdropBorderColor(unpack(enabled and colors.accent or
+                                            colors.border))
+        local label = self.GetFontString and self:GetFontString()
+        if label then
+            label:SetTextColor(unpack(enabled and colors.text or colors.muted))
+        end
     end
+
+    -- Preserve AceGUI click/tooltip handlers and install hooks only once,
+    -- including when the same button is reused on another settings page.
+    if not frame._rxpModernSurfaceHooks then
+        frame._rxpModernSurfaceHooks = true
+        frame:HookScript("OnEnter", function(self)
+            self._rxpModernHovered = true
+            UpdateButtonAppearance(self)
+        end)
+        frame:HookScript("OnLeave", function(self)
+            self._rxpModernHovered = nil
+            UpdateButtonAppearance(self)
+        end)
+        frame:HookScript("OnShow", function(self)
+            self._rxpModernHovered = nil
+            UpdateButtonAppearance(self)
+        end)
+        frame:HookScript("OnEnable", UpdateButtonAppearance)
+        frame:HookScript("OnDisable", UpdateButtonAppearance)
+    end
+    UpdateButtonAppearance(frame)
 end
 
 local function SkinWidget(widget)
@@ -170,7 +191,7 @@ local function SkinWidget(widget)
         if widget.type == "DropdownGroup" then
             SkinWidget(widget.dropdown)
         end
-    elseif widget.type == "Button" then
+    elseif widget.type == "Button" or widget.type == "Button-ElvUI" then
         SkinButton(widget.frame)
     elseif widget.type == "CheckBox" then
         if widget.checkbg then
