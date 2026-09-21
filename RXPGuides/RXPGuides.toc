@@ -2,7 +2,7 @@
 ## Title: RestedXP Guides
 ## Notes: RestedXP Guides adapted for 3.3.5a by Poslevkusie&Accidev
 ## Author: RestedXP; Poslevkusie&Accidev
-## Version: v6.7.3 Poslevkusie&Accidev
+## Version: v6.7.4 Poslevkusie&Accidev
 ## SavedVariables: RXPData, RXPDB, RXPSettings, RXP335
 ## SavedVariablesPerCharacter: RXPCData, RXPCTrackingData, RXPCComms, RXPCSettings
 ## X-Original-Source: https://github.com/RestedXP/RXPGuides

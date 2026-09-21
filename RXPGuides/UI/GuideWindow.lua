@@ -18,6 +18,24 @@ function addon.SetResizeBounds(frame, width, height)
     end
 end
 
+-- Measure at the final width with no vertical constraint. Checkbox template
+-- labels can inherit single-line settings; opposing vertical anchors also
+-- clip text to the old row height before GetStringHeight can measure it.
+local function LayoutStepText(text, parent, width, left, top)
+    text:ClearAllPoints()
+    text:SetPoint("TOPLEFT", parent, "TOPLEFT", left, top)
+    text:SetWidth(math.max(1, width))
+    text:SetHeight(0)
+    text:SetWordWrap(true)
+    if text.SetNonSpaceWrap then text:SetNonSpaceWrap(true) end
+    if text.SetMaxLines then text:SetMaxLines(0) end
+    text:SetJustifyH("LEFT")
+    text:SetJustifyV("TOP")
+    local height = math.ceil(text:GetStringHeight())
+    text:SetHeight(height)
+    return height
+end
+
 addon.width, addon.height = 235, 125 -- Default width/height
 
 local RXPFrame = CreateFrame("Frame", "RXPFrame", UIParent, BackdropTemplate)
@@ -1494,7 +1512,10 @@ function CurrentStepFrame.UpdateText(languageRefresh)
             stepframe.number.text:SetText(step.title and
                 addon.locale.GuideText(step.title, step, "title") or
                 (fmt(L("Step %d"), loopStepIndex)))
-            stepframe.number:SetSize(stepframe.number.text:GetStringWidth() + 10, 17)
+            local titleHeight = math.max(17, addon.settings.profile.guideFontSize + 8)
+            stepframe.number:SetSize(stepframe.number.text:GetStringWidth() + 10,
+                                     titleHeight)
+            local topInset = math.max(10, titleHeight - 3)
 
             e = 0
             frameHeight = 0
@@ -1548,16 +1569,13 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                         UpdateElementIconTextures(elementFrame.icon, icon, actionIconSize)
                         elementFrame.icon:Show()
 
-                        elementFrame.text:ClearAllPoints()
-                        elementFrame.text:SetPoint("TOPLEFT", elementFrame.icon,
-                                                "TOPRIGHT", 4, 0)
-                        elementFrame.text:SetPoint("RIGHT", stepframe, -5, 0)
-                        elementFrame.text:SetJustifyV("TOP")
                         elementFrame.text:SetText(text)
-
+                        local textLeft = 6 + 12 + iconWidth + 4
+                        local textHeight = LayoutStepText(elementFrame.text,
+                            elementFrame, stepframe:GetWidth() - textLeft - 5,
+                            textLeft, -2)
                         h = math.max(
-                            math.ceil(elementFrame.text:GetStringHeight() *
-                                          1.1) + 1,
+                            math.ceil(textHeight * 1.1) + 2,
                             iconHeight + 2)
                         -- print('sh:',h)
                         elementFrame:SetHeight(h)
@@ -1603,9 +1621,9 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                     elementFrame:ClearAllPoints()
 
                     if e == 1 then
-                        elementFrame:SetPoint("TOPLEFT", stepframe, 0, -10 + spacing)
+                        elementFrame:SetPoint("TOPLEFT", stepframe, 0, -topInset + spacing)
                         elementFrame:SetPoint("TOPRIGHT", stepframe, 0,
-                                            -10 + spacing)
+                                            -topInset + spacing)
                     else
                         elementFrame:SetPoint("TOPLEFT", stepframe.elements[e - 1],
                                             "BOTTOMLEFT", 0, 0 + spacing)
@@ -1628,7 +1646,7 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                     stepframe:EnableMouse(true)
                 end
                 stepframe:SetAlpha(1)
-                frameHeight = math.ceil(frameHeight + 18)
+                frameHeight = math.ceil(frameHeight + topInset + 8)
             end
 
             stepframe:SetHeight(frameHeight)
@@ -1651,7 +1669,7 @@ function CurrentStepFrame.UpdateText(languageRefresh)
         end
     end
 
-    CurrentStepFrame:SetHeight(totalHeight - 5)
+    CurrentStepFrame:SetHeight(math.max(1, totalHeight - 5))
 end
 
 BottomFrame:SetPoint("TOPLEFT", RXPFrame, 3, -3)
@@ -2806,7 +2824,10 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
         frame.text:SetFontObject(_G.GameFontNormalSmall)
         frame.text:ClearAllPoints()
         frame.text:SetPoint("TOPLEFT", frame, 0, -5)
-        frame.text:SetPoint("BOTTOMRIGHT", frame.number, "BOTTOMLEFT", 0, 0)
+        frame.text:SetWidth(math.max(1, ScrollChild:GetWidth() - frame.number:GetWidth()))
+        frame.text:SetHeight(0)
+        frame.text:SetWordWrap(true)
+        if frame.text.SetNonSpaceWrap then frame.text:SetNonSpaceWrap(true) end
         frame.text:SetJustifyH("LEFT")
         frame.text:SetJustifyV("TOP")
         frame.text:SetTextColor(unpack(addon.activeTheme.textColor))
@@ -2968,6 +2989,7 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
     local contentWidth = math.max(1, RXPFrame:GetWidth() - 35)
     if math.abs(ScrollChild:GetWidth() - contentWidth) > 0.01 then
         ScrollChild:SetWidth(contentWidth)
+        if addon.currentGuide then CurrentStepFrame.UpdateText(true) end
     end
     if GuideName.UpdateTextLayout then GuideName:UpdateTextLayout() end
 
@@ -3062,7 +3084,8 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
         if hideStep then
             fheight = 1
         else
-            fheight = math.ceil(frame.text:GetStringHeight() + 8)
+            fheight = LayoutStepText(frame.text, frame,
+                contentWidth - frame.number:GetWidth(), 0, -5) + 8
         end
 
         local hDiff = fheight - frame:GetHeight()
@@ -3152,7 +3175,8 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
                     fheight = 1.00
                 else
                     frame.text:SetText(text)
-                    fheight = math.ceil(frame.text:GetStringHeight() + 8)
+                    fheight = LayoutStepText(frame.text, frame,
+                        contentWidth - frame.number:GetWidth(), 0, -5) + 8
                 end
             end
             step.text = text
