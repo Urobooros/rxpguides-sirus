@@ -1,5 +1,5 @@
 --[[ $Id: AceGUIWidget-DropDown.lua 916 2010-03-15 12:24:36Z nevcairiel $ ]]--
-local AceGUI = LibStub("AceGUI-3.0")
+local AceGUI = LibStub("RXP-AceGUI-3.0")
 
 -- Lua APIs
 local min, max, floor = math.min, math.max, math.floor
@@ -258,7 +258,7 @@ do
 	
 	local function Constructor()
 		local count = AceGUI:GetNextWidgetNum(widgetType)
-		local frame = CreateFrame("Frame", "AceGUI30Pullout"..count, UIParent)
+		local frame = CreateFrame("Frame", "RXP-AceGUI30Pullout"..count, UIParent)
 		local self = {}
 		self.count = count
 		self.type = widgetType
@@ -309,7 +309,7 @@ do
 		scrollFrame.obj = self
 		itemFrame.obj = self
 		
-		local slider = CreateFrame("Slider", "AceGUI30PulloutScrollbar"..count, scrollFrame)
+		local slider = CreateFrame("Slider", "RXP-AceGUI30PulloutScrollbar"..count, scrollFrame)
 		slider:SetOrientation("VERTICAL")
 		slider:SetHitRectInsets(0, 0, -10, 0)
 		slider:SetBackdrop(sliderBackdrop)
@@ -628,7 +628,7 @@ do
 	local function Constructor()
 		local count = AceGUI:GetNextWidgetNum(widgetType)
 		local frame = CreateFrame("Frame", nil, UIParent)
-		local dropdown = CreateFrame("Frame", "AceGUI30DropDown"..count, frame, "UIDropDownMenuTemplate")
+		local dropdown = CreateFrame("Frame", "RXP-AceGUI30DropDown"..count, frame, "UIDropDownMenuTemplate")
 		
 		local self = {}
 		self.type = widgetType

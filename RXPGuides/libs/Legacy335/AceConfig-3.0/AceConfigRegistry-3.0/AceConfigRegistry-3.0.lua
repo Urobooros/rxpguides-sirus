@@ -9,7 +9,7 @@
 -- @class file
 -- @name AceConfigRegistry-3.0
 -- @release $Id: AceConfigRegistry-3.0.lua 921 2010-05-09 15:49:14Z nevcairiel $
-local MAJOR, MINOR = "AceConfigRegistry-3.0", 12
+local MAJOR, MINOR = "RXP-AceConfigRegistry-3.0", 12
 local AceConfigRegistry = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceConfigRegistry then return end

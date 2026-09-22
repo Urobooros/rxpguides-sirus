@@ -517,7 +517,7 @@ function CreatePanel()
 
     }
 
-    LibStub("AceConfig-3.0"):RegisterOptionsTable(addon.title .. "/Quest Data", questDataTable)
+    LibStub("RXP-AceConfig-3.0"):RegisterOptionsTable(addon.title .. "/Quest Data", questDataTable)
 
     if addon.gameVersion == 30300 then
         addon.settings.gui.quest = true

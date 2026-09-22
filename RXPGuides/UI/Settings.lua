@@ -2,11 +2,11 @@ local addonName, addon = ...
 
 local _G = _G
 
-local AceConfig = LibStub("AceConfig-3.0")
+local AceConfig = LibStub("RXP-AceConfig-3.0")
 local LibDBIcon = LibStub("LibDBIcon-1.0")
 local LibDataBroker = LibStub("LibDataBroker-1.1")
-local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
-local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+local AceConfigRegistry = LibStub("RXP-AceConfigRegistry-3.0")
+local AceConfigDialog = LibStub("RXP-AceConfigDialog-3.0")
 local SharedMedia = LibStub("LibSharedMedia-3.0", true)
 local LibDD = addon.dropdown or LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)
 local EasyMenu = function(...)
@@ -4645,7 +4645,7 @@ function addon.settings:CreateAceOptionsPanel()
     AceConfig:RegisterOptionsTable(addon.title, optionsTable)
     self.optionsTable = optionsTable
 
-    optionsTable.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(
+    optionsTable.args.profiles = LibStub("RXP-AceDBOptions-3.0"):GetOptionsTable(
                                      settingsDB)
     optionsTable.args.profiles.order = 10
     local profileArgs = optionsTable.args.profiles.args

@@ -6,7 +6,7 @@ local addonName, addon = ...
 -- check.  The TOC already limits this file to the Sirus package.
 if not addon.settings then return end
 
-local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+local AceConfigDialog = LibStub("RXP-AceConfigDialog-3.0")
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local colors = {
@@ -432,8 +432,8 @@ local function SkinWindow(window, appName)
 
     if window.content then
         window.content:ClearAllPoints()
-        window.content:SetPoint("TOPLEFT", 17, -48)
-        window.content:SetPoint("BOTTOMRIGHT", -17, 40)
+        window.content:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -48)
+        window.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -17, 40)
     end
 
     if window.titletext then
@@ -519,8 +519,6 @@ function addon.settings:OpenStandaloneOptions(appName, section)
         AceConfigDialog:Open(appName)
     end
 
-    local window = AceConfigDialog.OpenFrames[appName]
-    SkinWindow(window, appName)
     if appName == addon.title .. "/Import" and self.textboxHook then
         self.textboxHook()
     end

@@ -252,7 +252,7 @@ local function Register()
         _G.LibStub) then
         return false
     end
-    local AceConfig = _G.LibStub("AceConfig-3.0", true)
+    local AceConfig = _G.LibStub("RXP-AceConfig-3.0", true)
     if not AceConfig then return false end
 
     local key = addon.RXPOptions.name .. "/Compat335"
@@ -261,7 +261,7 @@ local function Register()
     addon.settings.gui.compat335 = nil
     if addon.settings.optionsTable and addon.settings.optionsTable.args then
         addon.settings.optionsTable.args.compat335 = options
-        local registry = _G.LibStub("AceConfigRegistry-3.0", true)
+        local registry = _G.LibStub("RXP-AceConfigRegistry-3.0", true)
         if registry then registry:NotifyChange(addon.RXPOptions.name) end
     end
     ApplyAll()
