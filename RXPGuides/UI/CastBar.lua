@@ -174,8 +174,15 @@ local function Start(duration, label, options, key)
 end
 
 function addon.StartTimer(duration, label, options)
-    label = label or ""
-    return Start(duration, label, options, label)
+    local key = label or ""
+    local displayLabel = key
+    if addon.guideLocalization and addon.guideLocalization.Render then
+        displayLabel = addon.guideLocalization:Render(key, {
+            sourceAuthored = true,
+            sourceText = key,
+        }, "timerText", {noBadge = true})
+    end
+    return Start(duration, displayLabel, options, key)
 end
 function addon.StopTimer(label)
     local row = container.bars[label or ""]
