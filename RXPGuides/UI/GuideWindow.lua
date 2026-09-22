@@ -688,6 +688,10 @@ local function BottomStepOnLeave(self)
     ApplyBottomStepBackground(self, self.step, false)
 end
 
+local function RefreshBottomVisibility(hidden)
+    addon.RefreshScrollVisibility(ScrollFrame, ScrollChild.framePool, hidden)
+end
+
 local function ApplyStepVisualState(frame, step, bottom)
     if not frame then return end
     local state = GetStepVisualState(step)
@@ -718,6 +722,7 @@ local function ApplyStepVisualState(frame, step, bottom)
     end
     if bottom and frame.text then
         frame.text:SetTextColor(unpack(textColor))
+        addon.RefreshScrollVisibility(ScrollFrame, {frame})
     end
 end
 
@@ -2093,6 +2098,10 @@ ScrollChild:SetWidth(RXPFrame:GetWidth() - 35)
 
 ScrollFrame:SetScrollChild(ScrollChild)
 ScrollFrame:EnableMouseWheel(true)
+ScrollFrame:HookScript("OnVerticalScroll", function() RefreshBottomVisibility() end)
+ScrollFrame:HookScript("OnSizeChanged", function() RefreshBottomVisibility() end)
+ScrollFrame:HookScript("OnShow", function() RefreshBottomVisibility() end)
+ScrollFrame:HookScript("OnHide", function() RefreshBottomVisibility(true) end)
 
 function BottomFrame:ScrollBySteps(delta)
     if not addon.currentGuide or not addon.currentGuide.steps or
@@ -2882,12 +2891,17 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
             end
         end)
 
+        if not frame.visualContent then
+            frame.visualContent = CreateFrame("Frame", nil, frame)
+            frame.visualContent:SetAllPoints(frame)
+            frame.visualContent:EnableMouse(false)
+        end
         if not frame.text then
-            frame.text = frame:CreateFontString(nil, "OVERLAY")
+            frame.text = frame.visualContent:CreateFontString(nil, "OVERLAY")
         end
 
         if not frame.number then
-            frame.number = CreateFrame("Frame", "$parent_number", frame,
+            frame.number = CreateFrame("Frame", frame:GetName() .. "_number", frame.visualContent,
                                        nil)
             frame.number:EnableMouse(false)
             frame.number:SetPoint("BOTTOMRIGHT", frame)
@@ -3156,6 +3170,7 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
         if hideStep then
             step.text = ""
             step.hiddentext = text
+            text = ""
         else
             step.text = text
         end
@@ -3316,6 +3331,8 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
     end
 
     addon.BetaVersionCheck()
+
+    RefreshBottomVisibility()
 
 end
 -- addon.hiddenFrames = 0
