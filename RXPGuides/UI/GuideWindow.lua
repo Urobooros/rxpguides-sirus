@@ -596,7 +596,11 @@ local function ClearFrameData()
                 frame.element.hearthPending = nil
                 frame.element.hearthSucceeded = nil
                 frame.element.hearthArrivalSeen = nil
+                frame.element.homeBinding = nil
+                if frame.element.tag == "home" then frame.element.confirm = false end
             end
+            addon.scheduler:Cancel(frame, "home-bind-check")
+            addon.scheduler:Cancel(frame, "home-confirm")
             frame.step = nil
             frame.index = nil
             frame.element = nil

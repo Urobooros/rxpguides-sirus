@@ -65,6 +65,7 @@ L["Missing pre-requisites"] = "Отсутствуют предварительн
 L["Retrieving quest data"] = "Получение данных о задании"
 L["Go to"] = "Идти к"
 L["Set your Hearthstone to "] = "Установите ваш Камень возвращения в "
+L["Set your Hearthstone"] = "Привяжите камень возвращения"
 L["Get the %s flight path"] = "Получите маршрут полета %s"
 L["Fly to"] = "Лететь в"
 L["Die and respawn at the graveyard"] = "Умрите и возродитесь на кладбище"

@@ -114,7 +114,8 @@ events.hs = {
     "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED",
     "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "ZONE_CHANGED",
 }
-events.home = {"HEARTHSTONE_BOUND","CONFIRM_BINDER","GOSSIP_SHOW"}
+events.home = {"HEARTHSTONE_BOUND", "CONFIRM_BINDER", "GOSSIP_SHOW",
+               "GOSSIP_CLOSED", "PLAYER_ENTERING_WORLD"}
 events.bindlocation = events.home
 events.fly = {"PLAYER_CONTROL_LOST", "TAXIMAP_OPENED", "ZONE_CHANGED", "GOSSIP_SHOW"}
 events.deathskip = {"CONFIRM_XP_LOSS", "PLAYER_UNGHOST", "GOSSIP_SHOW"}
@@ -202,7 +203,7 @@ addon.icons = {
     vendor = "|TInterface/GossipFrame/BankerGossipIcon:0|t",
     reputation = "|TInterface/GossipFrame/WorkOrderGossipIcon:0|t",
     fly = "|TInterface/GossipFrame/TaxiGossipIcon:0|t",
-    fp = "|TInterface/AddOns/" .. addonName .. "/Textures/fp:0|t", --TODO themes, load issue
+    fp = "|TInterface/GossipFrame/TaxiGossipIcon:0|t",
     gossip = "|TInterface/GossipFrame/GossipGossipIcon:0|t",
     hs = "|TInterface/MINIMAP/TRACKING/Innkeeper:0|t",
     trainer = "|TInterface/GossipFrame/TrainerGossipIcon:0|t",
@@ -2824,12 +2825,65 @@ function addon.SelectGossipType(gossipType,noOp)
     end
 end
 
+-- Most shipped .home directives only describe the destination in >> text.
+-- Keep this hint separate from an explicit location: authors sometimes name
+-- the surrounding zone instead of the inn returned by GetBindLocation().
+local function HomeLocationHint(text)
+    if type(text) ~= "string" then return end
+    text = text:gsub("|cRXP_[A-Z]+_", ""):gsub("|c%x%x%x%x%x%x%x%x", "")
+               :gsub("|r", "")
+    local lower = text:lower()
+    for _, noun in ipairs({"hearthstone", "hearth", "hs", "home"}) do
+        for _, preposition in ipairs({"to", "in", "at"}) do
+            local _, last = lower:find("set%s+your%s+" .. noun .. "%s+" .. preposition .. "%s+")
+            if not last then
+                _, last = lower:find("set%s+" .. noun .. "%s+" .. preposition .. "%s+")
+            end
+            if last then
+                local name = text:sub(last + 1):gsub("[%.!\n<].*$", "")
+                                 :gsub("%s+$", "")
+                if name == "Darnasus" then name = "Darnassus" end
+                if addon.LocalizeLegacyLocationName then
+                    local localized = addon.LocalizeLegacyLocationName(name)
+                    if localized == name then
+                        localized = addon.LocalizeLegacyLocationName(name:gsub("^[Tt]he%s+", ""))
+                    end
+                    name = localized
+                end
+                return name ~= "" and name or nil
+            end
+        end
+    end
+end
+
+local function SameHomeLocation(left, right)
+    if type(left) ~= "string" or type(right) ~= "string" then return false end
+    local function normalize(name)
+        return name:gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", ""):lower()
+    end
+    left, right = normalize(left), normalize(right)
+    return left ~= "" and left == right
+end
+
+local function StopHomeBinding(self, element)
+    element.homeBinding = nil
+    element.confirm = false
+    addon.scheduler:Cancel(self, "home-bind-check")
+    addon.scheduler:Cancel(self, "home-confirm")
+end
+
+local function ActiveHomeElement(self, element)
+    return self.element == element and element.step.active and
+               not element.completed and not element.skip
+end
+
 function addon.functions.home(self, ...)
     if type(self) == "string" then -- on parse
         local element = {}
         local text, location = ...
         element.tag = "home"
         element.sourceLocation = location
+        element.bindLocationHint = HomeLocationHint(text)
         local locationID = tonumber(location)
         element.locationID = locationID
         if locationID then
@@ -2843,6 +2897,8 @@ function addon.functions.home(self, ...)
             element.text = text
         elseif element.location then
             element.text = fmt("%s %s", L("Set your Hearthstone to "), element.location)
+        else
+            element.text = L("Set your Hearthstone")
         end
         element.tooltipText = addon.icons.home .. element.text
         return element
@@ -2850,15 +2906,40 @@ function addon.functions.home(self, ...)
 
     local element = self.element
     if not element.step.active or element.completed or element.skip then
-        element.confirm = false
+        StopHomeBinding(self, element)
         return
     end
     local event = ...
-    if event == "HEARTHSTONE_BOUND" or element.location and
-        element.location == GetBindLocation() then
+    local boundAt = GetBindLocation()
+    local pending = element.homeBinding
+    -- A request/closed gossip window is not proof of success. On legacy
+    -- clients the bind event can be absent or arrive before the location cache
+    -- updates, so also observe a real change after the binding dialog opens.
+    local changed = pending and type(pending.previous) == "string" and
+                        pending.previous ~= "" and type(boundAt) == "string" and
+                        boundAt ~= "" and not SameHomeLocation(pending.previous, boundAt)
+    if event == "HEARTHSTONE_BOUND" or
+        SameHomeLocation(element.location or element.bindLocationHint, boundAt) or
+        changed and (not element.location or SameHomeLocation(element.location, boundAt)) then
+        StopHomeBinding(self, element)
         addon.SetElementComplete(self)
-        element.confirm = false
         return
+    end
+    if event == "CONFIRM_BINDER" then
+        element.confirm = false
+        pending = {previous = boundAt, deadline = GetTime() + 60}
+        element.homeBinding = pending
+    end
+    if pending then
+        if GetTime() < pending.deadline then
+            addon.scheduler:After(self, "home-bind-check", 0.25, function()
+                if ActiveHomeElement(self, element) and element.homeBinding == pending then
+                    addon.functions.home(self, "RXP_BIND_CHECK")
+                end
+            end)
+        else
+            StopHomeBinding(self, element)
+        end
     end
     if not addon.settings.profile.enableBindAutomation or IsShiftKeyDown() then return end
     if (event == nil and element.step.active) then
@@ -2868,7 +2949,9 @@ function addon.functions.home(self, ...)
         end
     end
     if event == "CONFIRM_BINDER" then
-        self:SetScript("OnUpdate", function()
+        addon.scheduler:After(self, "home-confirm", 0, function()
+            if not ActiveHomeElement(self, element) or
+                not addon.settings.profile.enableBindAutomation or IsShiftKeyDown() then return end
             local confirmed = false
             if C_PlayerInteractionManager and
                 C_PlayerInteractionManager.ConfirmationInteraction and Enum and
@@ -2887,9 +2970,8 @@ function addon.functions.home(self, ...)
             end
             if confirmed then
                 element.confirm = true
-                if _G.StaticPopup1 then _G.StaticPopup1:Hide() end
+                if _G.StaticPopup_Hide then _G.StaticPopup_Hide("CONFIRM_BINDER") end
             end
-            self:SetScript("OnUpdate",nil)
         end)
     elseif not element.confirm and event == "GOSSIP_SHOW" then
         addon.SelectGossipType("binder")
@@ -2913,7 +2995,7 @@ function addon.functions.bindlocation(self, ...)
     local step = element.step
     local reverse = element.flags % 2 == 1
 
-    if step.active and element.location and (element.location == GetBindLocation()) == not reverse then
+    if step.active and element.location and SameHomeLocation(element.location, GetBindLocation()) == not reverse then
         step.completed = true
         addon.updateSteps = true
     end
