@@ -101,8 +101,9 @@ events.buyAll = events.buy
 events.buyUntilBroke = events.buy
 events.dualspec = {"PLAYER_ENTERING_WORLD", "PLAYER_TALENT_UPDATE",
                    "ACTIVE_TALENT_GROUP_CHANGED"}
-events.accept = {"QUEST_ACCEPTED", "QUEST_LOG_UPDATE", "QUEST_TURNED_IN", "QUEST_REMOVED"}
-events.turnin = {"QUEST_TURNED_IN","QUEST_LOG_UPDATE"}
+events.accept = {"QUEST_ACCEPTED", "QUEST_LOG_UPDATE", "QUEST_QUERY_COMPLETE",
+                 "QUEST_TURNED_IN", "QUEST_REMOVED"}
+events.turnin = {"QUEST_TURNED_IN", "QUEST_LOG_UPDATE", "QUEST_QUERY_COMPLETE"}
 if C_EventUtils and C_EventUtils.IsEventValid("STOP_MOVIE") then
     events.complete = {"QUEST_LOG_UPDATE", "CINEMATIC_STOP", "STOP_MOVIE"}
 else

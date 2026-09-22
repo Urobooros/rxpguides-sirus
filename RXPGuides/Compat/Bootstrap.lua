@@ -1529,6 +1529,7 @@ end
 --=========================================================================
 do
     local C_QuestLog = ns("C_QuestLog")
+    local nativeIsQuestFlaggedCompleted = C_QuestLog.IsQuestFlaggedCompleted
 
     -- Caches, refreshed by events below.
     local logIndexByQuestID = {}   -- questID -> quest log index
@@ -1658,6 +1659,15 @@ do
             rebuildLog()
         elseif event == "QUEST_QUERY_COMPLETE" then
             rebuildCompleted()
+            -- A guide can be evaluated before Sirus finishes delivering the
+            -- character's completed-quest history. Re-run quest directives
+            -- once that authoritative snapshot arrives; otherwise a quest
+            -- turned in before its guide step can remain blocking forever.
+            local frame = addon and addon.RXPFrame
+            if frame and frame.RefreshQuestState then
+                frame.RefreshQuestState("QUEST_LOG_UPDATE")
+            end
+            if addon then addon.updateSteps = true end
         elseif event == "QUEST_ACCEPTED" then
             local index = tonumber(arg1)
             local qid = tonumber(arg2) or
@@ -1734,15 +1744,24 @@ do
         if complete then completeByQuestID[questID] = true end
         return complete
     end)
-    def(C_QuestLog, "IsQuestFlaggedCompleted", function(questID)
+    -- Always install the compatibility facade. Some Sirus builds expose a
+    -- native C_QuestLog function but return stale data from it while the
+    -- asynchronous completed-quest snapshot is loading.
+    C_QuestLog.IsQuestFlaggedCompleted = function(questID)
         questID = tonumber(questID)
         if not questID then return false end
+        if type(nativeIsQuestFlaggedCompleted) == "function" then
+            local ok, completed = pcall(nativeIsQuestFlaggedCompleted, questID)
+            if ok and legacyTrue(completed) then
+                completedCache[questID] = true
+            end
+        end
         if type(_G.IsQuestCompleted) == "function" and
             _G.IsQuestCompleted(questID) then
             completedCache[questID] = true
         end
         return legacyTrue(completedCache[questID])
-    end)
+    end
     def(C_QuestLog, "IsQuestFlaggedCompletedOnAccount", function(questID)
         questID = tonumber(questID)
         return questID and legacyTrue(completedCache[questID]) or false

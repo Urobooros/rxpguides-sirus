@@ -2418,7 +2418,19 @@ questFrame:SetScript("OnEvent", addon.QuestAutomation)
 function addon.GetGuideTable(guideGroup, guideName)
     local index = guideGroup and guideName and
         fmt("%s||%s",guideGroup,guideName) or guideGroup or 0
-    return addon.guides[index]
+    local guide = addon.guides[index]
+    if guide or not (guideGroup and guideName and addon.GroupOverride) then
+        return guide
+    end
+
+    -- Guide metadata is indexed under the 3.3.5 display group, while old
+    -- menu/saved values can still carry the authored RestedXP Horde/Alliance
+    -- group. Resolve both names so a valid manual selection cannot fall back
+    -- to the empty welcome guide.
+    local normalizedGroup = addon.GroupOverride(guideGroup)
+    if normalizedGroup and normalizedGroup ~= guideGroup then
+        return addon.guides[fmt("%s||%s", normalizedGroup, guideName)]
+    end
 end
 
 addon.scheduledTasks = {}

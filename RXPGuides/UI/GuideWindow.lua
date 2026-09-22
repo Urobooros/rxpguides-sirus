@@ -2396,6 +2396,13 @@ end
 
 function addon:LoadGuideTable(guideGroup,guideName)
     local guide = addon.GetGuideTable(guideGroup, guideName)
+    if not guide then
+        if addon.comms and addon.comms.PrettyPrint then
+            addon.comms.PrettyPrint("Не удалось найти руководство: %s / %s",
+                                    tostring(guideGroup), tostring(guideName))
+        end
+        return
+    end
     if addon.guideState and addon.guideState.Load then
         return addon.guideState:Load(guide, false, "manual")
     end
@@ -2404,9 +2411,9 @@ end
 
 -- A later chapter often begins by turning in a quest picked up by the previous
 -- chapter.  Loading it directly used to strand the player on a step that could
--- never complete.  The 3.3.5 picker uses this lightweight preflight to locate
--- that dependency and move back one chapter.  Normal #next transitions and
--- saved-character restoration deliberately bypass it.
+-- never complete. The 3.3.5 picker uses this lightweight preflight to mark the
+-- impossible turn-in while preserving the chapter the player explicitly chose.
+-- Normal #next transitions and saved-character restoration deliberately bypass it.
 local function GetMissingGuideEntryQuest(guide)
     if addon.gameVersion ~= 30300 or type(guide) ~= "table" or guide.empty then
         return
@@ -2466,95 +2473,22 @@ local function GetMissingGuideEntryQuest(guide)
     end
 end
 
-local function GuideContainsQuest(guide, questId)
-    if type(guide) ~= "table" or not tonumber(questId) then return false end
-    local fetched = addon:FetchGuide(guide)
-    if not fetched then return false end
-    local processed = addon.ProcessGuideTable(fetched)
-    if not processed or type(processed.steps) ~= "table" then return false end
-    questId = tonumber(questId)
-    for _, step in ipairs(processed.steps) do
-        if not step.optional then
-            for _, element in ipairs(step.elements or {}) do
-                local tag = type(element) == "table" and element.tag
-                if tag == "accept" or tag == "acceptmultiple" or
-                    tag == "daily" or tag == "complete" or tag == "turnin" or
-                    tag == "turninmultiple" or tag == "dailyturnin" then
-                    local ids = element.ids or
-                                    (element.questId and {element.questId}) or {}
-                    for _, rawId in ipairs(ids) do
-                        if tonumber(rawId) == questId then return true end
-                    end
-                end
+local function MarkManualMissingTurnIns(guide, missingQuests)
+    if type(guide) ~= "table" or type(missingQuests) ~= "table" then return 0 end
+    local missing = {}
+    for _, id in ipairs(missingQuests) do missing[tonumber(id)] = true end
+    local marked = 0
+    for _, step in ipairs(guide.steps or {}) do
+        for _, element in ipairs(step.elements or {}) do
+            if (element.tag == "turnin" or element.tag == "dailyturnin") and
+                missing[tonumber(element.questId)] then
+                element.skipIfMissing = true
+                element.manualEntrySkip = true
+                marked = marked + 1
             end
         end
     end
-    return false
-end
-
-local function ResolveGuideNext(guide)
-    if type(guide) ~= "table" or type(guide.next) ~= "string" then return end
-    for rawName in guide.next:gmatch("%s*([^;]+)%s*") do
-        local group = guide.group
-        local name = rawName:match("^%s*(.-)%s*$")
-        name = name:gsub("^%s*(.+)\\%s*", function(nextGroup)
-            group = nextGroup
-            return ""
-        end)
-        name = name:gsub("^(%d)-(%d%d?)", addon.affix)
-
-        -- Mirror the live Shattrath choice before lookup so previous-guide
-        -- discovery cannot select the opposite reputation route.
-        if addon.game ~= "CLASSIC" then
-            local faction = name:match("Aldor") or name:match("Scryer")
-            if faction and not addon.stepLogic.AldorScryerCheck(faction) then
-                if faction == "Aldor" then
-                    name = name:gsub("Aldor", "Scryer")
-                else
-                    name = name:gsub("Scryer", "Aldor")
-                end
-            end
-        end
-
-        local nextGuide = addon.GetGuideTable(group, name)
-        local active = nextGuide and addon.IsGuideActive(nextGuide)
-        if active and addon.gameVersion == 30300 then
-            local profile = addon.settings and addon.settings.profile or {}
-            active = not (nextGuide.hardcore and not profile.hardcore or
-                              nextGuide.softcore and profile.hardcore)
-        end
-        if active then return nextGuide end
-    end
-end
-
-local function FindPreviousGuide(requestedGuide)
-    local matches = {}
-    local seen = {}
-    for _, candidate in pairs(addon.guides or {}) do
-        if type(candidate) == "table" and candidate ~= requestedGuide and
-            not seen[candidate] and addon.IsGuideActive(candidate) then
-            seen[candidate] = true
-            local nextGuide = ResolveGuideNext(candidate)
-            if nextGuide and (nextGuide == requestedGuide or
-                nextGuide.group == requestedGuide.group and
-                    nextGuide.name == requestedGuide.name) then
-                local requestedMin = tonumber((requestedGuide.name or ""):match("^(%d+)"))
-                local candidateMax = tonumber((candidate.name or ""):match("^%d+%-(%d+)"))
-                local score = candidate.subgroup == requestedGuide.subgroup and 100 or 0
-                if requestedMin and candidateMax then
-                    score = score - math.abs(requestedMin - candidateMax)
-                end
-                table.insert(matches, {guide = candidate, score = score})
-            end
-        end
-    end
-    table.sort(matches, function(a, b)
-        if a.score == b.score then
-            return (a.guide.name or "") < (b.guide.name or "")
-        end
-        return a.score > b.score
-    end)
-    return matches[1] and matches[1].guide
+    return marked
 end
 
 function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
@@ -2608,33 +2542,17 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
         savedStep = nil
         savedStepId = nil
     end
+    local manualMissingQuests
     if loadSource == "manual" and addon.gameVersion == 30300 then
-        redirectTrail = redirectTrail or {}
-        local guideKey = guide.key or fmt("%s|%s", guide.group or "",
-                                          guide.name or "")
-        local missingQuests = not redirectTrail[guideKey] and
-                                  GetMissingGuideEntryQuest(guide)
-        local previousGuide = missingQuests and FindPreviousGuide(guide)
-        local missingQuest
-        if previousGuide then
-            for _, questId in ipairs(missingQuests) do
-                if GuideContainsQuest(previousGuide, questId) then
-                    missingQuest = questId
-                    break
-                end
-            end
-        end
-        if previousGuide and missingQuest then
-            redirectTrail[guideKey] = true
+        manualMissingQuests = GetMissingGuideEntryQuest(guide)
+        if manualMissingQuests then
+            local missingQuest = manualMissingQuests[1]
             local questName = addon.GetQuestName and
                                   addon.GetQuestName(missingQuest)
             addon.comms.PrettyPrint(
-                "%s requires %s (%d); opening %s first.",
+                "%s: %s (%d) отсутствует; несовместимый шаг сдачи будет пропущен.",
                 addon.GetGuideName(guide) or guide.name,
-                questName or (_G.QUESTS_LABEL or "Quest"), missingQuest,
-                addon.GetGuideName(previousGuide) or previousGuide.name)
-            return addon:LoadGuide(previousGuide, nil, "manual",
-                                   redirectTrail)
+                questName or (_G.QUESTS_LABEL or "Задание"), missingQuest)
         end
     end
     if addon.HideIntroUI and not guide.empty then
@@ -2695,6 +2613,14 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
 
     addon.currentGuide = addon.ProcessGuideTable(guide)
     guide = addon.currentGuide
+
+    -- A manual chapter choice is authoritative. If its route assumes a quest
+    -- from another race/class starter chapter, skip only that impossible
+    -- turn-in instead of silently replacing the selected guide with a previous
+    -- chapter (which may filter down to an empty window for this character).
+    if manualMissingQuests then
+        MarkManualMissingTurnIns(guide, manualMissingQuests)
+    end
 
     local disabledQuests = {}
     if guide.disabledQuests then
