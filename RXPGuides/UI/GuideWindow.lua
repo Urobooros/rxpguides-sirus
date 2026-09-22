@@ -1409,11 +1409,86 @@ function RXPFrame.RefreshQuestState(event)
     if refreshed then addon.updateStepText = true end
 end
 
-local function GetElementPresentation(text, icon, size)
+local GetItemInfo = C_Item and C_Item.GetItemInfo or _G.GetItemInfo
+local GetSpellTexture = C_Spell and C_Spell.GetSpellTexture or _G.GetSpellTexture
+
+local itemIconTags = {
+    collect = true, buy = true, equip = true, use = true, itemcount = true,
+    itemStat = true, destroy = true, questitemcount = true,
+}
+local spellIconTags = {
+    cast = true, aura = true, train = true, spellmissing = true,
+    usespell = true,
+}
+local legacyTexturePaths = addon.legacyTexturePaths or {}
+addon.legacyTexturePaths = legacyTexturePaths
+
+local function FirstNumericKey(values)
+    if type(values) ~= "table" then return end
+    for key in pairs(values) do
+        key = tonumber(key)
+        if key and key > 0 then return key end
+    end
+end
+
+local function ResolveElementTexture(element, visibleText, authoredSource)
+    local numericSource = tonumber(authoredSource)
+    if numericSource and legacyTexturePaths[numericSource] then
+        return legacyTexturePaths[numericSource]
+    end
+    if type(element) ~= "table" then return end
+    local tag = element.tag
+    if spellIconTags[tag] and GetSpellTexture then
+        local id = tonumber(element.id) or
+                       type(element.ids) == "table" and tonumber(element.ids[1])
+        local texture = id and id > 0 and GetSpellTexture(id)
+        if texture then
+            if numericSource then legacyTexturePaths[numericSource] = texture end
+            return texture
+        end
+    end
+    if itemIconTags[tag] and GetItemInfo then
+        local id = tonumber(element.id) or FirstNumericKey(element.activeItems)
+        local texture = id and select(10, GetItemInfo(id))
+        if not texture and type(element.itemName) == "string" then
+            texture = select(10, GetItemInfo(element.itemName))
+        end
+        if texture then
+            if numericSource then legacyTexturePaths[numericSource] = texture end
+            return texture
+        end
+    end
+    -- Text-only inventory/bank notes do not carry a directive ID.  Their
+    -- first bracketed value is already localized before layout, so the legacy
+    -- client can often resolve it through its item cache.
+    if type(visibleText) == "string" and GetItemInfo then
+        local name = visibleText:match("%[(.-)%]")
+        if name then
+            name = name:gsub("|cRXP_[A-Z]+_", "")
+                       :gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+            local texture = select(10, GetItemInfo(name))
+            if texture then
+                if numericSource then legacyTexturePaths[numericSource] = texture end
+                return texture
+            end
+        end
+    end
+end
+
+local function TextureSource(markup)
+    return type(markup) == "string" and markup:match("^|T([^:|]+)")
+end
+
+local function GetElementPresentation(text, icon, size, element)
     -- Authored >> descriptions often carry their own leading texture. Move
     -- it into the icon column so wrapped lines share the same text indent.
     local leading, body = text:match("^%s*(|T.-|t)%s*(.*)$")
     if leading then
+        local source = TextureSource(leading)
+        local fallback = ResolveElementTexture(element, body, source)
+        if addon.gameVersion == 30300 and tonumber(source) and fallback then
+            leading = leading:gsub("^|T[^:|]+", "|T" .. fallback, 1)
+        end
         icon = ""
         repeat
             icon, text = icon .. leading, body
@@ -1433,7 +1508,7 @@ local function GetElementPresentation(text, icon, size)
     return text, icon or "", math.max(size, width), height
 end
 
-local function UpdateElementIconTextures(column, icon, size)
+local function UpdateElementIconTextures(column, icon, size, element, text)
     local count, offset = 0, 0
     for payload in icon:gmatch("|T(.-)|t") do
         local fields = {}
@@ -1455,7 +1530,12 @@ local function UpdateElementIconTextures(column, icon, size)
         texture:ClearAllPoints()
         texture:SetPoint("TOPLEFT", column, "TOPLEFT", offset + x, y)
         texture:SetSize(width, height)
-        texture:SetTexture(tonumber(fields[1]) or fields[1])
+        local source = fields[1]
+        if addon.gameVersion == 30300 and tonumber(source) then
+            source = ResolveElementTexture(element, text, source) or
+                         "Interface/Icons/INV_Misc_QuestionMark"
+        end
+        texture:SetTexture(source)
         local tw, th = tonumber(fields[6]), tonumber(fields[7])
         local left, right = tonumber(fields[8]), tonumber(fields[9])
         local top, bottom = tonumber(fields[10]), tonumber(fields[11])
@@ -1561,12 +1641,13 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                         local text, icon, iconWidth, iconHeight = GetElementPresentation(
                             elementFrame.renderedText or "",
                             element.icon or addon.icons[element.tag] or "",
-                            actionIconSize)
+                            actionIconSize, element)
                         elementFrame.icon:ClearAllPoints()
                         elementFrame.icon:SetPoint("TOPLEFT", elementFrame.button,
                                                 "TOPRIGHT", 0, -1)
                         elementFrame.icon:SetSize(iconWidth, iconHeight)
-                        UpdateElementIconTextures(elementFrame.icon, icon, actionIconSize)
+                        UpdateElementIconTextures(elementFrame.icon, icon,
+                                                  actionIconSize, element, text)
                         elementFrame.icon:Show()
 
                         elementFrame.text:SetText(text)

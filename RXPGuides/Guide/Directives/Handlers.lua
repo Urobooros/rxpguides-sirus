@@ -220,6 +220,15 @@ addon.icons = {
     clicknext = "|TInterface/Tooltips/ReforgeGreenArrow:0|t",
 }
 
+-- These assets were added after Wrath and render as red/missing squares on a
+-- 3.3.5 client.  Use stable Blizzard textures from the Wrath data set.
+if gameVersion == 30300 then
+    addon.icons.reputation = "|TInterface/GossipFrame/GossipGossipIcon:0|t"
+    addon.icons.xp = "|TInterface/Icons/INV_Misc_Book_09:0|t"
+    addon.icons.engrave = "|TInterface/Icons/INV_Inscription_Tradeskill01:0|t"
+    addon.icons.clicknext = "|TInterface/Buttons/UI-SpellbookIcon-NextPage-Up:0|t"
+end
+
 if addon.gameVersion > 50000 then
     addon.icons["goto"] = "|TInterface/MINIMAP/POIICONS:0:0:0:0:128:128:63:72:0:4|t"
     addon.icons["home"] = "|TInterface/MINIMAP/POIICONS:0:0:0:0:128:128:45:54:0:4|t"
@@ -5000,6 +5009,7 @@ function addon.functions.cast(self, text, ...)
             end
         end
         element.ids = ids
+        if #ids == 1 and ids[1] and ids[1] > 0 then element.id = ids[1] end
         element.text = text or ""
         local icon
         if #ids == 1 then
@@ -6105,16 +6115,28 @@ function addon.functions.use(self, text, ...)
 
         if text and text ~= "" then element.text = text end
         element.activeItems = {}
+        local firstId
         for i, v in ipairs(items) do
             local id, arg = v:match("(%d+):?(%S*)")
             id = tonumber(id)
             if id then
                 element.activeItems[id] = arg
+                firstId = firstId or id
             else
                 return addon.error(L("Error parsing guide") .. " " ..
                                        addon.currentGuideName ..
                                        ": Invalid item ID\n" .. self)
             end
+        end
+        -- A single primary item gives the renderer and localization service a
+        -- reliable 3.3.5 texture path and the official client-side name.  The
+        -- full activeItems table remains authoritative for multi-item steps.
+        if firstId then
+            element.id = firstId
+            local itemName, _, _, _, _, _, _, _, _, itemTexture =
+                GetItemInfo(firstId)
+            element.itemName = itemName
+            if itemTexture then element.icon = "|T" .. itemTexture .. ":0|t" end
         end
         element.textOnly = true
         return element
