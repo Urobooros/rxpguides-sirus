@@ -57,6 +57,8 @@ L["second"] = "секунда"
 L["seconds"] = "секунды"
 
 --functions.lua
+L["%d to %d"] = "%d–%d"
+L["Do NOT attempt this quest unless you are in a group of at least %d"] = "Не пытайтесь выполнить это задание без группы как минимум из %d игроков"
 L["Error parsing guide"] = "Ошибка разбора руководства"
 L["Objective Complete"] = "Цель выполнена"
 L["Missing pre-requisites"] = "Отсутствуют предварительные условия"

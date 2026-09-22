@@ -158,6 +158,40 @@ local function Materialize(template, tokens)
     end))
 end
 
+-- UI strings are frequently passed straight to string.format.  A translated
+-- `%d` becoming `%д` (or losing an argument entirely) aborts addon startup on
+-- Lua 5.1.  Compare the ordered conversion types before a packed UI entry is
+-- allowed to replace its English source.
+local function FormatSignature(value)
+    local signature, malformed, cursor = {}, false, 1
+    if type(value) ~= "string" then return "", false end
+    while true do
+        local start = value:find("%", cursor, true)
+        if not start then break end
+        if value:sub(start, start + 1) == "%%" then
+            cursor = start + 2
+        else
+            local atom = value:sub(start):match(
+                "^%%[-+#0]*%d*%.?%d*[cdeEfgGiouqsxX]")
+            if atom then
+                signature[#signature + 1] = atom:sub(-1)
+                cursor = start + #atom
+            else
+                malformed = true
+                cursor = start + 1
+            end
+        end
+    end
+    return table.concat(signature, "\031"), malformed
+end
+
+local function HasCompatibleFormatSignature(source, translated)
+    local expected, sourceMalformed = FormatSignature(source)
+    if expected == "" then return true end
+    local actual, translatedMalformed = FormatSignature(translated)
+    return not sourceMalformed and not translatedMalformed and expected == actual
+end
+
 function service:Tokenize(text)
     return Tokenize(text)
 end
@@ -604,6 +638,16 @@ function service:RegisterCompressedPack(code, encoded)
                                   translations.uiMachine
                 english = key
             end
+            if kind == "U" and destination then
+                local candidate = translated
+                if tokenized == "1" then
+                    local _, tokens = Tokenize(english)
+                    candidate = Materialize(translated, tokens)
+                end
+                if not HasCompatibleFormatSignature(english, candidate) then
+                    destination = nil
+                end
+            end
             -- Reviewed entries remain authoritative because the catalogs load
             -- in correction-first order. Machine entries are the temporary
             -- complete-coverage layer and are sanitized before packaging.
@@ -715,7 +759,7 @@ function service:UIWithMetadata(key)
         local text = entry.tokenized and
                          Materialize(entry.text, select(2, Tokenize(key))) or
                          entry.text
-        return text, {
+        if HasCompatibleFormatSignature(key, text) then return text, {
             status = entry.status,
             source = entry.source,
             catalogRevision = entry.revision,
@@ -723,7 +767,7 @@ function service:UIWithMetadata(key)
             machine = entry.status == "machine",
             reviewed = entry.status == "reviewed",
             fallback = false,
-        }
+        } end
     end
     local reviewed = catalog and catalog.ui and catalog.ui[key]
     if reviewed then
@@ -734,7 +778,7 @@ function service:UIWithMetadata(key)
         local text = entry.tokenized and
                          Materialize(entry.text, select(2, Tokenize(key))) or
                          entry.text
-        return text, {
+        if HasCompatibleFormatSignature(key, text) then return text, {
             status = entry.status,
             source = entry.source,
             catalogRevision = entry.revision,
@@ -742,7 +786,7 @@ function service:UIWithMetadata(key)
             machine = true,
             reviewed = false,
             fallback = false,
-        }
+        } end
     end
     return key, {status = "fallback", fallback = true}
 end

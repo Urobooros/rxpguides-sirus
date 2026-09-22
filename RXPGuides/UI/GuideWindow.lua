@@ -1981,6 +1981,11 @@ addon.UpdateFooterStatusAnchor()
 -- Footer.cog:HookScript("OnLeave", function(self) self:Hide() end)
 
 function RXPFrame.DropDownMenu()
+    -- Loading errors used to leave the welcome frame with an empty menu. Build
+    -- it lazily as well so right-click always performs the advertised action.
+    if type(RXPFrame.menuList) ~= "table" or #RXPFrame.menuList == 0 then
+        RXPFrame:GenerateMenuTable()
+    end
     if _G.EasyMenu then
         _G.EasyMenu(RXPFrame.menuList, MenuFrame, "cursor", 0, 0, "MENU");
     else
@@ -2000,6 +2005,8 @@ GuideName.OnMouseUp = function(self, button)
 end
 GuideName:SetScript("OnMouseDown", GuideName.OnMouseDown)
 Footer:SetScript("OnMouseDown", GuideName.OnMouseDown)
+GuideName:EnableMouse(true)
+Footer:EnableMouse(true)
 
 GuideName:SetScript("OnMouseUp", GuideName.OnMouseUp)
 Footer:SetScript("OnMouseUp", GuideName.OnMouseUp)
