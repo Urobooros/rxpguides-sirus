@@ -515,9 +515,13 @@ function service:RegisterTranslationPack(code, pack)
         end
     end
     Import(pack.reviewed, "reviewed", translations.reviewed)
+    Import(pack.machine, "machine", translations.machine)
     Import(pack.contextualReviewed, "reviewed",
            translations.contextualReviewed, true)
+    Import(pack.contextualMachine, "machine",
+           translations.contextualMachine, true)
     Import(pack.uiReviewed, "reviewed", translations.uiReviewed)
+    Import(pack.uiMachine, "machine", translations.uiMachine)
     catalog.revision = revision
     cache = {}
     return true
@@ -600,13 +604,11 @@ function service:RegisterCompressedPack(code, encoded)
                                   translations.uiMachine
                 english = key
             end
-            -- Generated machine prose caused broken grammar, untranslated
-            -- fragments and even web-scraping artifacts such as "[edit]" in
-            -- the live guide.  Only human-reviewed records are eligible for
-            -- display; unreviewed source remains in clear English until a
-            -- reviewed catalog entry or semantic template covers it.
-            if status == "R" and destination and english and translated and
-               signature then
+            -- Reviewed entries remain authoritative because the catalogs load
+            -- in correction-first order. Machine entries are the temporary
+            -- complete-coverage layer and are sanitized before packaging.
+            if (status == "R" or status == "M") and destination and english and
+               translated and signature then
                 -- Small reviewed catalogs are loaded before the compressed
                 -- reviewed pack. Keep those corrections authoritative when
                 -- both resources contain the same English source.
@@ -687,10 +689,15 @@ local function LookupTranslation(source, element, field, wantedStatus)
     if not translations or type(source) ~= "string" then return end
     local context = ContextKey(element, field, source)
     local entry
-    if wantedStatus == "machine" then return end
-    entry = context and ExpandPackEntry(translations.contextualReviewed,
-                                        context) or nil
-    entry = entry or ExpandPackEntry(translations.reviewed, source)
+    if wantedStatus == "machine" then
+        entry = context and ExpandPackEntry(translations.contextualMachine,
+                                            context) or nil
+        entry = entry or ExpandPackEntry(translations.machine, source)
+    else
+        entry = context and ExpandPackEntry(translations.contextualReviewed,
+                                            context) or nil
+        entry = entry or ExpandPackEntry(translations.reviewed, source)
+    end
     if not entry or entry.sourceSignature ~= HashSource(source) then return end
     if entry.tokenized then
         local output = MaterializeTranslation(source, entry.text)
@@ -721,6 +728,21 @@ function service:UIWithMetadata(key)
     local reviewed = catalog and catalog.ui and catalog.ui[key]
     if reviewed then
         return reviewed, {status = "reviewed", reviewed = true, fallback = false}
+    end
+    entry = translations and ExpandPackEntry(translations.uiMachine, key)
+    if entry and entry.sourceSignature == HashSource(key) then
+        local text = entry.tokenized and
+                         Materialize(entry.text, select(2, Tokenize(key))) or
+                         entry.text
+        return text, {
+            status = entry.status,
+            source = entry.source,
+            catalogRevision = entry.revision,
+            sourceSignature = entry.sourceSignature,
+            machine = true,
+            reviewed = false,
+            fallback = false,
+        }
     end
     return key, {status = "fallback", fallback = true}
 end
@@ -1127,6 +1149,15 @@ local function TranslateLine(line, element, field)
     local exact, exactEntry = LookupTranslation(line, element, field, "reviewed")
     if exact then return exact, exactEntry.status, exactEntry end
 
+    local function MachineFallback()
+        local machineExact, machineEntry =
+            LookupTranslation(line, element, field, "machine")
+        if machineExact then
+            return machineExact, machineEntry.status, machineEntry
+        end
+        return line, "fallback"
+    end
+
     local function TranslateBody(body, wantedStatus)
         local bodyExact, bodyEntry = LookupTranslation(
             body, element, field, wantedStatus)
@@ -1191,11 +1222,11 @@ local function TranslateLine(line, element, field)
         -- authored commentary remains English. Keep that sentence visibly
         -- marked unless the remainder is only punctuation/short named data.
         if not ValueLooksReviewed(outside) then
-            return line, "fallback"
+            return MachineFallback()
         end
         return indent .. icon .. body, spanStatus, spanMeta
     end
-    return line, "fallback"
+    return MachineFallback()
 end
 
 local function TranslateLines(text, element, field)
@@ -1573,6 +1604,14 @@ function service:RenderTitle(text, noBadge, context)
         output, factionChanged = LocalizeTitleFactions(output)
         reviewed = reviewed or factionChanged
         status = reviewed and "reviewed" or "fallback"
+        if status == "fallback" then
+            local machineOutput, machineEntry =
+                LookupTranslation(source, context, "title", "machine")
+            if machineOutput then
+                output, entry = machineOutput, machineEntry
+                status = machineEntry.status
+            end
+        end
     end
     local fallback = HasDisplayText(output) and status == "fallback"
     local machine = HasDisplayText(output) and status == "machine"

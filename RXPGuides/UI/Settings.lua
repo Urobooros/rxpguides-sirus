@@ -5489,36 +5489,41 @@ end
 
 function addon.settings:DisableFramePreviews()
     if not self.framePreviewActive then return end
-
-    local returnGuide = self.framePreviewReturnGuide
-    local returnState = self.framePreviewReturnState
     self.framePreviewActive = nil
-    self.framePreviewReturnGuide = nil
-    self.framePreviewReturnState = nil
 
     if addon.castBar then addon.castBar:HidePreview() end
 
-    local restoreGuide = function()
-        if returnState and RXPCData then
-            RXPCData.currentStep = returnState.currentStep
-            RXPCData.currentStepId = returnState.currentStepId
-            RXPCData.stepSkip = returnState.stepSkip
-            RXPCData.completedWaypoints = returnState.completedWaypoints
+    local arrowState = self.framePreviewArrowState
+    self.framePreviewArrowState = nil
+    if addon.arrowFrame then
+        local arrow = addon.arrowFrame
+        arrow.previewing = nil
+        if arrowState then
+            arrow.element = arrowState.element
+            arrow:SetAlpha(arrowState.alpha or 1)
+            arrow.text:SetText(arrowState.text or "")
+            addon.hideArrow = arrowState.hideArrow
+            arrow:SetShown(arrowState.shown)
         end
-        if returnGuide then addon:LoadGuide(returnGuide, true) end
+        if arrow:IsShown() and addon.DrawArrow then addon.DrawArrow(arrow, 1) end
+    end
 
-        for _, frameName in ipairs({"activeItemFrame", "activeTargetFrame"}) do
-            local frame = addon.enabledFrames[frameName]
-            if frame then
-                local shown, isSecure = frame.IsFeatureEnabled()
-                if not (isSecure and InCombatLockdown()) then
-                    frame:SetShown(shown and self.profile.showEnabled)
-                end
-            end
+    if not InCombatLockdown() then
+        if addon.UpdateItemFrame then addon.UpdateItemFrame(addon.activeItemFrame) end
+        if addon.targeting and addon.targeting.UpdateTargetFrame then
+            addon.targeting:UpdateTargetFrame()
         end
     end
 
-    addon:ScheduleTask(restoreGuide)
+    for _, frameName in ipairs({"activeItemFrame", "activeTargetFrame"}) do
+        local frame = addon.enabledFrames[frameName]
+        if frame then
+            local shown, isSecure = frame.IsFeatureEnabled()
+            if not (isSecure and InCombatLockdown()) then
+                frame:SetShown(shown and self.profile.showEnabled)
+            end
+        end
+    end
 end
 
 function addon.settings:ToggleFramePreviews()
@@ -5530,74 +5535,44 @@ function addon.settings:ToggleFramePreviews()
 end
 
 function addon.settings:EnableFramePreviews()
-
-    if addon.castBar then addon.castBar:ShowPreview() end
+    if self.framePreviewActive then return end
     self.framePreviewActive = true
 
-    local currentGuide = addon.currentGuide
-
-    -- Prevent overwriting actual guide if activating multiple times
-    if currentGuide.name == fmt("%s Frame Positions", _G.PREVIEW) then
-        return
-    end
-
-    self.framePreviewReturnGuide =
-        addon.GetGuideTable(currentGuide.group, currentGuide.name) or
-            currentGuide
-    if RXPCData then
-        self.framePreviewReturnState = {
-            currentStep = RXPCData.currentStep,
-            currentStepId = RXPCData.currentStepId,
-            stepSkip = CopyTable(RXPCData.stepSkip or {}),
-            completedWaypoints = CopyTable(RXPCData.completedWaypoints or {})
+    if addon.arrowFrame then
+        local arrow = addon.arrowFrame
+        self.framePreviewArrowState = {
+            shown = arrow:IsShown(),
+            alpha = arrow:GetAlpha(),
+            text = arrow.text:GetText(),
+            element = arrow.element,
+            hideArrow = addon.hideArrow,
         }
+        arrow.previewing = true
+        addon.hideArrow = nil
+        arrow:SetAlpha(1)
+        arrow.texture:SetRotation(0)
+        arrow.text:SetText("Стрелка маршрута\n(100 м)\nПрибытие: 0:15")
+        arrow:Show()
     end
 
-    local nextLine = nil
-    if currentGuide.name ~= '' and currentGuide.group ~= '' then
-        nextLine = fmt("%s\\%s", currentGuide.group, currentGuide.name)
+    if addon.castBar then addon.castBar:ShowPreview() end
+    if not InCombatLockdown() then
+        if addon.UpdateItemFrame then addon.UpdateItemFrame(addon.activeItemFrame) end
+        if addon.targeting and addon.targeting.UpdateTargetFrame then
+            addon.targeting:UpdateTargetFrame()
+        end
     end
 
-    local previewsGuideContent = fmt([[
-#name %s
-step
-    #sticky
-    #completewith next
-    +This is a temporary guide to allow frame positioning, skip all steps to reload the current guide
-step
-    >> Position Active Targets and Arrow
-    .target %s
-    .hs >> Position Active Items
-    .goto %s,0.0,0.0
-step
-    +%s
-    >>|cRXP_WARN_Skip this step to return%s|r
-    ]],
-    fmt("%s Frame Positions", _G.PREVIEW),
-    addon.player.name,
-    GetRealZoneText(),
-    fmt(_G.ERR_QUEST_COMPLETE_S, _G.PREVIEW),
-    currentGuide.name == "" and '' or fmt(" to %s", nextLine or _G.MAINMENU)
-    )
-
-    addon.RegisterGuide(_G.PREVIEW or L("Preview"), previewsGuideContent)
-
-    local guideToLoad = addon.GetGuideTable(_G.PREVIEW, fmt("%s Frame Positions", _G.PREVIEW))
-
-    guideToLoad.next = nextLine
-
-    local loadPreviewGuide = function ()
-        addon:LoadGuide(guideToLoad)
-        for _, frameName in ipairs({"activeItemFrame", "activeTargetFrame"}) do
-            local frame = addon.enabledFrames[frameName]
-            if frame then
-                if frame.UpdateVisuals then frame:UpdateVisuals(true) end
+    for _, frameName in ipairs({"activeItemFrame", "activeTargetFrame"}) do
+        local frame = addon.enabledFrames[frameName]
+        if frame then
+            local _, isSecure = frame.IsFeatureEnabled()
+            if not (isSecure and InCombatLockdown()) then
+                if frame.UpdateVisuals then frame:UpdateVisuals() end
                 frame:Show()
             end
         end
     end
-
-    addon:ScheduleTask(loadPreviewGuide)
 end
 
 function addon.settings:SaveFramePositions()

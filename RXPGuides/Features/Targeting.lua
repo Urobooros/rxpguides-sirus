@@ -1628,7 +1628,10 @@ local function ResizeTargetsFrame(targetFrame, friendlyCount, enemyCount)
 end
 
 function addon.targeting:UpdateTargetFrame(selector)
-    if not addon.settings.profile.enableTargetAutomation then return end
+    local previewing = addon.settings.framePreviewActive
+    if not addon.settings.profile.enableTargetAutomation and not previewing then
+        return
+    end
 
     local targetFrame = self:EnsureTargetFrame()
     if not targetFrame then return end
@@ -1657,6 +1660,7 @@ function addon.targeting:UpdateTargetFrame(selector)
             tinsert(enemiesList, {name = name, kind = kind})
         end
     end
+    if previewing then AddEnemy("Пример активной цели", "preview") end
     local function AddSortedMapEntries(source, predicate, callback)
         local names = {}
         for name, data in pairs(source) do
@@ -1822,6 +1826,7 @@ function addon.targeting:UpdateTargetFrame(selector)
             tinsert(friendlyList, name)
         end
     end
+    if previewing then AddFriendly(UnitName("player") or "Персонаж") end
 
     if addon.settings.profile.enableFriendlyTargeting then
         if not addon.settings.profile.showTargetingOnProximity then
@@ -1938,8 +1943,9 @@ function addon.targeting:UpdateTargetFrame(selector)
 
     ResizeTargetsFrame(targetFrame, friendlyTargetButtonIndex, enemyTargetButtonIndex)
 
-    if (friendlyTargetButtonIndex == 0 and enemyTargetButtonIndex == 0) or
-        not addon.settings.profile.showEnabled or IsLegacyWorldMapOpen() then
+    if not previewing and
+       ((friendlyTargetButtonIndex == 0 and enemyTargetButtonIndex == 0) or
+        not addon.settings.profile.showEnabled or IsLegacyWorldMapOpen()) then
         targetFrame:Hide()
     else
         targetFrame:Show()

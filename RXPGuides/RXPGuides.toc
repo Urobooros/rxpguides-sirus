@@ -2,7 +2,7 @@
 ## Title: RestedXP Guides
 ## Notes: RestedXP Guides adapted for 3.3.5a by Poslevkusie&Accidev
 ## Author: RestedXP; Poslevkusie&Accidev
-## Version: v6.7.6 Poslevkusie&Accidev
+## Version: v6.7.7 Poslevkusie&Accidev
 ## SavedVariables: RXPData, RXPDB, RXPSettings, RXP335
 ## SavedVariablesPerCharacter: RXPCData, RXPCTrackingData, RXPCComms, RXPCSettings
 ## X-Original-Source: https://github.com/RestedXP/RXPGuides
@@ -21,6 +21,8 @@ locale\locales.xml
 Core\Locale.lua
 Core\XP.lua
 Guide\Localization.lua
+locale\GuideCorrections.ruRU.lua
+locale\GuideSupplement.ruRU.lua
 locale\GuidePack.ruRU.lua
 locale\GuideCatalogs.lua
 Core\Services.lua

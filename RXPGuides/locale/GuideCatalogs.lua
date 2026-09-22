@@ -20,6 +20,7 @@ local selected
             ["This text was machine translated and has not yet been reviewed."] = "Этот текст переведён автоматически и ещё не проверен.",
         },
         exact = {
+            ["Buff |cRXP_FRIENDLY_Lilatha|r with |T136078:0|t[Mark of the Wild]"] = "Наложите |T136078:0|t[Знак дикой природы] на |cRXP_FRIENDLY_Lilatha|r",
             ["Sell junk/resupply"] = "Продайте хлам и пополните припасы",
             ["Train skills"] = "Обучитесь навыкам",
             ["Stable your pet"] = "Оставьте питомца в стойле",

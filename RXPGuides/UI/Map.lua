@@ -52,6 +52,7 @@ end
 
 addon.enabledFrames["arrowFrame"] = af
 af.IsFeatureEnabled = function ()
+    if addon.settings.framePreviewActive then return true, false end
     local shown = not addon.settings.profile.disableArrow and (addon.hideArrow ~= nil and not addon.hideArrow)
     return shown,false
 end
@@ -152,6 +153,7 @@ end
 function addon.DrawArrow(self, elapsed)
     self = self or addon.arrowFrame
 
+    if self and self.previewing then return end
     if addon.settings.profile.disableArrow or not self then return end
     self.updateElapsed = (self.updateElapsed or 0) + (tonumber(elapsed) or 0)
     if self.updateElapsed < ARROW_UPDATE_INTERVAL then return end

@@ -2543,10 +2543,7 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
     if addon.settings and addon.settings.framePreviewActive and
        type(guide) == "table" and
        guide.name ~= fmt("%s Frame Positions", _G.PREVIEW) then
-        addon.settings.framePreviewActive = nil
-        addon.settings.framePreviewReturnGuide = nil
-        addon.settings.framePreviewReturnState = nil
-        if addon.castBar then addon.castBar:HidePreview() end
+        addon.settings:DisableFramePreviews()
     end
 
     local savedStep = OnLoad and RXPCData and RXPCData.currentStep

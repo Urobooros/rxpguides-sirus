@@ -101,6 +101,14 @@ local function GetActiveItemList(ref)
     local activeItems = {}
     local activeSpells = {}
     local activeMacros = {}
+    if addon.settings and addon.settings.framePreviewActive then
+        return {{
+            name = "Пример активного предмета",
+            texture = "Interface\\Icons\\INV_Misc_QuestionMark",
+            macro = true,
+            arg = "",
+        }}
+    end
     --[[
     if not (ref and ref.activeItems) then
         ref = addon
@@ -521,7 +529,10 @@ function addon.UpdateItemFrame(itemFrame)
     -- print("s:",i)
     if i > 0 then itemFrame:SetAlpha(1) end
 
-    if i == 0 or addon.settings.profile.disableItemWindow or not addon.settings.profile.showEnabled then
+    local previewing = addon.settings.framePreviewActive
+    if i == 0 or not previewing and
+       (addon.settings.profile.disableItemWindow or
+        not addon.settings.profile.showEnabled) then
         itemFrame:Hide()
     else
         itemFrame:Show()
