@@ -2,7 +2,7 @@
 ## Title: RestedXP Guides
 ## Notes: RestedXP Guides adapted for 3.3.5a by Poslevkusie&Accidev
 ## Author: RestedXP; Poslevkusie&Accidev
-## Version: v6.7.1 Poslevkusie&Accidev
+## Version: v6.7.11 Poslevkusie&Accidev
 ## SavedVariables: RXPData, RXPDB, RXPSettings, RXP335
 ## SavedVariablesPerCharacter: RXPCData, RXPCTrackingData, RXPCComms, RXPCSettings
 ## X-Original-Source: https://github.com/RestedXP/RXPGuides
@@ -34,9 +34,11 @@ Guide\QuestAcceptState.lua
 UI\Themes.lua
 Features\Communications.lua
 Core\Addon.lua
+UI\ScrollVisibility.lua
 UI\GuideWindow.lua
 UI\Help.lua
 UI\Settings.lua
+UI\ModernSettings.lua
 
 # DB loaded directly with BACKSLASHES (3.3.5a's TOC parser does not reliably
 # accept forward slashes, and it resolves nested-XML <Script> paths relative to
@@ -64,6 +66,7 @@ DB\wotlk\statWeights_335.lua
 Features\HearthstoneBatching.lua
 Guide\QuestLog.lua
 UI\ActiveItemFrame.lua
+UI\CastBar.lua
 Features\LevelingTracker.lua
 Features\FlightTimers.lua
 Features\Targeting.lua
@@ -102,5 +105,5 @@ Guides\GuideList_335.xml
 
 Features\Talents.lua
 
-# 3.3.5a backport cosmetics sub-panel (Interface -> AddOns -> RestedXP Guides -> 3.3.5a)
+# Sirus compatibility options shown inside the standalone RestedXP window.
 Compat\Options.lua

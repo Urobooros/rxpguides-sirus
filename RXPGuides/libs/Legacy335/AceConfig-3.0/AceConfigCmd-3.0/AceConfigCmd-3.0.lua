@@ -15,7 +15,7 @@ REQUIRES: AceConsole-3.0 for command registration (loaded on demand)
 -- TODO: plugin args
 
 
-local MAJOR, MINOR = "AceConfigCmd-3.0", 12
+local MAJOR, MINOR = "RXP-AceConfigCmd-3.0", 12
 local AceConfigCmd = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceConfigCmd then return end
@@ -23,7 +23,7 @@ if not AceConfigCmd then return end
 AceConfigCmd.commands = AceConfigCmd.commands or {}
 local commands = AceConfigCmd.commands
 
-local cfgreg = LibStub("AceConfigRegistry-3.0")
+local cfgreg = LibStub("RXP-AceConfigRegistry-3.0")
 local AceConsole -- LoD
 local AceConsoleName = "AceConsole-3.0"
 
@@ -735,9 +735,9 @@ end
 -- function MyAddon:ChatCommand(input)
 --   -- Assuming "MyOptions" is the appName of a valid options table
 --   if not input or input:trim() == "" then
---     LibStub("AceConfigDialog-3.0"):Open("MyOptions")
+--     LibStub("RXP-AceConfigDialog-3.0"):Open("MyOptions")
 --   else
---     LibStub("AceConfigCmd-3.0").HandleCommand(MyAddon, "mychat", "MyOptions", input)
+--     LibStub("RXP-AceConfigCmd-3.0").HandleCommand(MyAddon, "mychat", "MyOptions", input)
 --   end
 -- end
 function AceConfigCmd:HandleCommand(slashcmd, appName, input)

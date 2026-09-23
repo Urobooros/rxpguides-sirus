@@ -4,7 +4,7 @@ if faction == "Horde" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Alliance !Warlock !Hunter !DK
+<< Alliance
 #name 1-6 Coldridge Valley
 #next 6-11 Dun Morogh
 #version 1
@@ -397,7 +397,7 @@ step
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Alliance !Warlock !Hunter
+<< Alliance
 #name 6-11 Dun Morogh
 #version 1
 #group RestedXP Alliance 1-20
@@ -1588,7 +1588,7 @@ step << wotlk
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Alliance Warlock
+<< Alliance
 #name 1-12 Dun Morogh
 #version 1
 #group RestedXP Alliance 1-20
@@ -2897,7 +2897,7 @@ step << wotlk
 
 RXPGuides.RegisterGuide([[
 #tbc
-<< Alliance Warlock
+<< Alliance
 #name 12-14 Loch Modan Gnome
 #version 1
 #group RestedXP Alliance 1-20
@@ -3260,7 +3260,7 @@ step
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Alliance Hunter
+<< Alliance
 #name 1-11 Dun Morogh
 #version 1
 #group RestedXP Alliance 1-20

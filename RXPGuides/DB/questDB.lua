@@ -444,7 +444,7 @@ end
 
 function addon.functions.show25quests(self,text,flags)
     if type(self) == "string" then
-        return { text = text, event = "OnUpdate", hideTooltip = true, tooltip = format("Click to view the %d best quests",QUEST_LOG_SIZE), icon = addon.icons.link, textOnly = true}
+        return { text = text, event = "OnUpdate", hideTooltip = true, tooltip = format("Нажмите, чтобы показать %d лучших заданий",QUEST_LOG_SIZE), icon = addon.icons.link, textOnly = true}
     end
     if self and self.highlight and not self.highlight:IsShown() then
         self.highlight:Show()
@@ -460,15 +460,15 @@ function CreatePanel()
 
     local questDataTable = {
         type = "group",
-        name = "RestedXP Quest Data",
+        name = "Данные заданий RestedXP",
         args = {
             importBox = {
                 order = 10,
                 type = 'input',
-                name = format('List of %d best quests',QUEST_LOG_SIZE),
+                name = format('Список из %d лучших заданий',QUEST_LOG_SIZE),
                 width = "full",
                 multiline = QUEST_LOG_SIZE,
-                confirmText = "Refresh",
+                confirmText = "Обновить",
                 -- usage = "Usage string",
                 get = SetText,
                 set = SetText,
@@ -477,7 +477,7 @@ function CreatePanel()
 
             showAvailable = {
                 order = 14,
-                name = format("Show %d Best Quests",QUEST_LOG_SIZE),
+                name = format("Показать %d лучших заданий",QUEST_LOG_SIZE),
                 type = 'execute',
                 func = function()
                     mode = "quests"
@@ -491,7 +491,7 @@ function CreatePanel()
             },
             showMissing = {
                 order = 15,
-                name = "Show Missing Quests",
+                name = "Показать отсутствующие задания",
                 type = 'execute',
                 func = function()
                     mode = "missing"
@@ -501,7 +501,7 @@ function CreatePanel()
             },
             showAllQs = {
                 order = 16,
-                name = "Show All Available",
+                name = "Показать все доступные",
                 type = 'execute',
                 func = function()
                     mode = "quests"
@@ -517,13 +517,17 @@ function CreatePanel()
 
     }
 
-    LibStub("AceConfig-3.0"):RegisterOptionsTable(addon.title .. "/Quest Data", questDataTable)
+    LibStub("RXP-AceConfig-3.0"):RegisterOptionsTable(addon.title .. "/Quest Data", questDataTable)
 
-    addon.settings.gui.quest = addon.settings.RegisterOptionsPanel(
-                                   "Quest Data",
-                                   addon.settings.AddToBlizzardOptions(
-                                       addon.title .. "/Quest Data",
-                                       "Quest Data", addon.title))
+    if addon.gameVersion == 30300 then
+        addon.settings.gui.quest = true
+    else
+        addon.settings.gui.quest = addon.settings.RegisterOptionsPanel(
+                                       "Quest Data",
+                                       addon.settings.AddToBlizzardOptions(
+                                           addon.title .. "/Quest Data",
+                                           "Quest Data", addon.title))
+    end
 
 end
 

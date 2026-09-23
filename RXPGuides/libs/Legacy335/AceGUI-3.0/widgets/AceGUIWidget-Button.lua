@@ -3,7 +3,7 @@ Button Widget
 Graphical Button.
 -------------------------------------------------------------------------------]]
 local Type, Version = "Button", 20
-local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
+local AceGUI = LibStub and LibStub("RXP-AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
 -- Lua APIs
@@ -62,7 +62,7 @@ local methods = {
 Constructor
 -------------------------------------------------------------------------------]]
 local function Constructor()
-	local name = "AceGUI30Button" .. AceGUI:GetNextWidgetNum(Type)
+	local name = "RXP-AceGUI30Button" .. AceGUI:GetNextWidgetNum(Type)
 	local frame = CreateFrame("Button", name, UIParent, "UIPanelButtonTemplate2")
 	frame:Hide()
 

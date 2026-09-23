@@ -12,14 +12,14 @@ Very light wrapper library that combines all the AceConfig subcomponents into on
 
 ]]
 
-local MAJOR, MINOR = "AceConfig-3.0", 2
+local MAJOR, MINOR = "RXP-AceConfig-3.0", 2
 local AceConfig = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceConfig then return end
 
-local cfgreg = LibStub("AceConfigRegistry-3.0")
-local cfgcmd = LibStub("AceConfigCmd-3.0")
---TODO: local cfgdlg = LibStub("AceConfigDialog-3.0", true)
+local cfgreg = LibStub("RXP-AceConfigRegistry-3.0")
+local cfgcmd = LibStub("RXP-AceConfigCmd-3.0")
+--TODO: local cfgdlg = LibStub("RXP-AceConfigDialog-3.0", true)
 --TODO: local cfgdrp = LibStub("AceConfigDropdown-3.0", true)
 
 -- Lua APIs
@@ -39,7 +39,7 @@ local pcall, error, type, pairs = pcall, error, type, pairs
 -- @param options The option table (or a function to generate one on demand).  http://www.wowace.com/addons/ace3/pages/ace-config-3-0-options-tables/
 -- @param slashcmd A slash command to register for the option table, or a table of slash commands.
 -- @usage
--- local AceConfig = LibStub("AceConfig-3.0")
+-- local AceConfig = LibStub("RXP-AceConfig-3.0")
 -- AceConfig:RegisterOptionsTable("MyAddon", myOptions, {"/myslash", "/my"})
 function AceConfig:RegisterOptionsTable(appName, options, slashcmd)
 	local ok,msg = pcall(cfgreg.RegisterOptionsTable, self, appName, options)

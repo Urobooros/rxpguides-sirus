@@ -509,7 +509,7 @@ function addon.AbandonOrphanedQuests(orphans)
 
     -- Workaround async UI draws, abandon won't have completed before next name func called
     C_Timer.After(2, function()
-        LibStub("AceConfigRegistry-3.0"):NotifyChange(addon.title)
+        LibStub("RXP-AceConfigRegistry-3.0"):NotifyChange(addon.title)
     end)
 end
 
@@ -597,7 +597,7 @@ function addon.BeginAbandonOrphans(orphans)
         if i < 1 then
             if C_Timer and C_Timer.After then
                 C_Timer.After(0.5, function()
-                    local reg = LibStub and LibStub("AceConfigRegistry-3.0", true)
+                    local reg = LibStub and LibStub("RXP-AceConfigRegistry-3.0", true)
                     if reg and addon and addon.title then
                         reg:NotifyChange(addon.title)
                     end

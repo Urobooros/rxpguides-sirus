@@ -1523,7 +1523,7 @@ step
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Alliance !Warlock/Alliance wotlk
+<< Alliance
 #name 20-21 Darkshore
 #version 1
 #group RestedXP Alliance 20-32
@@ -2016,7 +2016,7 @@ step
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Alliance !Warlock/Alliance wotlk
+<< Alliance
 #name 21-23 Ashenvale
 #version 1
 #group RestedXP Alliance 20-32
@@ -2400,7 +2400,7 @@ step << wotlk
 
 RXPGuides.RegisterGuide([[
 #tbc
-<< Alliance Warlock
+<< Alliance
 #name 20-23 Darkshore/Ashenvale
 #version 1
 #group RestedXP Alliance 20-32

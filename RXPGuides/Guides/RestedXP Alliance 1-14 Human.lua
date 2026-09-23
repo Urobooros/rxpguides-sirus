@@ -2105,7 +2105,7 @@ step << tbc
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Alliance Warlock
+<< Alliance
 #name 14-14 Darkshore
 #version 1
 #group RestedXP Alliance 1-20

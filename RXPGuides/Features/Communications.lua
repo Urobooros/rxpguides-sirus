@@ -39,7 +39,7 @@ local function GetGroupChannel()
     return _G.IsInRaid() and "RAID" or "PARTY"
 end
 
-local AceGUI = LibStub("AceGUI-3.0")
+local AceGUI = LibStub("RXP-AceGUI-3.0")
 
 addon.comms = addon:NewModule("Communications", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0")
 

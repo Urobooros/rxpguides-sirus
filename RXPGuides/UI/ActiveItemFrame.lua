@@ -46,11 +46,69 @@ end
 
 addon.GetItemCooldown = GetItemCooldown
 
+local questStarterTooltip
+local questStarterCache = {}
+
+local function StartsQuest(bag, slot, itemID)
+    local query = C_Container and C_Container.GetContainerItemQuestInfo or
+                      _G.GetContainerItemQuestInfo
+    if query then
+        local info, questID, isActive = query(bag, slot)
+        if type(info) == "table" then
+            questID, isActive = info.questID, info.isActive
+        end
+        if questID and questID > 0 then
+            return not (isActive == true or isActive == 1 or
+                (addon.IsOnQuest and addon.IsOnQuest(questID)) or
+                (addon.IsQuestTurnedIn and addon.IsQuestTurnedIn(questID)))
+        end
+    end
+
+    -- Legacy/Sirus clients may not expose quest-start metadata. Inspect the
+    -- localized tooltip marker, not the generic 'Quest Item' classification:
+    -- collected objectives must not become unusable action buttons.
+    if questStarterCache[itemID] ~= nil then return questStarterCache[itemID] end
+    if not GetItemInfo(itemID) then return false end -- Retry on item info event.
+    if not questStarterTooltip then
+        questStarterTooltip = CreateFrame("GameTooltip", "RXPQuestStarterScanTooltip",
+                                          UIParent, "GameTooltipTemplate")
+    end
+    local tooltip = questStarterTooltip
+    tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    tooltip:ClearLines()
+    tooltip:SetBagItem(bag, slot)
+    local startsQuest = false
+    for line = 1, tooltip:NumLines() do
+        local label = _G[tooltip:GetName() .. "TextLeft" .. line]
+        local text = label and label:GetText()
+        if text then
+            text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+                       :gsub("^%s+", ""):gsub("%s+$", "")
+            if text == _G.ITEM_STARTS_QUEST then
+                startsQuest = true
+                break
+            end
+        end
+    end
+    local hasLines = tooltip:NumLines() > 1
+    tooltip:Hide()
+    if startsQuest or hasLines then questStarterCache[itemID] = startsQuest end
+    return startsQuest
+end
+
 local function GetActiveItemList(ref)
     local itemList = {}
     local activeItems = {}
     local activeSpells = {}
     local activeMacros = {}
+    if addon.settings and addon.settings.framePreviewActive then
+        return {{
+            name = "Пример активного предмета",
+            texture = "Interface\\Icons\\INV_Misc_QuestionMark",
+            macro = true,
+            arg = "",
+        }}
+    end
     --[[
     if not (ref and ref.activeItems) then
         ref = addon
@@ -119,18 +177,18 @@ local function GetActiveItemList(ref)
             local id = GetContainerItemID(bag, slot)
             -- local spell = GetItemSpell(id)
             local arg = ref.activeItems[id]
-            if id and arg and not activeItems[id] then
+            if id and not activeItems[id] and (arg or StartsQuest(bag, slot, id)) then
                 activeItems[id] = true
                 local itemName, _, _, _, _, _, _, _, _, itemTexture, _, classID =
                     GetItemInfo(id)
                 table.insert(itemList,{
                     name = itemName,
-                    texture = itemTexture,
+                    texture = itemTexture or "Interface\\Icons\\INV_Misc_QuestionMark",
                     bag = bag,
                     slot = slot,
                     id = id,
                     spell = false,
-                    arg = arg,
+                    arg = arg or true,
                 })
             end
         end
@@ -211,13 +269,13 @@ local function UpdateIconFrameVisuals(self,updateFrame)
     self:ClearBackdrop()
     if not addon.settings.profile.activeItemHideBG then
         self:SetBackdrop(addon.RXPFrame.backdrop.edge)
-        local r, g, b = unpack(addon.colors.background)
-        self:SetBackdropColor(r, g, b, 0.4)
+        local r, g, b, a = unpack(addon.colors.background)
+        self:SetBackdropColor(r, g, b, a or 1)
     end
     self.title:ClearBackdrop()
     self.title:SetBackdrop(addon.RXPFrame.backdrop.edge)
     self.title:SetBackdropColor(unpack(addon.colors.background))
-    self.title.text:SetFont(addon.font, 9, "")
+    addon.SetFontSafely(self.title.text, addon.font, 9, "")
     self.title.text:SetTextColor(unpack(addon.activeTheme.textColor))
     self.title:SetSize(self.title.text:GetStringWidth() + 14, 19)
     if updateFrame and self.UpdateFrame then
@@ -247,6 +305,7 @@ function addon.CreateActiveItemFrame(self, anchor, enableText)
 
     addon.enabledFrames["activeItemFrame"] = f
     f.IsFeatureEnabled = function()
+        if addon.settings.framePreviewActive then return true, true end
         local shown = not addon.settings.profile.disableItemWindow and next(GetActiveItemList()) ~= nil
         return shown,true
     end
@@ -265,8 +324,35 @@ function addon.CreateActiveItemFrame(self, anchor, enableText)
     f.buttonList = {}
     f:SetPoint("CENTER", anchor, "CENTER", 0, 0)
 
+    -- A hidden item window cannot run OnUpdate. Use a separate visible driver
+    -- so looting the first quest starter can make the window appear.
+    local refreshDriver = CreateFrame("Frame")
+    local function QueueItemRefresh()
+        local delay = 0.1
+        refreshDriver:SetScript("OnUpdate", function(driver, elapsed)
+            delay = delay - elapsed
+            if delay > 0 then return end
+            driver:SetScript("OnUpdate", nil)
+            if not InCombatLockdown() then addon.UpdateItemFrame(f) end
+        end)
+    end
     f:RegisterEvent("SPELL_UPDATE_COOLDOWN")
-    f:SetScript("OnEvent",UpdateCooldowns)
+    for _, event in ipairs({"BAG_UPDATE", "GET_ITEM_INFO_RECEIVED",
+                            "QUEST_LOG_UPDATE", "PLAYER_ENTERING_WORLD",
+                            "PLAYER_REGEN_ENABLED"}) do
+        f:RegisterEvent(event)
+    end
+    f:SetScript("OnEvent", function(_, event, itemID)
+        if event == "SPELL_UPDATE_COOLDOWN" then
+            UpdateCooldowns()
+        else
+            if event == "GET_ITEM_INFO_RECEIVED" and itemID then
+                questStarterCache[itemID] = nil
+            end
+            QueueItemRefresh()
+        end
+    end)
+    QueueItemRefresh()
 
     if not f.title then
         f.title = CreateFrame("Frame", "$parent_title", f, BackdropTemplate)
@@ -277,7 +363,7 @@ function addon.CreateActiveItemFrame(self, anchor, enableText)
         f.title.text:SetJustifyH("CENTER")
         f.title.text:SetJustifyV("MIDDLE")
         f.title.text:SetTextColor(unpack(addon.activeTheme.textColor))
-        f.title.text:SetFont(addon.font, 9, "")
+        addon.SetFontSafely(f.title.text, addon.font, 9, "")
         f.title.text:SetText(L"Active Items")
         f.title:EnableMouse(true)
         f.title:SetScript("OnMouseDown", f.onMouseDown)
@@ -443,7 +529,10 @@ function addon.UpdateItemFrame(itemFrame)
     -- print("s:",i)
     if i > 0 then itemFrame:SetAlpha(1) end
 
-    if i == 0 or addon.settings.profile.disableItemWindow or not addon.settings.profile.showEnabled then
+    local previewing = addon.settings.framePreviewActive
+    if i == 0 or not previewing and
+       (addon.settings.profile.disableItemWindow or
+        not addon.settings.profile.showEnabled) then
         itemFrame:Hide()
     else
         itemFrame:Show()

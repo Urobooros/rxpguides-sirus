@@ -2,7 +2,7 @@
 Frame Container
 -------------------------------------------------------------------------------]]
 local Type, Version = "Frame", 21
-local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
+local AceGUI = LibStub and LibStub("RXP-AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
 -- Lua APIs
@@ -81,6 +81,7 @@ local methods = {
 		self.frame:SetFrameStrata("FULLSCREEN_DIALOG")
 		self:SetTitle()
 		self:SetStatusText()
+		self:EnableResize(true)
 		self:ApplyStatus()
 		self:Show()
 	end,
@@ -124,6 +125,13 @@ local methods = {
 
 	["Show"] = function(self)
 		self.frame:Show()
+	end,
+
+	["EnableResize"] = function(self, enabled)
+		for _, grip in ipairs({self.sizer_se, self.sizer_s, self.sizer_e}) do
+			grip:EnableMouse(enabled)
+			if enabled then grip:Show() else grip:Hide() end
+		end
 	end,
 
 	-- called to set an external table to store status in
@@ -283,6 +291,9 @@ local function Constructor()
 		localstatus = {},
 		titletext   = titletext,
 		statustext  = statustext,
+		sizer_se    = sizer_se,
+		sizer_s     = sizer_s,
+		sizer_e     = sizer_e,
 		content     = content,
 		frame       = frame,
 		type        = Type

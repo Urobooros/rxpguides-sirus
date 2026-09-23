@@ -2030,6 +2030,7 @@ function addon:OnInitialize()
     addon.RenderFrame()
     addon.SetupArrow()
     addon:CreateActiveItemFrame()
+    if addon.SetupCastBar then addon.SetupCastBar() end
     -- Existing setup methods now run through a deterministic lifecycle graph.
     -- The safe-mode supervisor remains the failure boundary for optional code.
     RegisterRuntimeSubsystems()
@@ -2047,8 +2048,8 @@ function addon:OnInitialize()
     addon.RXPFrame:SetScale(addon.settings.profile.windowScale)
     addon.arrowFrame:SetSize(32 * addon.settings.profile.arrowScale,
                              32 * addon.settings.profile.arrowScale)
-    addon.arrowFrame.text:SetFont(addon.font,
-                                  addon.settings.profile.arrowText, "OUTLINE")
+    addon.SetFontSafely(addon.arrowFrame.text, addon.font,
+                        addon.settings.profile.arrowText, "OUTLINE")
     addon.activeItemFrame:SetScale(addon.settings.profile.activeItemsScale)
 end
 
@@ -2417,7 +2418,19 @@ questFrame:SetScript("OnEvent", addon.QuestAutomation)
 function addon.GetGuideTable(guideGroup, guideName)
     local index = guideGroup and guideName and
         fmt("%s||%s",guideGroup,guideName) or guideGroup or 0
-    return addon.guides[index]
+    local guide = addon.guides[index]
+    if guide or not (guideGroup and guideName and addon.GroupOverride) then
+        return guide
+    end
+
+    -- Guide metadata is indexed under the 3.3.5 display group, while old
+    -- menu/saved values can still carry the authored RestedXP Horde/Alliance
+    -- group. Resolve both names so a valid manual selection cannot fall back
+    -- to the empty welcome guide.
+    local normalizedGroup = addon.GroupOverride(guideGroup)
+    if normalizedGroup and normalizedGroup ~= guideGroup then
+        return addon.guides[fmt("%s||%s", normalizedGroup, guideName)]
+    end
 end
 
 addon.scheduledTasks = {}

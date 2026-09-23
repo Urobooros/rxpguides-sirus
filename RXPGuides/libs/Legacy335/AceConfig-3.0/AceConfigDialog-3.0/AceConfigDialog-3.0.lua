@@ -4,7 +4,7 @@
 -- @release $Id: AceConfigDialog-3.0.lua 967 2010-09-25 08:20:55Z nevcairiel $
 
 local LibStub = LibStub
-local MAJOR, MINOR = "AceConfigDialog-3.0", 50
+local MAJOR, MINOR = "RXP-AceConfigDialog-3.0", 50
 local AceConfigDialog, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceConfigDialog then return end
@@ -17,8 +17,8 @@ AceConfigDialog.frame.apps = AceConfigDialog.frame.apps or {}
 AceConfigDialog.frame.closing = AceConfigDialog.frame.closing or {}
 AceConfigDialog.frame.closeAllOverride = AceConfigDialog.frame.closeAllOverride or {}
 
-local gui = LibStub("AceGUI-3.0")
-local reg = LibStub("AceConfigRegistry-3.0")
+local gui = LibStub("RXP-AceGUI-3.0")
+local reg = LibStub("RXP-AceConfigRegistry-3.0")
 
 -- Lua APIs
 local tconcat, tinsert, tsort, tremove = table.concat, table.insert, table.sort, table.remove
@@ -569,10 +569,10 @@ local function GetFuncName(option)
 	end
 end
 local function confirmPopup(appName, rootframe, basepath, info, message, func, ...)
-	if not StaticPopupDialogs["ACECONFIGDIALOG30_CONFIRM_DIALOG"] then
-		StaticPopupDialogs["ACECONFIGDIALOG30_CONFIRM_DIALOG"] = {}
+	if not StaticPopupDialogs["RXP_ACECONFIGDIALOG30_CONFIRM_DIALOG"] then
+		StaticPopupDialogs["RXP_ACECONFIGDIALOG30_CONFIRM_DIALOG"] = {}
 	end
-	local t = StaticPopupDialogs["ACECONFIGDIALOG30_CONFIRM_DIALOG"]
+	local t = StaticPopupDialogs["RXP_ACECONFIGDIALOG30_CONFIRM_DIALOG"]
 	for k in pairs(t) do
 		t[k] = nil
 	end
@@ -602,7 +602,7 @@ local function confirmPopup(appName, rootframe, basepath, info, message, func, .
 	t.whileDead = 1
 	t.hideOnEscape = 1
 
-	dialog = StaticPopup_Show("ACECONFIGDIALOG30_CONFIRM_DIALOG")
+	dialog = StaticPopup_Show("RXP_ACECONFIGDIALOG30_CONFIRM_DIALOG")
 	if dialog then
 		oldstrata = dialog:GetFrameStrata()
 		dialog:SetFrameStrata("TOOLTIP")

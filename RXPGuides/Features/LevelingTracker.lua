@@ -9,7 +9,7 @@ local UnitLevel, GetRealZoneText, IsInGroup, tonumber, GetTime, GetServerTime, U
                                                                                         IsInGroup, tonumber, GetTime,
                                                                                         GetServerTime, UnitXP
 
-local AceGUI = LibStub("AceGUI-3.0")
+local AceGUI = LibStub("RXP-AceGUI-3.0")
 local LibDeflate = LibStub("LibDeflate")
 local L = addon.locale.Get
 local LibDD = addon.dropdown or LibStub:GetLibrary("LibUIDropDownMenu-4.0", true)

@@ -1,155 +1,4 @@
-local _,addon = ...
-local RXPFrame = addon.RXPFrame
-local candy = LibStub("LibCandyBar-3.0")
-
-local BarContainer = CreateFrame("Frame","$parentBarContainer",RXPFrame)
-
-BarContainer.height = 16
-
-RXPFrame.BarContainer = BarContainer
-BarContainer.bars = {}
-BarContainer.barTexture = "Interface\\CHARACTERFRAME\\BarFill"
-BarContainer.barIcon = "Interface\\ICONS\\INV_Misc_PocketWatch_02"
-
-BarContainer:ClearAllPoints()
-BarContainer:SetPoint("TOPLEFT",RXPFrame.Footer,"TOPLEFT",4,0)
-BarContainer:SetPoint("BOTTOMRIGHT",RXPFrame.Footer,"BOTTOMRIGHT",0,1)
-
-local function OnHide(self)
-    BarContainer.bars[self:GetLabel()] = nil
-    addon:SortTimers()
-    if not next(BarContainer.bars) then
-        RXPFrame.Footer.icon:SetAlpha(1)
-        RXPFrame.Footer.text:SetAlpha(1)
-        RXPFrame.Footer.cog:SetAlpha(1)
-        if addon.xpAssistant then
-            addon.xpAssistant:SetFooterSuppressed(false)
-        end
-    end
-end
-
-function addon:SortTimers()
-
-    local lastBar = false
-    local bars = {}
-    local reverse
-
-    for l,bar in pairs(BarContainer.bars) do
-        table.insert(bars,bar)
-    end
-
-    if RXPFrame.CurrentStepFrame.anchor == "BOTTOM" and #bars > 1 then
-        BarContainer:ClearAllPoints()
-        BarContainer:SetPoint("BOTTOMLEFT",RXPFrame.GuideName,"TOPLEFT",4,0)
-        BarContainer:SetPoint("BOTTOMRIGHT",RXPFrame.GuideName,"TOPRIGHT",0,1)
-        BarContainer:SetHeight(BarContainer.height*#bars)
-        reverse = true
-    else
-        BarContainer:ClearAllPoints()
-        BarContainer:SetPoint("TOPLEFT",RXPFrame.Footer,"TOPLEFT",4,0)
-        BarContainer:SetPoint("BOTTOMRIGHT",RXPFrame.Footer,"BOTTOMRIGHT",0,1)
-    end
-
-    table.sort(bars,function(b1,b2)
-        return b1.exp > b2.exp
-    end)
-
-    for _,bar in ipairs(bars) do
-        bar:ClearAllPoints()
-        if lastBar then
-            if reverse then
-                bar:SetPoint("BOTTOMLEFT",lastBar,"TOPLEFT")
-                bar:SetPoint("BOTTOMRIGHT",lastBar,"TOPRIGHT")
-            else
-                bar:SetPoint("TOPLEFT",lastBar,"BOTTOMLEFT")
-                bar:SetPoint("TOPRIGHT",lastBar,"BOTTOMRIGHT")
-            end
-        else
-            if reverse then
-                bar:SetPoint("BOTTOMLEFT",BarContainer,"BOTTOMLEFT")
-                bar:SetPoint("BOTTOMRIGHT",BarContainer,"BOTTOMRIGHT")
-            else
-                bar:SetPoint("TOPLEFT",BarContainer,"TOPLEFT")
-                bar:SetPoint("TOPRIGHT",BarContainer,"TOPRIGHT")
-            end
-        end
-        lastBar = bar
-        bar:SetHeight(BarContainer.height)
-    end
-end
-
-local barPool = {}
-local function CreateBar(label)
-    local bar
-    for i,v in pairs(barPool) do
-        if not v:IsShown() then
-            bar = v
-            break
-        end
-    end
-    if not bar then
-        bar = candy:New(BarContainer.barTexture, 100, 16)
-        table.insert(barPool,bar)
-        bar:SetDuration(60)
-        bar:SetScript("OnHide",OnHide)
-    end
-    bar:SetLabel(label)
-    --print(bar:GetScript("OnHide"))
-    return bar
-end
-
-function addon.HideTimers()
-    for _,bar in pairs(barPool) do
-        if bar:IsShown() then
-            bar:Hide()
-        end
-    end
-    RXPFrame.Footer.icon:SetAlpha(1)
-    RXPFrame.Footer.text:SetAlpha(1)
-    RXPFrame.Footer.cog:SetAlpha(1)
-    if addon.xpAssistant then addon.xpAssistant:SetFooterSuppressed(false) end
-end
-
-function addon.StopTimer(label)
-    local bar = BarContainer.bars[label or ""]
-    if not bar then return false end
-    bar:Stop()
-    addon:SortTimers()
-    return true
-end
-
-function addon.StartTimer(duration,label,options)
-    if type(duration) ~= "number" or duration <= 0 or not RXPFrame:IsShown() then return end
-    label = label or ""
-    local bar = BarContainer.bars[label] or CreateBar(label)
-    BarContainer.bars[label] = bar
-    --bar:ClearAllPoints()
-
-    bar:SetDuration(duration)
-    if options then
-        if options.colors then
-            bar:SetColor(unpack(options.colors))
-        end
-        if options.texture then
-            bar:SetTexture(options.texture)
-        end
-        if options.icon then
-            bar:SetIcon(options.icon)
-        end
-    end
-    bar:SetIcon(BarContainer.barIcon)
-    bar:SetColor(unpack(addon.colors.mapPins))
-    bar:SetHeight(BarContainer.height)
-    bar:Start()
-    RXPFrame.Footer.icon:SetAlpha(0)
-    RXPFrame.Footer.text:SetAlpha(0)
-    RXPFrame.Footer.cog:SetAlpha(0)
-    if addon.xpAssistant then addon.xpAssistant:SetFooterSuppressed(true) end
-
-    addon:SortTimers()
-    return bar
-end
-
+local _, addon = ...
 
 local flightInfo = {}
 addon.flightInfo = flightInfo
@@ -187,28 +36,63 @@ function addon:TAXIMAP_OPENED(event)
     flightInfo.MapID = mapID
 end
 
+function addon:RefreshFlightTimer()
+    if not flightInfo.inFlight then return end
+    if not addon.settings.profile.showFlightTimers then
+        if flightInfo.flightBar then flightInfo.flightBar:Stop() end
+        return
+    end
+    local remaining = flightInfo.timer and
+                          (flightInfo.departedAt + flightInfo.timer - GetTime())
+    if remaining and remaining > 0 and not flightInfo.flightBar then
+        local destination = flightInfo.destName or
+            (RXPCData.flightPaths and RXPCData.flightPaths[flightInfo.dest]) or "Полёт"
+        flightInfo.flightBar = addon.StartTimer(remaining, "Полёт: " .. destination)
+    end
+end
+
 function addon:PLAYER_CONTROL_LOST()
-    -- Don't display flight timer if addon hidden
-    if not (flightInfo and flightInfo.startFlight) then return end
-    if GetTime() - flightInfo.startFlight < 1.5 then
+    -- A taxi selection, not a .fly guide element, arms this timer.
+    if not flightInfo.startFlight or flightInfo.inFlight then return end
+    if GetTime() - flightInfo.startFlight < 10 and UnitOnTaxi("player") then
+        flightInfo.inFlight = true
+        flightInfo.departedAt = GetTime()
+        flightInfo.startFlight = nil
         flightInfo.lastFlightSrc = flightInfo.currentFP
         flightInfo.lastFlightDest = flightInfo.dest
-        if addon.RXPFrame and addon.RXPFrame:IsShown() and
-         flightInfo.timer and addon.settings.profile.showFlightTimers then
-            flightInfo.flightBar = addon.StartTimer(
-                flightInfo.timer,
-                RXPCData.flightPaths[flightInfo.dest]
-            )
-        end
+        self:RefreshFlightTimer()
         addon:SendEvent("RXP_FLIGHT_START",flightInfo.currentFP,flightInfo.dest,flightInfo.timer)
     end
 end
 
 function addon:PLAYER_CONTROL_GAINED()
+    if UnitOnTaxi("player") then return end
     if flightInfo.flightBar then
-        flightInfo.flightBar:Hide()
+        flightInfo.flightBar:Stop()
     end
+    flightInfo.inFlight = nil
+    flightInfo.departedAt = nil
+    flightInfo.startFlight = nil
 end
+
+-- Some 3.3.5 clients report control loss before UnitOnTaxi changes. Poll only
+-- while a selected flight is pending or active, and also detect landing.
+local flightWatcher = CreateFrame("Frame")
+local updateElapsed = 0
+flightWatcher:SetScript("OnUpdate", function(_, elapsed)
+    updateElapsed = updateElapsed + elapsed
+    if updateElapsed < 0.2 then return end
+    updateElapsed = 0
+    if flightInfo.inFlight then
+        if not UnitOnTaxi("player") then addon:PLAYER_CONTROL_GAINED() end
+    elseif flightInfo.startFlight then
+        if GetTime() - flightInfo.startFlight >= 10 then
+            flightInfo.startFlight = nil
+        else
+            addon:PLAYER_CONTROL_LOST()
+        end
+    end
+end)
 
 --You can only retrieve x,y info from each leg
 function addon.GetFlightHash(index,level)
@@ -229,6 +113,7 @@ local function GetFlightTime(index)
     local dest = flightInfo[index] or hash and flightInfo.nodeHash[hash]
     local src = flightInfo.currentFP
     flightInfo.dest = dest
+    flightInfo.destName = TaxiNodeName(index)
     flightInfo.activeIndex = index
     local FPDB = addon.FPDB and addon.FPDB[faction]
     if not (FPDB and src and dest) then
@@ -285,7 +170,6 @@ _G.hooksecurefunc("TaxiNodeOnButtonEnter", function(button)
     end
 end)
 
-flightInfo.startFlight = 0
 _G.hooksecurefunc("TakeTaxiNode", function(index)
     if flightInfo.activeIndex ~= index then
         GetFlightTime(index)

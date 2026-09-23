@@ -25,6 +25,7 @@ local supported = {
     zhCN = true, zhTW = true,
 }
 local englishClient = locale == "enUS" or locale == "enGB"
+local GetItemInfo = C_Item and C_Item.GetItemInfo or _G.GetItemInfo
 local cache = {}
 local catalog
 local standingNames
@@ -155,6 +156,40 @@ local function Materialize(template, tokens)
     return (template:gsub("{([%a_]+)}", function(key)
         return tokens[key] or ("{" .. key .. "}")
     end))
+end
+
+-- UI strings are frequently passed straight to string.format.  A translated
+-- `%d` becoming `%д` (or losing an argument entirely) aborts addon startup on
+-- Lua 5.1.  Compare the ordered conversion types before a packed UI entry is
+-- allowed to replace its English source.
+local function FormatSignature(value)
+    local signature, malformed, cursor = {}, false, 1
+    if type(value) ~= "string" then return "", false end
+    while true do
+        local start = value:find("%", cursor, true)
+        if not start then break end
+        if value:sub(start, start + 1) == "%%" then
+            cursor = start + 2
+        else
+            local atom = value:sub(start):match(
+                "^%%[-+#0]*%d*%.?%d*[cdeEfgGiouqsxX]")
+            if atom then
+                signature[#signature + 1] = atom:sub(-1)
+                cursor = start + #atom
+            else
+                malformed = true
+                cursor = start + 1
+            end
+        end
+    end
+    return table.concat(signature, "\031"), malformed
+end
+
+local function HasCompatibleFormatSignature(source, translated)
+    local expected, sourceMalformed = FormatSignature(source)
+    if expected == "" then return true end
+    local actual, translatedMalformed = FormatSignature(translated)
+    return not sourceMalformed and not translatedMalformed and expected == actual
 end
 
 function service:Tokenize(text)
@@ -603,9 +638,23 @@ function service:RegisterCompressedPack(code, encoded)
                                   translations.uiMachine
                 english = key
             end
-            if destination and english and translated and signature then
+            if kind == "U" and destination then
+                local candidate = translated
+                if tokenized == "1" then
+                    local _, tokens = Tokenize(english)
+                    candidate = Materialize(translated, tokens)
+                end
+                if not HasCompatibleFormatSignature(english, candidate) then
+                    destination = nil
+                end
+            end
+            -- Reviewed entries remain authoritative because the catalogs load
+            -- in correction-first order. Machine entries are the temporary
+            -- complete-coverage layer and are sanitized before packaging.
+            if (status == "R" or status == "M") and destination and english and
+               translated and signature then
                 -- Small reviewed catalogs are loaded before the compressed
-                -- machine pack.  Keep those corrections authoritative when
+                -- reviewed pack. Keep those corrections authoritative when
                 -- both resources contain the same English source.
                 if destination[key] == nil then
                     destination[key] = CompactPackEntry(translated, signature,
@@ -684,15 +733,14 @@ local function LookupTranslation(source, element, field, wantedStatus)
     if not translations or type(source) ~= "string" then return end
     local context = ContextKey(element, field, source)
     local entry
-    if wantedStatus ~= "machine" then
-        entry = context and ExpandPackEntry(translations.contextualReviewed,
-                                            context) or nil
-        entry = entry or ExpandPackEntry(translations.reviewed, source)
-    end
-    if not entry and wantedStatus ~= "reviewed" then
+    if wantedStatus == "machine" then
         entry = context and ExpandPackEntry(translations.contextualMachine,
                                             context) or nil
         entry = entry or ExpandPackEntry(translations.machine, source)
+    else
+        entry = context and ExpandPackEntry(translations.contextualReviewed,
+                                            context) or nil
+        entry = entry or ExpandPackEntry(translations.reviewed, source)
     end
     if not entry or entry.sourceSignature ~= HashSource(source) then return end
     if entry.tokenized then
@@ -706,13 +754,12 @@ end
 function service:UIWithMetadata(key)
     local translations = catalog and catalog.translations
     local entry = translations and
-                      (ExpandPackEntry(translations.uiReviewed, key) or
-                           ExpandPackEntry(translations.uiMachine, key))
+                      ExpandPackEntry(translations.uiReviewed, key)
     if entry and entry.sourceSignature == HashSource(key) then
         local text = entry.tokenized and
                          Materialize(entry.text, select(2, Tokenize(key))) or
                          entry.text
-        return text, {
+        if HasCompatibleFormatSignature(key, text) then return text, {
             status = entry.status,
             source = entry.source,
             catalogRevision = entry.revision,
@@ -720,11 +767,26 @@ function service:UIWithMetadata(key)
             machine = entry.status == "machine",
             reviewed = entry.status == "reviewed",
             fallback = false,
-        }
+        } end
     end
     local reviewed = catalog and catalog.ui and catalog.ui[key]
     if reviewed then
         return reviewed, {status = "reviewed", reviewed = true, fallback = false}
+    end
+    entry = translations and ExpandPackEntry(translations.uiMachine, key)
+    if entry and entry.sourceSignature == HashSource(key) then
+        local text = entry.tokenized and
+                         Materialize(entry.text, select(2, Tokenize(key))) or
+                         entry.text
+        if HasCompatibleFormatSignature(key, text) then return text, {
+            status = entry.status,
+            source = entry.source,
+            catalogRevision = entry.revision,
+            sourceSignature = entry.sourceSignature,
+            machine = true,
+            reviewed = false,
+            fallback = false,
+        } end
     end
     return key, {status = "fallback", fallback = true}
 end
@@ -799,20 +861,34 @@ end
 
 local itemTags = {
     collect = true, buy = true, equip = true, use = true, itemcount = true,
-    itemStat = true, destroy = true,
+    itemStat = true, destroy = true, questitemcount = true,
 }
 local function ReplaceItemName(text, element)
-    if type(element) ~= "table" or not itemTags[element.tag] or
-       type(element.itemName) ~= "string" or element.itemName == "" then
+    if type(element) ~= "table" or not itemTags[element.tag] then
         return text, false
     end
+    local itemName = element.itemName
+    if (type(itemName) ~= "string" or itemName == "") and GetItemInfo then
+        local itemId = tonumber(element.id)
+        if not itemId and type(element.activeItems) == "table" then
+            for id in pairs(element.activeItems) do
+                itemId = tonumber(id)
+                if itemId then break end
+            end
+        end
+        itemName = itemId and GetItemInfo(itemId)
+        if type(itemName) == "string" and itemName ~= "" then
+            element.itemName = itemName
+        end
+    end
+    if type(itemName) ~= "string" or itemName == "" then return text, false end
     local count = 0
-    text, count = text:gsub("%[([^%]]+)%]", "[" .. element.itemName .. "]", 1)
+    text, count = text:gsub("%[([^%]]+)%]", "[" .. itemName .. "]", 1)
     if count == 0 then
         local englishName = service.englishNames.items[tonumber(element.id)]
-        if englishName and englishName ~= element.itemName then
+        if englishName and englishName ~= itemName then
             local escaped = englishName:gsub("(%W)", "%%%1")
-            text, count = text:gsub(escaped, element.itemName, 1)
+            text, count = text:gsub(escaped, itemName, 1)
         end
     end
     return text, count > 0
@@ -826,7 +902,8 @@ local function ReplaceSpellName(text, element)
     if type(element) ~= "table" or not spellTags[element.tag] then
         return text, false
     end
-    local id = tonumber(element.id)
+    local id = tonumber(element.id) or
+                   type(element.ids) == "table" and tonumber(element.ids[1])
     local localizedName = id and GetSpellInfo(id)
     if type(localizedName) ~= "string" or localizedName == "" then
         return text, false
@@ -1086,7 +1163,9 @@ local function LocalizeSemanticValue(value, element)
         end, 1)
         changed = count > 0
     elseif spellTags[tag] then
-        local spellId = tonumber(element.id)
+        local spellId = tonumber(element.id) or
+                            type(element.ids) == "table" and
+                                tonumber(element.ids[1])
         local localized = spellId and GetSpellInfo(spellId)
         if type(localized) == "string" and localized ~= "" then
             local count
@@ -1114,11 +1193,29 @@ local function TranslateLine(line, element, field)
     local exact, exactEntry = LookupTranslation(line, element, field, "reviewed")
     if exact then return exact, exactEntry.status, exactEntry end
 
+    local function MachineFallback()
+        local machineExact, machineEntry =
+            LookupTranslation(line, element, field, "machine")
+        if machineExact then
+            return machineExact, machineEntry.status, machineEntry
+        end
+        return line, "fallback"
+    end
+
     local function TranslateBody(body, wantedStatus)
         local bodyExact, bodyEntry = LookupTranslation(
             body, element, field, wantedStatus)
         if bodyExact then return bodyExact, bodyEntry.status, bodyEntry end
         if wantedStatus == "machine" then return body, "fallback" end
+        local target, loot = body:match(
+            "^Kill (.-)%.%s+Loot .- for .-%s+(.+)$")
+        if target and loot and catalog.killLoot and
+           ValueLooksReviewed(target) and ValueLooksReviewed(loot) then
+            target = LocalizeSemanticValue(target, element)
+            loot = LocalizeSemanticValue(loot, element)
+            return Substitute(catalog.killLoot, {target = target, loot = loot}),
+                   "reviewed", {source = "reviewed compound template"}
+        end
         local flight = body:match("^Get the (.+) flight path$")
         if flight and catalog.flightPath then
             flight = LocalizeLocation(flight)
@@ -1130,9 +1227,11 @@ local function TranslateLine(line, element, field)
             if value then
                 local official
                 value, official = LocalizeSemanticValue(value, element)
+                if not official and not ValueLooksReviewed(value) then
+                    return body, "fallback"
+                end
                 return Substitute(action.template, {value = value}),
-                       (official or ValueLooksReviewed(value)) and "reviewed" or
-                           "fallback",
+                       "reviewed",
                        {source = "reviewed semantic template"}
             end
         end
@@ -1146,17 +1245,7 @@ local function TranslateLine(line, element, field)
     end
 
     local translated, bodyStatus, bodyMeta = TranslateBody(body, "reviewed")
-    local partial, partialMeta
     if translated ~= body and bodyStatus == "reviewed" then
-        return indent .. icon .. translated, bodyStatus, bodyMeta
-    elseif translated ~= body then
-        partial, partialMeta = translated, bodyMeta
-    end
-
-    exact, exactEntry = LookupTranslation(line, element, field, "machine")
-    if exact then return exact, exactEntry.status, exactEntry end
-    translated, bodyStatus, bodyMeta = TranslateBody(body, "machine")
-    if translated ~= body then
         return indent .. icon .. translated, bodyStatus, bodyMeta
     end
 
@@ -1164,10 +1253,6 @@ local function TranslateLine(line, element, field)
     body = body:gsub("(|cRXP_[A-Z]+_)(.-)(|r)", function(prefix, content, suffix)
         local replacement, contentStatus, contentMeta =
             TranslateBody(content, "reviewed")
-        if replacement == content then
-            replacement, contentStatus, contentMeta =
-                TranslateBody(content, "machine")
-        end
         if replacement ~= content then
             changed = true
             spanStatus = MergeStatus(spanStatus, contentStatus)
@@ -1180,13 +1265,12 @@ local function TranslateLine(line, element, field)
         -- A semantic span can translate the actionable clause while adjacent
         -- authored commentary remains English. Keep that sentence visibly
         -- marked unless the remainder is only punctuation/short named data.
-        if not ValueLooksReviewed(outside) then spanStatus = "fallback" end
+        if not ValueLooksReviewed(outside) then
+            return MachineFallback()
+        end
         return indent .. icon .. body, spanStatus, spanMeta
     end
-    if partial then
-        return indent .. icon .. partial, "fallback", partialMeta
-    end
-    return line, "fallback"
+    return MachineFallback()
 end
 
 local function TranslateLines(text, element, field)
@@ -1564,11 +1648,12 @@ function service:RenderTitle(text, noBadge, context)
         output, factionChanged = LocalizeTitleFactions(output)
         reviewed = reviewed or factionChanged
         status = reviewed and "reviewed" or "fallback"
-        if not reviewed then
+        if status == "fallback" then
             local machineOutput, machineEntry =
                 LookupTranslation(source, context, "title", "machine")
             if machineOutput then
-                output, entry, status = machineOutput, machineEntry, "machine"
+                output, entry = machineOutput, machineEntry
+                status = machineEntry.status
             end
         end
     end

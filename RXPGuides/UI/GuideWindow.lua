@@ -18,6 +18,24 @@ function addon.SetResizeBounds(frame, width, height)
     end
 end
 
+-- Measure at the final width with no vertical constraint. Checkbox template
+-- labels can inherit single-line settings; opposing vertical anchors also
+-- clip text to the old row height before GetStringHeight can measure it.
+local function LayoutStepText(text, parent, width, left, top)
+    text:ClearAllPoints()
+    text:SetPoint("TOPLEFT", parent, "TOPLEFT", left, top)
+    text:SetWidth(math.max(1, width))
+    text:SetHeight(0)
+    text:SetWordWrap(true)
+    if text.SetNonSpaceWrap then text:SetNonSpaceWrap(true) end
+    if text.SetMaxLines then text:SetMaxLines(0) end
+    text:SetJustifyH("LEFT")
+    text:SetJustifyV("TOP")
+    local height = math.ceil(text:GetStringHeight())
+    text:SetHeight(height)
+    return height
+end
+
 addon.width, addon.height = 235, 125 -- Default width/height
 
 local RXPFrame = CreateFrame("Frame", "RXPFrame", UIParent, BackdropTemplate)
@@ -107,6 +125,21 @@ function RXPFrame:UpdateVisuals()
     GuideName.icon:SetTexture(addon.GetTexture("rxp_logo-64"))
     GuideName.classIcon:SetTexture(addon.GetTexture(class))
     Footer.cog:SetNormalTexture(addon.GetTexture("rxp_cog-32"))
+    local textColor = addon.activeTheme and addon.activeTheme.textColor or
+                          {1, 1, 1, 1}
+    GuideName.text:SetTextColor(unpack(textColor))
+    Footer.text:SetTextColor(unpack(textColor))
+    for _, stepFrame in ipairs(CurrentStepFrame.framePool or {}) do
+        if stepFrame.number and stepFrame.number.text then
+            stepFrame.number.text:SetTextColor(unpack(textColor))
+        end
+    end
+    for _, stepFrame in ipairs(ScrollChild.framePool or {}) do
+        if stepFrame.number and stepFrame.number.text then
+            stepFrame.number.text:SetTextColor(unpack(textColor))
+        end
+    end
+    if addon.UpdateGuideFontSize then addon.UpdateGuideFontSize() end
     RXPFrame.UpdateScrollBar()
 end
 
@@ -563,7 +596,11 @@ local function ClearFrameData()
                 frame.element.hearthPending = nil
                 frame.element.hearthSucceeded = nil
                 frame.element.hearthArrivalSeen = nil
+                frame.element.homeBinding = nil
+                if frame.element.tag == "home" then frame.element.confirm = false end
             end
+            addon.scheduler:Cancel(frame, "home-bind-check")
+            addon.scheduler:Cancel(frame, "home-confirm")
             frame.step = nil
             frame.index = nil
             frame.element = nil
@@ -655,6 +692,10 @@ local function BottomStepOnLeave(self)
     ApplyBottomStepBackground(self, self.step, false)
 end
 
+local function RefreshBottomVisibility(hidden)
+    addon.RefreshScrollVisibility(ScrollFrame, ScrollChild.framePool, hidden)
+end
+
 local function ApplyStepVisualState(frame, step, bottom)
     if not frame then return end
     local state = GetStepVisualState(step)
@@ -685,6 +726,7 @@ local function ApplyStepVisualState(frame, step, bottom)
     end
     if bottom and frame.text then
         frame.text:SetTextColor(unpack(textColor))
+        addon.RefreshScrollVisibility(ScrollFrame, {frame})
     end
 end
 
@@ -1376,11 +1418,86 @@ function RXPFrame.RefreshQuestState(event)
     if refreshed then addon.updateStepText = true end
 end
 
-local function GetElementPresentation(text, icon, size)
+local GetItemInfo = C_Item and C_Item.GetItemInfo or _G.GetItemInfo
+local GetSpellTexture = C_Spell and C_Spell.GetSpellTexture or _G.GetSpellTexture
+
+local itemIconTags = {
+    collect = true, buy = true, equip = true, use = true, itemcount = true,
+    itemStat = true, destroy = true, questitemcount = true,
+}
+local spellIconTags = {
+    cast = true, aura = true, train = true, spellmissing = true,
+    usespell = true,
+}
+local legacyTexturePaths = addon.legacyTexturePaths or {}
+addon.legacyTexturePaths = legacyTexturePaths
+
+local function FirstNumericKey(values)
+    if type(values) ~= "table" then return end
+    for key in pairs(values) do
+        key = tonumber(key)
+        if key and key > 0 then return key end
+    end
+end
+
+local function ResolveElementTexture(element, visibleText, authoredSource)
+    local numericSource = tonumber(authoredSource)
+    if numericSource and legacyTexturePaths[numericSource] then
+        return legacyTexturePaths[numericSource]
+    end
+    if type(element) ~= "table" then return end
+    local tag = element.tag
+    if spellIconTags[tag] and GetSpellTexture then
+        local id = tonumber(element.id) or
+                       type(element.ids) == "table" and tonumber(element.ids[1])
+        local texture = id and id > 0 and GetSpellTexture(id)
+        if texture then
+            if numericSource then legacyTexturePaths[numericSource] = texture end
+            return texture
+        end
+    end
+    if itemIconTags[tag] and GetItemInfo then
+        local id = tonumber(element.id) or FirstNumericKey(element.activeItems)
+        local texture = id and select(10, GetItemInfo(id))
+        if not texture and type(element.itemName) == "string" then
+            texture = select(10, GetItemInfo(element.itemName))
+        end
+        if texture then
+            if numericSource then legacyTexturePaths[numericSource] = texture end
+            return texture
+        end
+    end
+    -- Text-only inventory/bank notes do not carry a directive ID.  Their
+    -- first bracketed value is already localized before layout, so the legacy
+    -- client can often resolve it through its item cache.
+    if type(visibleText) == "string" and GetItemInfo then
+        local name = visibleText:match("%[(.-)%]")
+        if name then
+            name = name:gsub("|cRXP_[A-Z]+_", "")
+                       :gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+            local texture = select(10, GetItemInfo(name))
+            if texture then
+                if numericSource then legacyTexturePaths[numericSource] = texture end
+                return texture
+            end
+        end
+    end
+end
+
+local function TextureSource(markup)
+    return type(markup) == "string" and markup:match("^|T([^:|]+)")
+end
+
+local function GetElementPresentation(text, icon, size, element)
     -- Authored >> descriptions often carry their own leading texture. Move
     -- it into the icon column so wrapped lines share the same text indent.
     local leading, body = text:match("^%s*(|T.-|t)%s*(.*)$")
     if leading then
+        local source = TextureSource(leading)
+        local fallback = ResolveElementTexture(element, body, source)
+        if addon.gameVersion == 30300 and tonumber(source) and fallback then
+            leading = leading:gsub("^|T[^:|]+", "|T" .. fallback, 1)
+        end
         icon = ""
         repeat
             icon, text = icon .. leading, body
@@ -1400,7 +1517,7 @@ local function GetElementPresentation(text, icon, size)
     return text, icon or "", math.max(size, width), height
 end
 
-local function UpdateElementIconTextures(column, icon, size)
+local function UpdateElementIconTextures(column, icon, size, element, text)
     local count, offset = 0, 0
     for payload in icon:gmatch("|T(.-)|t") do
         local fields = {}
@@ -1422,7 +1539,12 @@ local function UpdateElementIconTextures(column, icon, size)
         texture:ClearAllPoints()
         texture:SetPoint("TOPLEFT", column, "TOPLEFT", offset + x, y)
         texture:SetSize(width, height)
-        texture:SetTexture(tonumber(fields[1]) or fields[1])
+        local source = fields[1]
+        if addon.gameVersion == 30300 and tonumber(source) then
+            source = ResolveElementTexture(element, text, source) or
+                         "Interface/Icons/INV_Misc_QuestionMark"
+        end
+        texture:SetTexture(source)
         local tw, th = tonumber(fields[6]), tonumber(fields[7])
         local left, right = tonumber(fields[8]), tonumber(fields[9])
         local top, bottom = tonumber(fields[10]), tonumber(fields[11])
@@ -1479,7 +1601,10 @@ function CurrentStepFrame.UpdateText(languageRefresh)
             stepframe.number.text:SetText(step.title and
                 addon.locale.GuideText(step.title, step, "title") or
                 (fmt(L("Step %d"), loopStepIndex)))
-            stepframe.number:SetSize(stepframe.number.text:GetStringWidth() + 10, 17)
+            local titleHeight = math.max(17, addon.settings.profile.guideFontSize + 8)
+            stepframe.number:SetSize(stepframe.number.text:GetStringWidth() + 10,
+                                     titleHeight)
+            local topInset = math.max(10, titleHeight - 3)
 
             e = 0
             frameHeight = 0
@@ -1525,24 +1650,22 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                         local text, icon, iconWidth, iconHeight = GetElementPresentation(
                             elementFrame.renderedText or "",
                             element.icon or addon.icons[element.tag] or "",
-                            actionIconSize)
+                            actionIconSize, element)
                         elementFrame.icon:ClearAllPoints()
                         elementFrame.icon:SetPoint("TOPLEFT", elementFrame.button,
                                                 "TOPRIGHT", 0, -1)
                         elementFrame.icon:SetSize(iconWidth, iconHeight)
-                        UpdateElementIconTextures(elementFrame.icon, icon, actionIconSize)
+                        UpdateElementIconTextures(elementFrame.icon, icon,
+                                                  actionIconSize, element, text)
                         elementFrame.icon:Show()
 
-                        elementFrame.text:ClearAllPoints()
-                        elementFrame.text:SetPoint("TOPLEFT", elementFrame.icon,
-                                                "TOPRIGHT", 4, 0)
-                        elementFrame.text:SetPoint("RIGHT", stepframe, -5, 0)
-                        elementFrame.text:SetJustifyV("TOP")
                         elementFrame.text:SetText(text)
-
+                        local textLeft = 6 + 12 + iconWidth + 4
+                        local textHeight = LayoutStepText(elementFrame.text,
+                            elementFrame, stepframe:GetWidth() - textLeft - 5,
+                            textLeft, -2)
                         h = math.max(
-                            math.ceil(elementFrame.text:GetStringHeight() *
-                                          1.1) + 1,
+                            math.ceil(textHeight * 1.1) + 2,
                             iconHeight + 2)
                         -- print('sh:',h)
                         elementFrame:SetHeight(h)
@@ -1588,9 +1711,9 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                     elementFrame:ClearAllPoints()
 
                     if e == 1 then
-                        elementFrame:SetPoint("TOPLEFT", stepframe, 0, -10 + spacing)
+                        elementFrame:SetPoint("TOPLEFT", stepframe, 0, -topInset + spacing)
                         elementFrame:SetPoint("TOPRIGHT", stepframe, 0,
-                                            -10 + spacing)
+                                            -topInset + spacing)
                     else
                         elementFrame:SetPoint("TOPLEFT", stepframe.elements[e - 1],
                                             "BOTTOMLEFT", 0, 0 + spacing)
@@ -1613,7 +1736,7 @@ function CurrentStepFrame.UpdateText(languageRefresh)
                     stepframe:EnableMouse(true)
                 end
                 stepframe:SetAlpha(1)
-                frameHeight = math.ceil(frameHeight + 18)
+                frameHeight = math.ceil(frameHeight + topInset + 8)
             end
 
             stepframe:SetHeight(frameHeight)
@@ -1636,7 +1759,7 @@ function CurrentStepFrame.UpdateText(languageRefresh)
         end
     end
 
-    CurrentStepFrame:SetHeight(totalHeight - 5)
+    CurrentStepFrame:SetHeight(math.max(1, totalHeight - 5))
 end
 
 BottomFrame:SetPoint("TOPLEFT", RXPFrame, 3, -3)
@@ -1867,6 +1990,11 @@ addon.UpdateFooterStatusAnchor()
 -- Footer.cog:HookScript("OnLeave", function(self) self:Hide() end)
 
 function RXPFrame.DropDownMenu()
+    -- Loading errors used to leave the welcome frame with an empty menu. Build
+    -- it lazily as well so right-click always performs the advertised action.
+    if type(RXPFrame.menuList) ~= "table" or #RXPFrame.menuList == 0 then
+        RXPFrame:GenerateMenuTable()
+    end
     if _G.EasyMenu then
         _G.EasyMenu(RXPFrame.menuList, MenuFrame, "cursor", 0, 0, "MENU");
     else
@@ -1886,6 +2014,8 @@ GuideName.OnMouseUp = function(self, button)
 end
 GuideName:SetScript("OnMouseDown", GuideName.OnMouseDown)
 Footer:SetScript("OnMouseDown", GuideName.OnMouseDown)
+GuideName:EnableMouse(true)
+Footer:EnableMouse(true)
 
 GuideName:SetScript("OnMouseUp", GuideName.OnMouseUp)
 Footer:SetScript("OnMouseUp", GuideName.OnMouseUp)
@@ -1972,6 +2102,10 @@ ScrollChild:SetWidth(RXPFrame:GetWidth() - 35)
 
 ScrollFrame:SetScrollChild(ScrollChild)
 ScrollFrame:EnableMouseWheel(true)
+ScrollFrame:HookScript("OnVerticalScroll", function() RefreshBottomVisibility() end)
+ScrollFrame:HookScript("OnSizeChanged", function() RefreshBottomVisibility() end)
+ScrollFrame:HookScript("OnShow", function() RefreshBottomVisibility() end)
+ScrollFrame:HookScript("OnHide", function() RefreshBottomVisibility(true) end)
 
 function BottomFrame:ScrollBySteps(delta)
     if not addon.currentGuide or not addon.currentGuide.steps or
@@ -2262,6 +2396,13 @@ end
 
 function addon:LoadGuideTable(guideGroup,guideName)
     local guide = addon.GetGuideTable(guideGroup, guideName)
+    if not guide then
+        if addon.comms and addon.comms.PrettyPrint then
+            addon.comms.PrettyPrint("Не удалось найти руководство: %s / %s",
+                                    tostring(guideGroup), tostring(guideName))
+        end
+        return
+    end
     if addon.guideState and addon.guideState.Load then
         return addon.guideState:Load(guide, false, "manual")
     end
@@ -2270,9 +2411,9 @@ end
 
 -- A later chapter often begins by turning in a quest picked up by the previous
 -- chapter.  Loading it directly used to strand the player on a step that could
--- never complete.  The 3.3.5 picker uses this lightweight preflight to locate
--- that dependency and move back one chapter.  Normal #next transitions and
--- saved-character restoration deliberately bypass it.
+-- never complete. The 3.3.5 picker uses this lightweight preflight to mark the
+-- impossible turn-in while preserving the chapter the player explicitly chose.
+-- Normal #next transitions and saved-character restoration deliberately bypass it.
 local function GetMissingGuideEntryQuest(guide)
     if addon.gameVersion ~= 30300 or type(guide) ~= "table" or guide.empty then
         return
@@ -2332,99 +2473,32 @@ local function GetMissingGuideEntryQuest(guide)
     end
 end
 
-local function GuideContainsQuest(guide, questId)
-    if type(guide) ~= "table" or not tonumber(questId) then return false end
-    local fetched = addon:FetchGuide(guide)
-    if not fetched then return false end
-    local processed = addon.ProcessGuideTable(fetched)
-    if not processed or type(processed.steps) ~= "table" then return false end
-    questId = tonumber(questId)
-    for _, step in ipairs(processed.steps) do
-        if not step.optional then
-            for _, element in ipairs(step.elements or {}) do
-                local tag = type(element) == "table" and element.tag
-                if tag == "accept" or tag == "acceptmultiple" or
-                    tag == "daily" or tag == "complete" or tag == "turnin" or
-                    tag == "turninmultiple" or tag == "dailyturnin" then
-                    local ids = element.ids or
-                                    (element.questId and {element.questId}) or {}
-                    for _, rawId in ipairs(ids) do
-                        if tonumber(rawId) == questId then return true end
-                    end
-                end
+local function MarkManualMissingTurnIns(guide, missingQuests)
+    if type(guide) ~= "table" or type(missingQuests) ~= "table" then return 0 end
+    local missing = {}
+    for _, id in ipairs(missingQuests) do missing[tonumber(id)] = true end
+    local marked = 0
+    for _, step in ipairs(guide.steps or {}) do
+        for _, element in ipairs(step.elements or {}) do
+            if (element.tag == "turnin" or element.tag == "dailyturnin") and
+                missing[tonumber(element.questId)] then
+                element.skipIfMissing = true
+                element.manualEntrySkip = true
+                marked = marked + 1
             end
         end
     end
-    return false
-end
-
-local function ResolveGuideNext(guide)
-    if type(guide) ~= "table" or type(guide.next) ~= "string" then return end
-    for rawName in guide.next:gmatch("%s*([^;]+)%s*") do
-        local group = guide.group
-        local name = rawName:match("^%s*(.-)%s*$")
-        name = name:gsub("^%s*(.+)\\%s*", function(nextGroup)
-            group = nextGroup
-            return ""
-        end)
-        name = name:gsub("^(%d)-(%d%d?)", addon.affix)
-
-        -- Mirror the live Shattrath choice before lookup so previous-guide
-        -- discovery cannot select the opposite reputation route.
-        if addon.game ~= "CLASSIC" then
-            local faction = name:match("Aldor") or name:match("Scryer")
-            if faction and not addon.stepLogic.AldorScryerCheck(faction) then
-                if faction == "Aldor" then
-                    name = name:gsub("Aldor", "Scryer")
-                else
-                    name = name:gsub("Scryer", "Aldor")
-                end
-            end
-        end
-
-        local nextGuide = addon.GetGuideTable(group, name)
-        local active = nextGuide and addon.IsGuideActive(nextGuide)
-        if active and addon.gameVersion == 30300 then
-            local profile = addon.settings and addon.settings.profile or {}
-            active = not (nextGuide.hardcore and not profile.hardcore or
-                              nextGuide.softcore and profile.hardcore)
-        end
-        if active then return nextGuide end
-    end
-end
-
-local function FindPreviousGuide(requestedGuide)
-    local matches = {}
-    local seen = {}
-    for _, candidate in pairs(addon.guides or {}) do
-        if type(candidate) == "table" and candidate ~= requestedGuide and
-            not seen[candidate] and addon.IsGuideActive(candidate) then
-            seen[candidate] = true
-            local nextGuide = ResolveGuideNext(candidate)
-            if nextGuide and (nextGuide == requestedGuide or
-                nextGuide.group == requestedGuide.group and
-                    nextGuide.name == requestedGuide.name) then
-                local requestedMin = tonumber((requestedGuide.name or ""):match("^(%d+)"))
-                local candidateMax = tonumber((candidate.name or ""):match("^%d+%-(%d+)"))
-                local score = candidate.subgroup == requestedGuide.subgroup and 100 or 0
-                if requestedMin and candidateMax then
-                    score = score - math.abs(requestedMin - candidateMax)
-                end
-                table.insert(matches, {guide = candidate, score = score})
-            end
-        end
-    end
-    table.sort(matches, function(a, b)
-        if a.score == b.score then
-            return (a.guide.name or "") < (b.guide.name or "")
-        end
-        return a.score > b.score
-    end)
-    return matches[1] and matches[1].guide
+    return marked
 end
 
 function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
     addon.loadNextStep = false
+
+    if addon.settings and addon.settings.framePreviewActive and
+       type(guide) == "table" and
+       guide.name ~= fmt("%s Frame Positions", _G.PREVIEW) then
+        addon.settings:DisableFramePreviews()
+    end
 
     local savedStep = OnLoad and RXPCData and RXPCData.currentStep
     local savedStepId = OnLoad and RXPCData and RXPCData.currentStepId
@@ -2468,33 +2542,17 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
         savedStep = nil
         savedStepId = nil
     end
+    local manualMissingQuests
     if loadSource == "manual" and addon.gameVersion == 30300 then
-        redirectTrail = redirectTrail or {}
-        local guideKey = guide.key or fmt("%s|%s", guide.group or "",
-                                          guide.name or "")
-        local missingQuests = not redirectTrail[guideKey] and
-                                  GetMissingGuideEntryQuest(guide)
-        local previousGuide = missingQuests and FindPreviousGuide(guide)
-        local missingQuest
-        if previousGuide then
-            for _, questId in ipairs(missingQuests) do
-                if GuideContainsQuest(previousGuide, questId) then
-                    missingQuest = questId
-                    break
-                end
-            end
-        end
-        if previousGuide and missingQuest then
-            redirectTrail[guideKey] = true
+        manualMissingQuests = GetMissingGuideEntryQuest(guide)
+        if manualMissingQuests then
+            local missingQuest = manualMissingQuests[1]
             local questName = addon.GetQuestName and
                                   addon.GetQuestName(missingQuest)
             addon.comms.PrettyPrint(
-                "%s requires %s (%d); opening %s first.",
+                "%s: %s (%d) отсутствует; несовместимый шаг сдачи будет пропущен.",
                 addon.GetGuideName(guide) or guide.name,
-                questName or (_G.QUESTS_LABEL or "Quest"), missingQuest,
-                addon.GetGuideName(previousGuide) or previousGuide.name)
-            return addon:LoadGuide(previousGuide, nil, "manual",
-                                   redirectTrail)
+                questName or (_G.QUESTS_LABEL or "Задание"), missingQuest)
         end
     end
     if addon.HideIntroUI and not guide.empty then
@@ -2555,6 +2613,14 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
 
     addon.currentGuide = addon.ProcessGuideTable(guide)
     guide = addon.currentGuide
+
+    -- A manual chapter choice is authoritative. If its route assumes a quest
+    -- from another race/class starter chapter, skip only that impossible
+    -- turn-in instead of silently replacing the selected guide with a previous
+    -- chapter (which may filter down to an empty window for this character).
+    if manualMissingQuests then
+        MarkManualMissingTurnIns(guide, manualMissingQuests)
+    end
 
     local disabledQuests = {}
     if guide.disabledQuests then
@@ -2755,12 +2821,17 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
             end
         end)
 
+        if not frame.visualContent then
+            frame.visualContent = CreateFrame("Frame", nil, frame)
+            frame.visualContent:SetAllPoints(frame)
+            frame.visualContent:EnableMouse(false)
+        end
         if not frame.text then
-            frame.text = frame:CreateFontString(nil, "OVERLAY")
+            frame.text = frame.visualContent:CreateFontString(nil, "OVERLAY")
         end
 
         if not frame.number then
-            frame.number = CreateFrame("Frame", "$parent_number", frame,
+            frame.number = CreateFrame("Frame", frame:GetName() .. "_number", frame.visualContent,
                                        nil)
             frame.number:EnableMouse(false)
             frame.number:SetPoint("BOTTOMRIGHT", frame)
@@ -2782,7 +2853,10 @@ function addon:LoadGuide(guide, OnLoad, loadSource, redirectTrail)
         frame.text:SetFontObject(_G.GameFontNormalSmall)
         frame.text:ClearAllPoints()
         frame.text:SetPoint("TOPLEFT", frame, 0, -5)
-        frame.text:SetPoint("BOTTOMRIGHT", frame.number, "BOTTOMLEFT", 0, 0)
+        frame.text:SetWidth(math.max(1, ScrollChild:GetWidth() - frame.number:GetWidth()))
+        frame.text:SetHeight(0)
+        frame.text:SetWordWrap(true)
+        if frame.text.SetNonSpaceWrap then frame.text:SetNonSpaceWrap(true) end
         frame.text:SetJustifyH("LEFT")
         frame.text:SetJustifyV("TOP")
         frame.text:SetTextColor(unpack(addon.activeTheme.textColor))
@@ -2944,6 +3018,7 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
     local contentWidth = math.max(1, RXPFrame:GetWidth() - 35)
     if math.abs(ScrollChild:GetWidth() - contentWidth) > 0.01 then
         ScrollChild:SetWidth(contentWidth)
+        if addon.currentGuide then CurrentStepFrame.UpdateText(true) end
     end
     if GuideName.UpdateTextLayout then GuideName:UpdateTextLayout() end
 
@@ -3025,6 +3100,7 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
         if hideStep then
             step.text = ""
             step.hiddentext = text
+            text = ""
         else
             step.text = text
         end
@@ -3038,7 +3114,8 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
         if hideStep then
             fheight = 1
         else
-            fheight = math.ceil(frame.text:GetStringHeight() + 8)
+            fheight = LayoutStepText(frame.text, frame,
+                contentWidth - frame.number:GetWidth(), 0, -5) + 8
         end
 
         local hDiff = fheight - frame:GetHeight()
@@ -3128,7 +3205,8 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
                     fheight = 1.00
                 else
                     frame.text:SetText(text)
-                    fheight = math.ceil(frame.text:GetStringHeight() + 8)
+                    fheight = LayoutStepText(frame.text, frame,
+                        contentWidth - frame.number:GetWidth(), 0, -5) + 8
                 end
             end
             step.text = text
@@ -3183,6 +3261,8 @@ function BottomFrame.UpdateFrame(self, stepn, languageRefresh)
     end
 
     addon.BetaVersionCheck()
+
+    RefreshBottomVisibility()
 
 end
 -- addon.hiddenFrames = 0
@@ -3750,12 +3830,13 @@ function addon.UpdateGuideFontSize()
 
     for _, stepFrame in ipairs(CurrentStepFrame.framePool or {}) do
         if stepFrame.number and stepFrame.number.text then
-            stepFrame.number.text:SetFont(addon.font, size, "")
+            addon.SetFontSafely(stepFrame.number.text, addon.font, size, "")
             stepFrame.number:SetHeight(math.max(17, size + 8))
         end
         for _, elementFrame in ipairs(stepFrame.elements or {}) do
             if elementFrame.text then
-                elementFrame.text:SetFont(addon.font, size + 2, "")
+                addon.SetFontSafely(elementFrame.text, addon.font, size + 2,
+                                    "")
             end
             if elementFrame.icon then
                 local actionIconSize = math.max(16, size + 4)
@@ -3766,11 +3847,14 @@ function addon.UpdateGuideFontSize()
 
     for _, frame in ipairs(ScrollChild.framePool or {}) do
         if frame.number and frame.number.text then
-            frame.number.text:SetFont(addon.font, math.max(1, size - 1), "")
+            addon.SetFontSafely(frame.number.text, addon.font,
+                                math.max(1, size - 1), "")
             frame.number:SetSize(frame.number.text:GetStringWidth() + 2,
                                  math.max(10, size + 2))
         end
-        if frame.text then frame.text:SetFont(addon.font, size, "") end
+        if frame.text then
+            addon.SetFontSafely(frame.text, addon.font, size, "")
+        end
     end
 
     if addon.currentGuide then

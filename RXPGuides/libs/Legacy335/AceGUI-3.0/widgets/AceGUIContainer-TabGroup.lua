@@ -3,7 +3,7 @@ TabGroup Container
 Container that uses tabs on top to switch between groups.
 -------------------------------------------------------------------------------]]
 local Type, Version = "TabGroup", 30
-local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
+local AceGUI = LibStub and LibStub("RXP-AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
 -- Lua APIs
@@ -102,7 +102,7 @@ local methods = {
 	end,
 
 	["CreateTab"] = function(self, id)
-		local tabname = ("AceGUITabGroup%dTab%d"):format(self.num, id)
+		local tabname = ("RXP-AceGUITabGroup%dTab%d"):format(self.num, id)
 		local tab = CreateFrame("Button", tabname, self.border, "OptionsFrameTabButtonTemplate")
 		tab.obj = self
 		tab.id = id

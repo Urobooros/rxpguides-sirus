@@ -1,4 +1,4 @@
-local AceGUI = LibStub("AceGUI-3.0")
+local AceGUI = LibStub("RXP-AceGUI-3.0")
 
 -- Lua APIs
 local pairs, assert, type = pairs, assert, type

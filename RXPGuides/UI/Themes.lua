@@ -262,15 +262,31 @@ end
 
 function addon:GetThemeOptions()
     local themeOptions = {}
+    local russianNames = {
+        ["Default"] = "По умолчанию",
+        ["Custom"] = "Пользовательская",
+        ["RXP Blue"] = "Синяя",
+        ["RXP Red"] = "Красная",
+        ["RXP Gold"] = "Золотая",
+        ["RXP Green"] = "Зелёная",
+        ["DarkMode"] = "Тёмная"
+    }
+    local useRussianNames = _G.GetLocale and _G.GetLocale() == "ruRU"
 
     for k, t in pairs(themes) do
         if themeApplies(t.applicable) then
             if k == 'Custom' then
-                themeOptions[k] = 'Custom'
+                themeOptions[k] = useRussianNames and russianNames[k] or
+                                      'Custom'
             elseif k == "Default" then
-                themeOptions[""] = "Default"
+                themeOptions[""] = useRussianNames and russianNames[k] or
+                                       "Default"
             else
-                themeOptions[k] = fmt("%s by %s", k, t.author)
+                if useRussianNames and russianNames[k] then
+                    themeOptions[k] = russianNames[k]
+                else
+                    themeOptions[k] = fmt("%s by %s", k, t.author)
+                end
             end
         end
     end

@@ -1,39 +1,13 @@
 local addonName, addon = ...
 
-local ipairs, next, type, tostring = ipairs, next, type, tostring
-local sfind, ssub, tconcat = string.find, string.sub, table.concat
-
--- `strsplittable` is not part of every 3.3.5 client build.  Locale word
--- fallback only needs literal delimiter splitting, so keep it independent of
--- newer Blizzard string helpers and preserve empty fields/spacing exactly.
-local function SplitLiteral(delimiter, text)
-    if type(text) ~= "string" then return {} end
-    delimiter = tostring(delimiter or " ")
-    if delimiter == "" then return {text} end
-
-    local fields, offset = {}, 1
-    while true do
-        local boundary = sfind(text, delimiter, offset, true)
-        if not boundary then
-            fields[#fields + 1] = ssub(text, offset)
-            break
-        end
-        fields[#fields + 1] = ssub(text, offset, boundary - 1)
-        offset = boundary + #delimiter
-    end
-    return fields
-end
+local ipairs, type = ipairs, type
 
 addon = LibStub("AceAddon-3.0"):NewAddon(addon, addonName, "AceEvent-3.0")
 
 addon.locale = {}
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
-local delim = L.delimiter
-if type(delim) ~= "string" or delim == "" then delim = " " end
-
 local DEBUG = false -- One of the first files loaded, so no settings
-local lazyTranslationCache = {}
 local uiMetadataByText = {}
 
 if DEBUG then print(addonName .. ": Processing locale: " .. GetLocale()) end
@@ -45,40 +19,15 @@ local function getForeignWithMetadata(text)
         return translated, {status = "reviewed", reviewed = true, fallback = false}
     end
 
-    -- Machine UI packs are registered after this compatibility module loads.
-    -- Consult them lazily so existing reviewed AceLocale phrases always win.
+    -- Reviewed UI packs are registered after this compatibility module loads.
+    -- Consult them lazily so existing AceLocale phrases still win.
     if addon.guideLocalization and addon.guideLocalization.UIWithMetadata then
         local packed, metadata = addon.guideLocalization:UIWithMetadata(text)
         if metadata and not metadata.fallback then return packed, metadata end
     end
 
-    if lazyTranslationCache[text] then
-        return lazyTranslationCache[text],
-               {status = "machine", machine = true, fallback = false,
-                source = "legacy word translation"}
-    end
-
-    if next(L.words) == nil then
-        -- No custom words added
-        lazyTranslationCache[text] = text
-        return text, {status = "fallback", fallback = true}
-    end
-
-    if DEBUG then print("Phrase not found, looking for words") end
-
-    -- Direct text doesn't match, so iterate over phrase and lazy translate
-    local words = SplitLiteral(delim, text)
-
-    -- TODO string insensitive lookups
-    for i, w in ipairs(words) do if L.words[w] then words[i] = L.words[w] end end
-
-    local lazyPhrase = tconcat(words, delim)
-    lazyTranslationCache[text] = lazyPhrase
-    if lazyPhrase ~= text then
-        return lazyPhrase,
-               {status = "machine", machine = true, fallback = false,
-                source = "legacy word translation"}
-    end
+    -- Word-by-word substitution produced misleading mixed-language labels.
+    -- Keep the exact English source when no reviewed phrase exists.
     return translated or text, {status = "fallback", fallback = true}
 end
 

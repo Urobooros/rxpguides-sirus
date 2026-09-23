@@ -1,8 +1,10 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
-  <!-- Standalone, 3.3.5a-safe shared libraries. Keep these revisions isolated
-       from the modern manifests so the other client builds remain untouched. -->
+  <!-- Bundled 3.3.5a libraries. GUI, Config and DBOptions register as RXP-Ace*
+       with private widget pools, global frame names and confirmation dialogs.
+       Other addons cannot replace these constructors or reuse skinned RXP frames.
+       Core event/database libraries retain their standard shared identities. -->
   <Script file="CallbackHandler-1.0\CallbackHandler-1.0.lua"/>
 
   <Include file="AceAddon-3.0\AceAddon-3.0.xml"/>

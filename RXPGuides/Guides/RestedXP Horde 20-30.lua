@@ -4,7 +4,7 @@ if faction == "Alliance" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Horde !Warrior !Shaman
+<< Horde
 #name 20-23 Stonetalon / The Barrens
 #version 1
 #group RestedXP Horde 1-30

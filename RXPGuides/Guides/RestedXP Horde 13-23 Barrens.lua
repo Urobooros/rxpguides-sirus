@@ -4,7 +4,7 @@ if faction == "Alliance" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Horde Warrior/Horde Shaman/Horde Orc Hunter/Horde Troll Hunter
+<< Horde
 #name 13-22 The Barrens
 #version 1
 #group RestedXP Horde 1-30
