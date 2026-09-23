@@ -4,7 +4,7 @@ if faction == "Alliance" then return end
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< BloodElf
+<< Horde
 #name 1-6 Eversong Woods
 #version 1
 #group RestedXP Horde 1-30
@@ -634,7 +634,7 @@ step
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< BloodElf/Undead
+<< Horde
 #name 6-10 Eversong Woods
 #version 1
 #group RestedXP Horde 1-30
@@ -2613,7 +2613,7 @@ step << Warrior
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Horde !Warrior !Shaman
+<< Horde
 #name 10-12 Eversong Woods
 #next 12-16 Ghostlands
 #version 1
@@ -3953,7 +3953,7 @@ step << Undead/BloodElf
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Horde !Warrior !Shaman
+<< Horde
 #name 12-16 Ghostlands
 #next 16-20 Ghostlands
 #version 1
@@ -7797,7 +7797,7 @@ step
 RXPGuides.RegisterGuide([[
 #tbc
 #wotlk
-<< Horde !Warrior !Shaman
+<< Horde
 #name 16-20 Ghostlands
 #next 22-25 Hillsbrad Foothills JJ;20-23 Stonetalon / The Barrens
 #version 1

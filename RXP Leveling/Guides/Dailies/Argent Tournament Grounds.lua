@@ -1723,7 +1723,7 @@ RXPGuides.RegisterGuide([[
 #group +Argent Tournament
 #name B_2_AT_Exodar
 #displayname |cRXP_FRIENDLY_2.0|r - Exodar Champion
-<< Alliance !Draenei
+<< Alliance
 
 step
 	>>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Colosos|r
@@ -2020,7 +2020,7 @@ RXPGuides.RegisterGuide([[
 #group +Argent Tournament
 #name C_2_AT_Stormwind
 #displayname |cRXP_FRIENDLY_2.0|r - Stormwind Champion
-<< Alliance !Human
+<< Alliance
 
 step
 	>>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Marshal Jacob Alerius|r
@@ -2317,7 +2317,7 @@ RXPGuides.RegisterGuide([[
 #group +Argent Tournament
 #name D_2_AT_Ironforge
 #displayname |cRXP_FRIENDLY_2.0|r - Ironforge Champion
-<< Alliance !Dwarf
+<< Alliance
 
 step
 	>>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Lana Stouthammer|r
@@ -2616,7 +2616,7 @@ RXPGuides.RegisterGuide([[
 #group +Argent Tournament
 #name E_2_AT_Gnomeregan
 #displayname |cRXP_FRIENDLY_2.0|r - Gnomeregan Champion
-<< Alliance !Gnome
+<< Alliance
 
 step
 	>>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Ambrose Boltspark|r
@@ -2913,7 +2913,7 @@ RXPGuides.RegisterGuide([[
 #group +Argent Tournament
 #name F_2_AT_Darnassus
 #displayname |cRXP_FRIENDLY_2.0|r - Darnassus Champion
-<< Alliance !NightElf
+<< Alliance
 
 step
 	>>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Jaelyne Evensong|r
@@ -3209,7 +3209,7 @@ RXPGuides.RegisterGuide([[
 #group +Argent Tournament
 #name B_2_AT_Orgrimmar
 #displayname |cRXP_FRIENDLY_2.0|r - Orgrimmar Champion
-<< Horde !Orc
+<< Horde
 
 
 step
@@ -3504,7 +3504,7 @@ RXPGuides.RegisterGuide([[
 #group +Argent Tournament
 #name C_2_AT_Sen'jin
 #displayname |cRXP_FRIENDLY_2.0|r - Sen'jin Champion
-<< Horde !Troll
+<< Horde
 
 step
 	>>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Zul'tore|r
@@ -3801,7 +3801,7 @@ RXPGuides.RegisterGuide([[
 #group +Argent Tournament
 #name D_2_AT_Thunder Bluff
 #displayname |cRXP_FRIENDLY_2.0|r - Thunder Bluff Champion
-<< Horde !Tauren
+<< Horde
 
 step
 	>>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Runok Wildmane|r
@@ -4099,7 +4099,7 @@ RXPGuides.RegisterGuide([[
 #group +Argent Tournament
 #name E_2_AT_Undercity
 #displayname |cRXP_FRIENDLY_2.0|r - Undercity Champion
-<< Horde !Scourge
+<< Horde
 
 step
 	>>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Deathstalker Visceri|r
@@ -4397,7 +4397,7 @@ RXPGuides.RegisterGuide([[
 #name F_2_AT_Silvermoon
 #displayname |cRXP_FRIENDLY_2.0|r - Silvermoon Champion
 #next G_2.1_AT_The_Black Knight's_Quest_Story
-<< Horde !BloodElf
+<< Horde
 
 step
 	>>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to |cRXP_FRIENDLY_Eressea Dawnsinger|r

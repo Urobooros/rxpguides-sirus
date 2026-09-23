@@ -94,6 +94,40 @@ local function applies(textEntry,customClass)
 end
 
 addon.applies = applies
+
+local factionGuideRaces = {
+    HUMAN = "Alliance", DWARF = "Alliance", GNOME = "Alliance",
+    NIGHTELF = "Alliance", DRAENEI = "Alliance", WORGEN = "Alliance",
+    ORC = "Horde", TROLL = "Horde", TAUREN = "Horde",
+    UNDEAD = "Horde", SCOURGE = "Horde", BLOODELF = "Horde",
+    GOBLIN = "Horde",
+}
+
+-- Sirus permits every class for every race. Guide-level conditions inherited
+-- from official clients often exclude class/race combinations which are valid
+-- here (for example "Horde !Warrior !Shaman"). Reduce a route's eligibility to
+-- its faction. Step-level << filters still use applies() unchanged, so class
+-- quests, trainers and spell instructions remain class-specific.
+local function NormalizeGuideEligibility(text)
+    if addon.gameVersion ~= 30300 or type(text) ~= "string" then return text end
+    local factions = {}
+    for token in text:gmatch("!?[%w%d]+") do
+        local positive = token:sub(1, 1) ~= "!"
+        token = token:gsub("^!", "")
+        local uppercase = strupper(token)
+        if positive and (uppercase == "ALLIANCE" or uppercase == "HORDE") then
+            factions[uppercase == "ALLIANCE" and "Alliance" or "Horde"] = true
+        elseif positive and factionGuideRaces[uppercase] then
+            factions[factionGuideRaces[uppercase]] = true
+        end
+    end
+    if factions.Alliance and factions.Horde then return "Alliance/Horde" end
+    if factions.Alliance then return "Alliance" end
+    if factions.Horde then return "Horde" end
+    return text
+end
+
+addon.NormalizeGuideEligibility = NormalizeGuideEligibility
 addon.farmGuides = 0
 
 addon.affix = function(smin, smax)
@@ -119,6 +153,7 @@ end
 function addon.AddGuide(guide)
     -- Not applicable (e.g. wrong faction), rely on upstream functions to report parsing errors
     if not guide then return false end
+    guide.enabledFor = NormalizeGuideEligibility(guide.enabledFor)
     addon.GroupOverride(guide)
     local index = fmt("%s||%s", guide.group, guide.name)
     local loadedGuide = addon.guides[index]
@@ -632,6 +667,7 @@ function addon.LoadEmbeddedGuides()
                             subgroup = subgroup or line:match("^%s*#subgroup%s+(.-)%s*$")
                             name = name or line:match("^%s*#name%s+(.-)%s*$")
                         end
+                        enabledFor = NormalizeGuideEligibility(enabledFor)
                         enabled = enabled and (not enabledFor or applies(enabledFor))
 
                         if enabled then
@@ -656,6 +692,7 @@ function addon.LoadEmbeddedGuides()
                 else
                     guide.lowPrio = nil
                 end
+                guide.enabledFor = NormalizeGuideEligibility(guide.enabledFor)
                 errorMsg = not (not guide.enabledFor or applies(guide.enabledFor))
                 --print(guide,errorMsg,guide.enabledFor)
                 addon.guideCache[guide.key] = EmbeddedGuideParser(
@@ -746,6 +783,11 @@ function addon.LoadCachedGuides()
             key = key:match("^[^|]+|[^|]-|[^|]+") or key
         end
         local guide, errorMsg, metadata
+        guideData.enabledFor = NormalizeGuideEligibility(guideData.enabledFor)
+        if type(guideData.metadata) == "table" then
+            guideData.metadata.enabledFor =
+                NormalizeGuideEligibility(guideData.metadata.enabledFor)
+        end
         local enabled = not guideData.enabledFor or
                             applies(guideData.enabledFor)
         local cachedMetadata = guideData.metadata
@@ -1082,10 +1124,11 @@ function addon.ParseGuide(groupOrContent, text, defaultFor, isEmbedded, group, k
             else
                 -- print(line)
                 line = line:gsub("(.-)%s*<<%s*(.+)", function(code, tag)
-                    local isValid = applies(tag)
+                    local guideTag = NormalizeGuideEligibility(tag)
+                    local isValid = applies(guideTag)
                     if #code == 0 then
-                        skipGuide = not isValid and tag
-                        guide.enabledFor = guide.enabledFor or tag
+                        skipGuide = not isValid and guideTag
+                        guide.enabledFor = guide.enabledFor or guideTag
                         -- print("$"..code.."$",tag,#code)
                     elseif not isValid then
                         return ""
